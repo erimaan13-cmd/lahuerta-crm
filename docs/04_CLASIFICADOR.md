@@ -41,8 +41,8 @@
 - Estados: `auto` → `confirmado`/`corregido` → `aplicado`; `needs_review` exige confirmar/corregir antes de aplicar.
 - Nunca: enviar respuestas, borrar, archivar, mover ni etiquetar en el buzón.
 
-## Resultado sobre el corpus sintético (18 correos)
+## Resultado
 
-`python -m scripts.eval_classifier`: exactitud 16/18 (89 %); 14 auto-clasificados, **14/14 correctos**; los 2 errores (correo mixto y correo en inglés) cayeron en Needs Review. **Advertencia:** es el mismo corpus usado para ajustar reglas → cifra optimista; no representa correos reales.
+Iteración 2: ver **`05_EVALUACION_CLASIFICADOR.md`**. Con un corpus independiente de 72 correos, v1.1.1 logra 75 % de exactitud y 87 % entre los auto-clasificados (v1.0: 53 % y 70 %). La cifra del MVP (16/18) quedó superada por esta medición y no debe citarse.
 
 \* La conversión saco/bulto = 25 kg se basa en la presentación industrial publicada (E11) y se marca como inferida.

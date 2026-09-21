@@ -30,9 +30,14 @@
   <h2>Mis tareas (usuario o rol)</h2>
   <div class="card">{% for t in my_tasks %}
     <div style="margin-bottom:6px"><span class="chip {{ 'bad' if t.priority=='alta' else '' }}">{{ t.priority }}</span> {{ t.title }}<br>
-    <span class="small muted">vence {{ t.due_at.strftime('%d/%m %H:%M') if t.due_at else '—' }} UTC</span></div>
+    <span class="small muted">vence {{ t.due_at|local('%d/%m %H:%M') }}</span></div>
   {% else %}<p class="muted">Sin tareas pendientes.</p>{% endfor %}</div>
 
+  <h2>Recompra pendiente</h2>
+  <div class="card small">{% for c in reorder %}<p><a href="/accounts/{{ c.account.id }}">{{ c.account.name }}</a><br>
+    último pedido {{ c.last_order|local('%d/%m/%Y') }} · intervalo habitual {{ c.interval_days }} días · <span class="chip warn">{{ c.days_overdue }} días de atraso</span></p>
+  {% else %}<p class="muted">Ningún cliente fuera de su ciclo de compra.</p>{% endfor %}
+  {% if has_permission(user.role, 'integration:run') %}<form method="post" action="/automations/reorder-check"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}"><button class="sec">Generar tareas de recompra</button></form>{% endif %}</div>
   <h2>Leads</h2>
   <div class="card small">
     {% for k, v in m.leads_by_status.items() %}<span class="chip">{{ k }}: {{ v }}</span> {% endfor %}

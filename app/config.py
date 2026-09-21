@@ -28,3 +28,22 @@ PUBLIC_EMAIL_DOMAINS = {
 # Dominios de proveedores conocidos (los proveedores NO son entidades del CRM; solo sirven para enrutar).
 SUPPLIER_DOMAINS = {d.strip().lower() for d in os.getenv(
     "CRM_SUPPLIER_DOMAINS", "especias-origen-demo.com,importadora-demo.example").split(",") if d.strip()}
+
+# Horario hábil (E13: L–V 8:00–17:00) y feriados adicionales de la empresa (PENDIENTE de validar)
+BUSINESS_TZ = os.getenv("CRM_BUSINESS_TZ", "America/Monterrey")
+BUSINESS_OPEN_HOUR = int(os.getenv("CRM_BUSINESS_OPEN_HOUR", "8"))
+BUSINESS_CLOSE_HOUR = int(os.getenv("CRM_BUSINESS_CLOSE_HOUR", "17"))
+EXTRA_HOLIDAYS: list = []  # p. ej. [date(2026, 12, 12)] cuando La Huerta confirme su calendario
+
+# SLA en horas hábiles
+CASE_SLA_HOURS = {"critica": 4, "alta": 8, "media": 18, "baja": 27}  # 18 h ≈ 2 días hábiles
+FORMULA_TASK_HOURS = 27
+
+# Recompra: días por defecto si la cuenta tiene un solo pedido; tolerancia sobre el intervalo promedio
+REORDER_DEFAULT_DAYS = int(os.getenv("CRM_REORDER_DEFAULT_DAYS", "30"))
+REORDER_TOLERANCE = float(os.getenv("CRM_REORDER_TOLERANCE", "0.2"))
+
+# Seguridad
+LOGIN_MAX_FAILS = 5
+LOGIN_LOCK_MINUTES = 15
+COMPANY_NAME = os.getenv("CRM_COMPANY_NAME", "EMPACADORA LA HUERTA")

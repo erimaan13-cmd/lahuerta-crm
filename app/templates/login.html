@@ -4,7 +4,7 @@
   <h1>CRM La Huerta · MVP</h1>
   <p class="muted small">Demo con datos sintéticos. Usuarios de prueba en el README (p. ej. <code>ventas1@demo.local</code> / <code>demo1234</code>).</p>
   {% if error %}<p class="chip bad">{{ error }}</p>{% endif %}
-  <form method="post" action="/login">
+  <form method="post" action="/login"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
     <p><label>Correo<br><input name="email" type="email" required style="width:100%"></label></p>
     <p><label>Contraseña<br><input name="password" type="password" required style="width:100%"></label></p>
     <button>Entrar</button>

@@ -1,6 +1,6 @@
 <h2>Interacciones</h2>
 {% if has_permission(user.role, 'activity:write') %}
-<form class="card" method="post" action="/activities">
+<form class="card" method="post" action="/activities"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
   <input type="hidden" name="related_type" value="{{ rtype }}"><input type="hidden" name="related_id" value="{{ rid }}"><input type="hidden" name="next" value="{{ next_url }}">
   <div class="row"><label>Tipo<select name="type">{% for t in ['llamada','correo','whatsapp','reunion','nota'] %}<option>{{ t }}</option>{% endfor %}</select></label>
   <label style="flex:1">Asunto<input name="subject" required style="width:100%"></label></div>
@@ -8,6 +8,6 @@
 </form>
 {% endif %}
 <ul class="timeline">{% for a in timeline %}
-  <li><span class="chip">{{ a.type }}</span> <b>{{ a.subject }}</b> <span class="small muted">{{ a.occurred_at.strftime('%d/%m/%Y %H:%M') }} UTC</span>
+  <li><span class="chip">{{ a.type }}</span> <b>{{ a.subject }}</b> <span class="small muted">{{ a.occurred_at|local('%d/%m/%Y %H:%M') }}</span>
   {% if a.body %}<div class="small muted">{{ a.body[:400] }}</div>{% endif %}</li>
 {% else %}<li class="muted">Sin interacciones.</li>{% endfor %}</ul>

@@ -3,15 +3,15 @@
 <h1>Tareas</h1>
 <p>{% for s in ['pendiente','hecha'] %}<a class="chip {{ 'ok' if status==s }}" href="/tasks?status={{ s }}">{{ s }}</a> {% endfor %} ·
 {% for r in ['ventas','atencion','calidad','administracion'] %}<a class="chip {{ 'ok' if role==r }}" href="/tasks?status={{ status }}&role={{ r }}">{{ r }}</a> {% endfor %}<a href="/tasks?status={{ status }}">todos los roles</a></p>
-<table><tr><th>Tarea</th><th>Rol</th><th>Prioridad</th><th>Vence (UTC)</th><th>Origen</th><th>Relacionado</th><th></th></tr>
+<table><tr><th>Tarea</th><th>Rol</th><th>Prioridad</th><th>Vence</th><th>Origen</th><th>Relacionado</th><th></th></tr>
 {% for t in tasks %}<tr><td>{{ t.title }}</td><td>{{ t.assignee_role or '—' }}</td><td><span class="chip {{ 'bad' if t.priority=='alta' }}">{{ t.priority }}</span></td>
-<td>{{ t.due_at.strftime('%d/%m %H:%M') if t.due_at else '—' }}</td><td class="small">{{ t.origin }}</td>
+<td>{{ t.due_at|local('%d/%m %H:%M') }}</td><td class="small">{{ t.origin }}</td>
 <td>{% if t.related_type in ['lead','account','opportunity','case'] %}<a href="/{{ {'lead':'leads','account':'accounts','opportunity':'opportunities','case':'cases'}[t.related_type] }}/{{ t.related_id }}">{{ t.related_type }}</a>{% else %}{{ t.related_type or '—' }}{% endif %}</td>
-<td>{% if t.status=='pendiente' and has_permission(user.role,'task:write') %}<form class="inline" method="post" action="/tasks/{{ t.id }}/complete"><input type="hidden" name="next" value="/tasks"><button class="sec">Hecha</button></form>{% endif %}</td></tr>
+<td>{% if t.status=='pendiente' and has_permission(user.role,'task:write') %}<form class="inline" method="post" action="/tasks/{{ t.id }}/complete"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}"><input type="hidden" name="next" value="/tasks"><button class="sec">Hecha</button></form>{% endif %}</td></tr>
 {% else %}<tr><td colspan="7" class="muted">Sin tareas.</td></tr>{% endfor %}</table>
 {% if has_permission(user.role,'task:write') %}
 <h2>Nueva tarea</h2>
-<form class="card row" method="post" action="/tasks"><label>Título*<input name="title" required></label>
+<form class="card row" method="post" action="/tasks"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}"><label>Título*<input name="title" required></label>
 <label>Rol<select name="assignee_role">{% for r in ['ventas','atencion','calidad','administracion'] %}<option>{{ r }}</option>{% endfor %}</select></label>
 <label>Vence<input name="due_at" type="datetime-local"></label><label>Prioridad<select name="priority"><option>media</option><option>alta</option><option>baja</option></select></label><button>Crear</button></form>{% endif %}
 {% endblock %}

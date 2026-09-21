@@ -42,7 +42,7 @@ button.sec{background:#fff;color:var(--brand);border:1px solid var(--brand)}
   {% if has_permission(user.role, 'audit:read') %}<a href="/audit">Auditoría</a>{% endif %}
   <form class="search" action="/search"><input name="q" placeholder="Buscar nombre, empresa, correo, tel." value="{{ q or '' }}"></form>
   <span class="small">{{ user.full_name }} · {{ ROLE_LABELS[user.role] }}</span>
-  <form class="inline" method="post" action="/logout"><button class="sec">Salir</button></form>
+  <form class="inline" method="post" action="/logout"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}"><button class="sec">Salir</button></form>
 </header>
 <div class="demo">Entorno de demostración con <b>datos sintéticos</b>. Ninguna empresa, persona o pedido corresponde a clientes reales de Empacadora La Huerta.</div>
 {% endif %}

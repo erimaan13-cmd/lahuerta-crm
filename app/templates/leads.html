@@ -14,13 +14,13 @@
   <td>{{ l.volume_band }}{% if l.est_volume_kg %}<br><span class="small">{{ l.est_volume_kg|int }} kg</span>{% endif %}</td>
   <td>{{ l.source }}</td><td><span class="chip">{{ l.status }}</span></td>
   <td>{% if l.below_minimum %}<span class="chip warn">&lt; 500 kg</span>{% endif %} {% if l.duplicate_reason %}<span class="chip warn" title="{{ l.duplicate_reason }}">posible duplicado</span>{% endif %}</td>
-  <td class="small">{{ l.created_at.strftime('%d/%m %H:%M') }}</td></tr>
+  <td class="small">{{ l.created_at|local('%d/%m %H:%M') }}</td></tr>
 {% else %}<tr><td colspan="8" class="muted">Sin resultados.</td></tr>{% endfor %}
 </table>
 
 {% if has_permission(user.role, 'lead:write') %}
 <h2>Nuevo lead (campos de los formularios públicos)</h2>
-<form class="card" method="post" action="/leads">
+<form class="card" method="post" action="/leads"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
   <div class="row">
     <label>Nombre*<input name="full_name" required></label><label>Empresa<input name="company_name"></label>
     <label>Correo<input name="email" type="email"></label><label>Teléfono<input name="phone"></label><label>Ciudad<input name="city"></label>

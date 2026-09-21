@@ -44,12 +44,31 @@ def _gen(Session):
         x.close()
 
 
+def csrf(c: TestClient) -> str:
+    """Obtiene (o genera) el token CSRF de la cookie del cliente de pruebas."""
+    if "crm_csrf" not in c.cookies:
+        c.get("/login")
+    return c.cookies["crm_csrf"]
+
+
+def ui_post(c: TestClient, url: str, data: dict | None = None, **kw):
+    return c.post(url, data={**(data or {}), "csrf_token": csrf(c)}, **kw)
+
+
+@pytest.fixture(autouse=True)
+def _reset_login_limiter():
+    from app import main
+    main._login_fails.clear()
+    yield
+    main._login_fails.clear()
+
+
 @pytest.fixture()
 def client_for(db):
     def make(role: str | None):
         c = TestClient(app)
         if role:
-            r = c.post("/login", data={"email": f"{role}@t.local", "password": PW}, follow_redirects=False)
+            r = ui_post(c, "/login", {"email": f"{role}@t.local", "password": PW}, follow_redirects=False)
             assert r.status_code == 303, r.text
         return c
     return make

@@ -11,6 +11,7 @@ from app.main import app
 from app.models import Account, AuditEvent, IntegrationEvent, OrderReference
 from app.security import make_session_token, read_session_token
 from app.services import crm
+from tests.conftest import ui_post
 
 LEAD = {"full_name": "API Lead", "company_name": "API SA", "email": "api@apisa.example", "source": "web_contacto",
         "sector_code": "industria_alimentaria", "est_volume_kg": 2000, "product_interest_text": "comino"}
@@ -25,7 +26,7 @@ def test_unauthenticated(db):
 
 def test_bad_password_and_tampered_cookie(db):
     c = TestClient(app)
-    assert c.post("/login", data={"email": "admin@t.local", "password": "x"}).status_code == 401
+    assert ui_post(c, "/login", {"email": "admin@t.local", "password": "x"}).status_code == 401
     token = make_session_token("u-admin")
     assert read_session_token(token) == "u-admin"
     assert read_session_token(token[:-1] + ("0" if token[-1] != "0" else "1")) is None
@@ -108,7 +109,7 @@ def test_errors_are_json_with_proper_codes(admin):
 
 
 def test_ui_domain_error_renders_page(admin):
-    r = admin.post("/leads", data={"full_name": "Sin contacto"})
+    r = ui_post(admin, "/leads", {"full_name": "Sin contacto"})
     assert r.status_code == 422 and "Se requiere correo o teléfono" in r.text
 
 

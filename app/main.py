@@ -1,13 +1,16 @@
 """Aplicación FastAPI: interfaz CRM (HTML) + API REST (JSON). Las rutas solo validan permisos y
 delegan en app/services (arquitectura en capas, docs/02_PLAN.md §5)."""
+import hmac
 import json
 import logging
+import secrets
 import time
 import uuid
+from collections import defaultdict, deque
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, File, Request, UploadFile
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
@@ -23,9 +26,14 @@ from app.models import (Account, AuditEvent, Case, Contact, EmailClassification,
 from app.permissions import ROLE_LABELS, has_permission
 from app.security import make_session_token, read_session_token, verify_password
 from app.services import crm, dashboard, email_pipeline, pipeline
+from app.services.automations import reorder_candidates, run_reorder_check
+from app.services.business_time import to_local
 from app.services.common import DomainError, get_or_404
+from app.services.quote_pdf import render_quote_pdf
 
 BASE = Path(__file__).resolve().parent
+CSRF_COOKIE = "crm_csrf"
+_login_fails: dict[tuple, deque] = defaultdict(deque)  # (ip, email) → instantes de fallos (memoria de proceso)
 
 
 class JsonFormatter(logging.Formatter):
@@ -46,8 +54,14 @@ log = logging.getLogger("crm.http")
 
 app = FastAPI(title="CRM provisional — La Huerta (MVP)", version="0.1.0")
 templates = Jinja2Templates(directory=str(BASE / "templates"))
+def _local(dt, fmt="%d/%m/%Y %H:%M"):
+    return to_local(dt).strftime(fmt) if dt else "—"
+
+
+templates.env.filters["local"] = _local
 templates.env.globals.update(STAGE_LABELS=pipeline.STAGE_LABELS, CATEGORIES=CATEGORIES,
-                             ROLE_LABELS=ROLE_LABELS, has_permission=has_permission)
+                             ROLE_LABELS=ROLE_LABELS, has_permission=has_permission,
+                             QUOTE_TRANSITIONS=crm.QUOTE_TRANSITIONS)
 
 
 class NotAuthenticated(Exception):
@@ -64,14 +78,37 @@ async def request_context(request: Request, call_next):
     rid = request.headers.get("X-Request-ID") or uuid.uuid4().hex[:16]
     token = request_id_var.set(rid)
     t0 = time.perf_counter()
+    csrf = request.cookies.get(CSRF_COOKIE) or secrets.token_urlsafe(24)
+    request.state.csrf = csrf
     try:
-        response = await call_next(request)
+        ctype = request.headers.get("content-type", "")
+        has_body = request.headers.get("content-length", "0") not in ("", "0") or "transfer-encoding" in request.headers
+        if (request.url.path.startswith("/api") and request.method in ("POST", "PUT", "PATCH", "DELETE")
+                and not ctype.startswith("application/json") and (ctype or has_body)):
+            # evita CSRF con formularios text/plain: solo JSON (dispara CORS preflight entre orígenes)
+            response = JSONResponse({"detail": "La API solo acepta Content-Type: application/json"}, status_code=415)
+        else:
+            response = await call_next(request)
     finally:
         request_id_var.reset(token)
     response.headers["X-Request-ID"] = rid
+    if request.cookies.get(CSRF_COOKIE) != csrf:
+        response.set_cookie(CSRF_COOKIE, csrf, httponly=True, samesite="lax", max_age=config.SESSION_MAX_AGE_S)
     log.info("request", extra={"path": request.url.path, "status": response.status_code,
                                "ms": round((time.perf_counter() - t0) * 1000, 1)})
     return response
+
+
+async def csrf_protect(request: Request):
+    """Doble envío: el token del formulario debe coincidir con la cookie (RNF-01)."""
+    form = await request.form()
+    sent, cookie = form.get("csrf_token"), request.cookies.get(CSRF_COOKIE)
+    if not sent or not cookie or not hmac.compare_digest(str(sent), cookie):
+        raise CsrfError()
+
+
+class CsrfError(Exception):
+    pass
 
 
 def _is_api(request: Request) -> bool:
@@ -84,6 +121,12 @@ async def domain_error_handler(request: Request, exc: DomainError):
         return JSONResponse({"detail": exc.message}, status_code=exc.status_code)
     return templates.TemplateResponse(request, "error.html", {"message": exc.message, "user": None},
                                       status_code=exc.status_code)
+
+
+@app.exception_handler(CsrfError)
+async def csrf_handler(request: Request, exc):
+    return templates.TemplateResponse(request, "error.html", {"message": "Formulario vencido o inválido (CSRF). "
+                                      "Recarga la página e inténtalo de nuevo.", "user": None}, status_code=403)
 
 
 @app.exception_handler(NotAuthenticated)
@@ -147,20 +190,31 @@ def login_page(request: Request):
     return templates.TemplateResponse(request, "login.html", {"user": None, "error": None})
 
 
-@app.post("/login")
+@app.post("/login", dependencies=[Depends(csrf_protect)])
 async def login(request: Request, db: Session = Depends(dbmod.get_db)):
     f = await form_dict(request)
-    user = db.scalar(select(User).where(User.email == (f.get("email") or "").strip().lower()))
+    email = (f.get("email") or "").strip().lower()
+    key = (request.client.host if request.client else "?", email)
+    now = time.time()
+    fails = _login_fails[key]
+    while fails and now - fails[0] > config.LOGIN_LOCK_MINUTES * 60:
+        fails.popleft()
+    if len(fails) >= config.LOGIN_MAX_FAILS:
+        return templates.TemplateResponse(request, "login.html", {"user": None, "error":
+                                          f"Demasiados intentos. Espera {config.LOGIN_LOCK_MINUTES} minutos."}, status_code=429)
+    user = db.scalar(select(User).where(User.email == email))
     if not user or not user.is_active or not verify_password(f.get("password") or "", user.password_hash):
+        fails.append(now)
         return templates.TemplateResponse(request, "login.html", {"user": None, "error": "Credenciales inválidas"},
                                           status_code=401)
+    fails.clear()
     resp = back("/")
     resp.set_cookie(config.SESSION_COOKIE, make_session_token(user.id), httponly=True, samesite="lax",
                     max_age=config.SESSION_MAX_AGE_S)
     return resp
 
 
-@app.post("/logout")
+@app.post("/logout", dependencies=[Depends(csrf_protect)])
 def logout():
     resp = back("/login")
     resp.delete_cookie(config.SESSION_COOKIE)
@@ -173,7 +227,8 @@ def ui_dashboard(request: Request, db: Session = Depends(dbmod.get_db), user: Us
     my_tasks = list(db.scalars(select(Task).where(Task.status == "pendiente",
                                                   (Task.assignee_id == user.id) | (Task.assignee_role == user.role))
                                .order_by(Task.due_at).limit(10)))
-    return render(request, "dashboard.html", user, m=dashboard.metrics(db), my_tasks=my_tasks)
+    return render(request, "dashboard.html", user, m=dashboard.metrics(db), my_tasks=my_tasks,
+                  reorder=reorder_candidates(db))
 
 
 @app.get("/leads", response_class=HTMLResponse)
@@ -184,7 +239,7 @@ def ui_leads(request: Request, status: str | None = None, sector: str | None = N
                   sources=sorted(crm.LEAD_SOURCES), f={"status": status, "sector": sector, "source": source})
 
 
-@app.post("/leads")
+@app.post("/leads", dependencies=[Depends(csrf_protect)])
 async def ui_create_lead(request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("lead:write"))):
     lead, _ = crm.create_lead(db, await form_dict(request), user.id)
     return back(f"/leads/{lead.id}")
@@ -198,14 +253,14 @@ def ui_lead(lead_id: str, request: Request, db: Session = Depends(dbmod.get_db),
                   next_status=sorted(crm.LEAD_TRANSITIONS.get(lead.status, set())))
 
 
-@app.post("/leads/{lead_id}/status")
+@app.post("/leads/{lead_id}/status", dependencies=[Depends(csrf_protect)])
 async def ui_lead_status(lead_id: str, request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("lead:write"))):
     f = await form_dict(request)
     crm.change_lead_status(db, lead_id, f.get("status"), user.id, f.get("reason"))
     return back(f"/leads/{lead_id}")
 
 
-@app.post("/leads/{lead_id}/convert")
+@app.post("/leads/{lead_id}/convert", dependencies=[Depends(csrf_protect)])
 async def ui_lead_convert(lead_id: str, request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("lead:convert"))):
     f = await form_dict(request)
     r = crm.convert_lead(db, lead_id, user.id, create_opportunity="create_opportunity" in f,
@@ -213,7 +268,7 @@ async def ui_lead_convert(lead_id: str, request: Request, db: Session = Depends(
     return back(f"/opportunities/{r['opportunity'].id}" if r["opportunity"] else f"/accounts/{r['account'].id}")
 
 
-@app.post("/activities")
+@app.post("/activities", dependencies=[Depends(csrf_protect)])
 async def ui_activity(request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("activity:write"))):
     f = await form_dict(request)
     crm.log_activity(db, f, user.id)
@@ -229,7 +284,7 @@ def ui_accounts(request: Request, lifecycle: str | None = None, db: Session = De
                   sectors=list(db.scalars(select(Sector))))
 
 
-@app.post("/accounts")
+@app.post("/accounts", dependencies=[Depends(csrf_protect)])
 async def ui_create_account(request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("account:write"))):
     acc = crm.create_account(db, await form_dict(request), user.id)
     return back(f"/accounts/{acc.id}")
@@ -248,7 +303,7 @@ def ui_account(account_id: str, request: Request, db: Session = Depends(dbmod.ge
                   opp_types=sorted(pipeline.OPP_TYPES), products=list(db.scalars(select(Product).order_by(Product.name))))
 
 
-@app.post("/accounts/{account_id}/contacts")
+@app.post("/accounts/{account_id}/contacts", dependencies=[Depends(csrf_protect)])
 async def ui_create_contact(account_id: str, request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("account:write"))):
     crm.create_contact(db, account_id, await form_dict(request), user.id)
     return back(f"/accounts/{account_id}")
@@ -264,7 +319,7 @@ def ui_opps(request: Request, type: str | None = None, db: Session = Depends(dbm
     return render(request, "opportunities.html", user, cols=cols, opp_type=type, opp_types=sorted(pipeline.OPP_TYPES))
 
 
-@app.post("/opportunities")
+@app.post("/opportunities", dependencies=[Depends(csrf_protect)])
 async def ui_create_opp(request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("opportunity:write"))):
     form = await request.form()
     f = {k: v for k, v in form.items()}
@@ -282,14 +337,14 @@ def ui_opp(opp_id: str, request: Request, db: Session = Depends(dbmod.get_db), u
                   products=list(db.scalars(select(Product).order_by(Product.name))), packaging=sorted(crm.PACKAGING))
 
 
-@app.post("/opportunities/{opp_id}/stage")
+@app.post("/opportunities/{opp_id}/stage", dependencies=[Depends(csrf_protect)])
 async def ui_opp_stage(opp_id: str, request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("opportunity:write"))):
     f = await form_dict(request)
     crm.change_stage(db, opp_id, f.get("stage"), user.id, f.get("lost_reason"))
     return back(f"/opportunities/{opp_id}")
 
 
-@app.post("/opportunities/{opp_id}/quotes")
+@app.post("/opportunities/{opp_id}/quotes", dependencies=[Depends(csrf_protect)])
 async def ui_quote(opp_id: str, request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("quote:write"))):
     f = await form_dict(request)
     items = [{"product_id": f.get(f"product_id_{i}"), "qty_kg": f.get(f"qty_kg_{i}"), "packaging": f.get(f"packaging_{i}"),
@@ -306,14 +361,14 @@ def ui_tasks(request: Request, status: str = "pendiente", role: str | None = Non
     return render(request, "tasks.html", user, tasks=list(db.scalars(stmt)), status=status, role=role)
 
 
-@app.post("/tasks")
+@app.post("/tasks", dependencies=[Depends(csrf_protect)])
 async def ui_create_task(request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("task:write"))):
     f = await form_dict(request)
     crm.create_task(db, f, user.id)
     return back(f.get("next") or "/tasks")
 
 
-@app.post("/tasks/{task_id}/complete")
+@app.post("/tasks/{task_id}/complete", dependencies=[Depends(csrf_protect)])
 async def ui_complete_task(task_id: str, request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("task:write"))):
     f = await form_dict(request)
     crm.complete_task(db, task_id, user.id)
@@ -332,7 +387,7 @@ def ui_case(case_id: str, request: Request, db: Session = Depends(dbmod.get_db),
                   next_status=sorted(crm.CASE_TRANSITIONS.get(c.status, set())))
 
 
-@app.post("/cases/{case_id}/status")
+@app.post("/cases/{case_id}/status", dependencies=[Depends(csrf_protect)])
 async def ui_case_status(case_id: str, request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("case:write"))):
     f = await form_dict(request)
     crm.change_case_status(db, case_id, f.get("status"), user.id, f.get("lot_reference"))
@@ -362,21 +417,21 @@ def ui_email(email_id: str, request: Request, db: Session = Depends(dbmod.get_db
     return render(request, "email_detail.html", user, msg=msg, cls=msg.classification)
 
 
-@app.post("/emails/{email_id}/review")
+@app.post("/emails/{email_id}/review", dependencies=[Depends(csrf_protect)])
 async def ui_email_review(email_id: str, request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("email:review"))):
     f = await form_dict(request)
     email_pipeline.review(db, email_id, user.id, f.get("category") or None)
     return back(f"/emails/{email_id}")
 
 
-@app.post("/emails/{email_id}/apply")
+@app.post("/emails/{email_id}/apply", dependencies=[Depends(csrf_protect)])
 async def ui_email_apply(email_id: str, request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("email:review"))):
     f = await form_dict(request)
     email_pipeline.apply_suggestion(db, email_id, user.id, f.get("action") or None)
     return back(f"/emails/{email_id}")
 
 
-@app.post("/emails/ingest-demo")
+@app.post("/emails/ingest-demo", dependencies=[Depends(csrf_protect)])
 def ui_ingest_demo(db: Session = Depends(dbmod.get_db), user: User = Depends(require("email:ingest"))):
     data = config.BASE_DIR / "data"
     email_pipeline.ingest(db, MockMailboxProvider(data / "demo_emails.json"), actor_id=user.id)
@@ -384,7 +439,7 @@ def ui_ingest_demo(db: Session = Depends(dbmod.get_db), user: User = Depends(req
     return back("/emails")
 
 
-@app.post("/emails/upload")
+@app.post("/emails/upload", dependencies=[Depends(csrf_protect)])
 async def ui_upload_eml(file: UploadFile = File(...), db: Session = Depends(dbmod.get_db), user: User = Depends(require("email:ingest"))):
     raw = parse_eml_bytes(await file.read(), provider="eml_upload")
     msg, _ = email_pipeline.process_raw(db, raw, actor_id=user.id)
@@ -403,7 +458,7 @@ def ui_audit(request: Request, db: Session = Depends(dbmod.get_db), user: User =
     return render(request, "audit.html", user, events=events, users=users)
 
 
-@app.post("/integrations/erp-sync")
+@app.post("/integrations/erp-sync", dependencies=[Depends(csrf_protect)])
 def ui_erp_sync(db: Session = Depends(dbmod.get_db), user: User = Depends(require("integration:run"))):
     from app.seed import demo_erp_orders
     sync_orders(db, MockErpAdapter(demo_erp_orders()), user.id)
@@ -588,3 +643,54 @@ def api_export(db: Session = Depends(dbmod.get_db), user: User = Depends(require
 def api_erp_sync(db: Session = Depends(dbmod.get_db), user: User = Depends(require("integration:run"))):
     from app.seed import demo_erp_orders
     return sync_orders(db, MockErpAdapter(demo_erp_orders()), user.id)
+
+
+# ======================================================================= iteración 2
+@app.post("/leads/{lead_id}/merge", dependencies=[Depends(csrf_protect)])
+async def ui_merge(lead_id: str, request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("lead:write"))):
+    f = await form_dict(request)
+    keep = crm.merge_leads(db, f.get("keep_id"), lead_id, user.id)
+    return back(f"/leads/{keep.id}")
+
+
+@app.post("/api/leads/{lead_id}/merge")
+async def api_merge(lead_id: str, request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("lead:write"))):
+    """Fusiona el lead `lead_id` dentro de `keep_id`."""
+    return ser(crm.merge_leads(db, (await request.json()).get("keep_id"), lead_id, user.id))
+
+
+@app.post("/quotes/{quote_id}/status", dependencies=[Depends(csrf_protect)])
+async def ui_quote_status(quote_id: str, request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("quote:write"))):
+    f = await form_dict(request)
+    q = crm.change_quote_status(db, quote_id, f.get("status"), user.id)
+    return back(f"/opportunities/{q.opportunity_id}")
+
+
+@app.post("/api/quotes/{quote_id}/status")
+async def api_quote_status(quote_id: str, request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("quote:write"))):
+    return ser(crm.change_quote_status(db, quote_id, (await request.json()).get("status"), user.id))
+
+
+@app.get("/quotes/{quote_id}.pdf")
+@app.get("/api/quotes/{quote_id}/pdf")
+def quote_pdf(quote_id: str, db: Session = Depends(dbmod.get_db), user: User = Depends(require("opportunity:read"))):
+    q = get_or_404(db, Quote, quote_id, "Cotización")
+    return Response(render_quote_pdf(q), media_type="application/pdf",
+                    headers={"Content-Disposition": f'inline; filename="{q.folio}.pdf"'})
+
+
+@app.post("/automations/reorder-check", dependencies=[Depends(csrf_protect)])
+def ui_reorder(db: Session = Depends(dbmod.get_db), user: User = Depends(require("integration:run"))):
+    run_reorder_check(db, user.id)
+    return back("/tasks?role=ventas")
+
+
+@app.post("/api/automations/reorder-check")
+def api_reorder(db: Session = Depends(dbmod.get_db), user: User = Depends(require("integration:run"))):
+    return run_reorder_check(db, user.id)
+
+
+@app.get("/api/automations/reorder-candidates")
+def api_reorder_candidates(db: Session = Depends(dbmod.get_db), user: User = Depends(require("dashboard:read"))):
+    return [{"account_id": c["account"].id, "account": c["account"].name, "last_order": c["last_order"].isoformat(),
+             "interval_days": c["interval_days"], "days_overdue": c["days_overdue"]} for c in reorder_candidates(db)]

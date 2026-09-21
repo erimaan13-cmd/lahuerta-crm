@@ -11,8 +11,8 @@
 
   <h2>Pedidos <span class="small muted">(referencia de solo lectura desde ERP — el CRM no es maestro de pedidos)</span></h2>
   <table><tr><th>Pedido ERP</th><th>Estado</th><th>Prometido</th><th>Entregado</th><th>kg</th></tr>
-  {% for r in acc.orders %}<tr><td>{{ r.erp_order_id }}</td><td><span class="chip">{{ r.status }}</span></td><td>{{ r.promised_date.strftime('%d/%m/%Y') if r.promised_date else '—' }}</td>
-  <td>{{ r.delivered_at.strftime('%d/%m/%Y') if r.delivered_at else '—' }}</td><td>{{ '{:,.0f}'.format(r.total_kg or 0) }}</td></tr>{% else %}<tr><td colspan="5" class="muted">Sin pedidos sincronizados.</td></tr>{% endfor %}</table>
+  {% for r in acc.orders %}<tr><td>{{ r.erp_order_id }}</td><td><span class="chip">{{ r.status }}</span></td><td>{{ r.promised_date|local('%d/%m/%Y') }}</td>
+  <td>{{ r.delivered_at|local('%d/%m/%Y') }}</td><td>{{ '{:,.0f}'.format(r.total_kg or 0) }}</td></tr>{% else %}<tr><td colspan="5" class="muted">Sin pedidos sincronizados.</td></tr>{% endfor %}</table>
 
   <h2>Casos</h2>
   <table><tr><th>Folio</th><th>Tipo</th><th>Severidad</th><th>Estado</th><th>Lote</th></tr>
@@ -27,10 +27,10 @@
   <h2>Contactos</h2>
   <div class="card">{% for c in acc.contacts %}<p><b>{{ c.full_name }}</b> {% if c.is_primary %}<span class="chip ok">principal</span>{% endif %}<br><span class="small">{{ c.job_title or '' }}<br>{{ c.email or '' }} · {{ c.phone or '' }}</span></p>{% else %}<p class="muted">Sin contactos.</p>{% endfor %}
   {% if has_permission(user.role, 'account:write') %}
-  <form method="post" action="/accounts/{{ acc.id }}/contacts"><p><input name="full_name" placeholder="Nombre*" required> <input name="email" placeholder="Correo"> <input name="phone" placeholder="Teléfono"> <input name="job_title" placeholder="Puesto"></p><button class="sec">Agregar contacto</button></form>{% endif %}</div>
+  <form method="post" action="/accounts/{{ acc.id }}/contacts"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}"><p><input name="full_name" placeholder="Nombre*" required> <input name="email" placeholder="Correo"> <input name="phone" placeholder="Teléfono"> <input name="job_title" placeholder="Puesto"></p><button class="sec">Agregar contacto</button></form>{% endif %}</div>
   {% if has_permission(user.role, 'opportunity:write') %}
   <h2>Nueva oportunidad</h2>
-  <form class="card" method="post" action="/opportunities"><input type="hidden" name="account_id" value="{{ acc.id }}">
+  <form class="card" method="post" action="/opportunities"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}"><input type="hidden" name="account_id" value="{{ acc.id }}">
     <p><input name="title" placeholder="Título*" required style="width:100%"></p>
     <p><select name="type">{% for t in opp_types %}<option>{{ t }}</option>{% endfor %}</select> <input name="est_volume_kg" type="number" min="1" step="any" placeholder="kg estimados"></p>
     <p><select name="product_ids" multiple size="5" style="width:100%">{% for p in products %}<option value="{{ p.id }}">{{ p.name }}</option>{% endfor %}</select></p>

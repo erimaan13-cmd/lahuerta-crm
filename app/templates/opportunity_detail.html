@@ -8,13 +8,15 @@
   <tr><th>Productos</th><td colspan="3">{% for i in opp.interests %}<span class="chip">{{ i.product.name }}</span> {% else %}—{% endfor %}</td></tr>
   {% if opp.lost_reason %}<tr><th>Motivo de pérdida</th><td colspan="3">{{ opp.lost_reason }}</td></tr>{% endif %}</table>
   <h2>Cotizaciones</h2>
-  {% for q in opp.quotes %}<div class="card" style="margin-bottom:8px"><b>{{ q.folio }}</b> <span class="chip">{{ q.status }}</span> vigente hasta {{ q.valid_until.strftime('%d/%m/%Y') }}
+  {% for q in opp.quotes %}<div class="card" style="margin-bottom:8px"><b>{{ q.folio }}</b> <span class="chip">{{ q.status }}</span> vigente hasta {{ q.valid_until|local('%d/%m/%Y') }}
+    · <a href="/quotes/{{ q.id }}.pdf" target="_blank">PDF</a>{% if q.sent_at %} · enviada {{ q.sent_at|local('%d/%m %H:%M') }}{% endif %}
+    {% if has_permission(user.role, 'quote:write') %}{% for st in QUOTE_TRANSITIONS.get(q.status, []) %}<form class="inline" method="post" action="/quotes/{{ q.id }}/status"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}"><input type="hidden" name="status" value="{{ st }}"><button class="sec small">Marcar {{ st }}</button></form> {% endfor %}{% endif %}
     <table style="margin-top:6px"><tr><th>Producto</th><th>kg</th><th>Empaque</th><th>$/kg</th><th>Importe</th></tr>
     {% for it in q.items %}<tr><td>{{ it.product.name }}</td><td>{{ '{:,.0f}'.format(it.qty_kg) }}</td><td>{{ it.packaging }}</td><td>{{ '{:,.2f}'.format(it.unit_price_mxn) }}</td><td>{{ '{:,.2f}'.format(it.qty_kg*it.unit_price_mxn) }}</td></tr>{% endfor %}
     <tr><th>Total</th><td>{{ '{:,.0f}'.format(q.total_kg) }}</td><td></td><td></td><th>${{ '{:,.2f}'.format(q.total_mxn) }}</th></tr></table></div>
   {% else %}<p class="muted">Sin cotizaciones.</p>{% endfor %}
   {% if opp.stage not in ['ganada','perdida'] and has_permission(user.role, 'quote:write') %}
-  <form class="card" method="post" action="/opportunities/{{ opp.id }}/quotes"><b>Nueva cotización</b> <span class="small muted">(precios sintéticos; en producción vendrían de la lista del ERP)</span>
+  <form class="card" method="post" action="/opportunities/{{ opp.id }}/quotes"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}"><b>Nueva cotización</b> <span class="small muted">(precios sintéticos; en producción vendrían de la lista del ERP)</span>
   {% for i in range(3) %}<div class="row" style="margin-top:6px">
     <select name="product_id_{{ i }}"><option value="">—producto—</option>{% for p in products %}<option value="{{ p.id }}">{{ p.name }}</option>{% endfor %}</select>
     <input name="qty_kg_{{ i }}" type="number" min="1" step="any" placeholder="kg"><select name="packaging_{{ i }}">{% for p in packaging %}<option>{{ p }}</option>{% endfor %}</select>
@@ -25,7 +27,7 @@
 </div><div>
   {% if next_stages and has_permission(user.role, 'opportunity:write') %}
   <h2>Mover etapa</h2>
-  <form class="card" method="post" action="/opportunities/{{ opp.id }}/stage">
+  <form class="card" method="post" action="/opportunities/{{ opp.id }}/stage"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
     <select name="stage">{% for s in next_stages %}<option value="{{ s }}">{{ STAGE_LABELS[s] }}</option>{% endfor %}</select>
     <p><input name="lost_reason" placeholder="Motivo de pérdida (si aplica)" style="width:100%"></p><button>Aplicar</button>
     <p class="small muted">Reglas: Cotización requiere ≥1 cotización; Perdida requiere motivo; Ganada genera tarea para Administración y evento de integración ERP.</p>

@@ -18,6 +18,7 @@ from app.integrations.erp import ErpOrder, MockErpAdapter, sync_orders
 from app.models import Account, Contact, Product, Sector, User, utcnow
 from app.security import hash_password
 from app.services import crm, email_pipeline
+from app.services.automations import run_reorder_check
 
 DEMO_PASSWORD = "demo1234"  # contraseña de demostración, pública a propósito; cambiar fuera de la demo
 
@@ -58,6 +59,8 @@ def demo_erp_orders() -> list[ErpOrder]:
         ErpOrder("P-55107", "C-001", "entregado", now - timedelta(days=12), now - timedelta(days=11), 1200),
         ErpOrder("P-55120", "C-002", "enviado", now + timedelta(days=1), None, 800),
         ErpOrder("P-55124", "C-003", "en_surtido", now + timedelta(days=2), None, 2000),
+        ErpOrder("P-54810", "C-004", "entregado", now - timedelta(days=96), now - timedelta(days=95), 5000),
+        ErpOrder("P-54990", "C-004", "entregado", now - timedelta(days=61), now - timedelta(days=60), 4800),  # recompra vencida
         ErpOrder("P-55999", "C-999", "recibido", now + timedelta(days=3), None, 600),  # sin cuenta → error controlado
     ]
 
@@ -96,7 +99,7 @@ def seed(db: Session, with_emails: bool = True) -> dict:
     a3 = account("Comedores Industriales del Norte", "comedoresnorte.example", "comedor_industrial", "Apodaca", "Nuevo León", "C-003")
     a4 = account("Botanas y Embutidos Regios", "botanasregias.example", "industria_alimentaria", "Guadalupe", "Nuevo León", owner=v2)
     a5 = account("Grupo Taquero El Fogón", "elfogon.example", "restaurante", "Saltillo", "Coahuila", owner=v2)
-    a6 = account("Alimentos Procesados del Bajío", "apbajio.example", "industria_alimentaria", "Querétaro", "Querétaro", key=True)
+    a6 = account("Alimentos Procesados del Bajío", "apbajio.example", "industria_alimentaria", "Querétaro", "Querétaro", "C-004", key=True)
     c1 = contact(a1, "Laura Méndez (DEMO)", "compras@sabornorteno.example", "8110000001", "Jefa de compras")
     c2 = contact(a2, "Jorge Salinas (DEMO)", "chef@sierramadreplaza.example", "8110000002", "Chef ejecutivo")
     c3 = contact(a3, "Patricia Garza (DEMO)", "calidad@comedoresnorte.example", "8110000003", "Coordinadora de calidad")
@@ -175,7 +178,7 @@ def seed(db: Session, with_emails: bool = True) -> dict:
     crm.change_lead_status(db, created[5].id, "descartado", v2, "Volumen menor al mínimo de 500 kg")
 
     stats = sync_orders(db, MockErpAdapter(demo_erp_orders()), adm)
-    out = {"users": len(USERS), "erp_sync": stats}
+    out = {"users": len(USERS), "erp_sync": stats, "reorder": run_reorder_check(db, adm)}
     if with_emails:
         data_dir = config.BASE_DIR / "data"
         out["emails_mock"] = email_pipeline.ingest(db, MockMailboxProvider(data_dir / "demo_emails.json"), actor_id=adm)
@@ -186,8 +189,22 @@ def seed(db: Session, with_emails: bool = True) -> dict:
 def reset_and_seed() -> dict:
     Base.metadata.drop_all(bind=engine)
     init_db()
+    _stamp_alembic_head()
     with SessionLocal() as db:
         return seed(db)
+
+
+def _stamp_alembic_head():
+    """La BD de demo se crea con create_all; se marca en la última migración para que
+    `alembic upgrade head` funcione en adelante sin recrear tablas."""
+    try:
+        from alembic import command
+        from alembic.config import Config
+        cfg = Config(str(config.BASE_DIR / "alembic.ini"))
+        cfg.set_main_option("script_location", str(config.BASE_DIR / "migrations"))
+        command.stamp(cfg, "head")
+    except ImportError:  # alembic es opcional para la demo
+        pass
 
 
 if __name__ == "__main__":

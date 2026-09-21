@@ -109,6 +109,7 @@ class Lead(Base, TimestampMixin):
     converted_account_id: Mapped[str | None] = mapped_column(ForeignKey("accounts.id"))
     converted_contact_id: Mapped[str | None] = mapped_column(ForeignKey("contacts.id"))
     converted_opportunity_id: Mapped[str | None] = mapped_column(ForeignKey("opportunities.id"))
+    merged_into_id: Mapped[str | None] = mapped_column(ForeignKey("leads.id"))
     consent_source: Mapped[str | None] = mapped_column(String(120))
     owner_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"))
     is_demo: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -155,6 +156,7 @@ class Quote(Base, TimestampMixin):
     status: Mapped[str] = mapped_column(String(20), default="borrador")
     valid_until: Mapped[datetime | None] = mapped_column(DateTime)
     currency: Mapped[str] = mapped_column(String(3), default="MXN")
+    sent_at: Mapped[datetime | None] = mapped_column(DateTime)
     opportunity: Mapped[Opportunity] = relationship(back_populates="quotes")
     items: Mapped[list["QuoteItem"]] = relationship(back_populates="quote", cascade="all, delete-orphan")
 

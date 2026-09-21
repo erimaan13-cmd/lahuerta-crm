@@ -12,6 +12,7 @@ from app.audit import record, snapshot
 from app.models import (Account, Activity, Case, Contact, IntegrationEvent, Lead, Opportunity,
                         Product, ProductInterest, Quote, QuoteItem, Sector, Task, utcnow)
 from app.services import pipeline
+from app.services.business_time import add_business_hours
 from app.services.common import (DomainError, email_domain, get_or_404, norm_email, norm_phone,
                                  norm_text)
 
@@ -140,7 +141,7 @@ def create_lead(db: Session, data: dict, actor_id: str | None = None) -> tuple[L
     db.flush()
     # 3) automatización: tarea de primer contacto (E14 "te contactaremos enseguida")
     db.add(Task(title=f"Primer contacto: {lead.full_name} ({lead.company_name or 's/empresa'})",
-                due_at=utcnow() + timedelta(hours=config.FIRST_CONTACT_SLA_HOURS),
+                due_at=add_business_hours(utcnow(), config.FIRST_CONTACT_SLA_HOURS),
                 priority="alta" if not lead.below_minimum else "baja",
                 assignee_id=lead.owner_id, assignee_role="ventas", related_type="lead",
                 related_id=lead.id, origin="auto_lead"))
@@ -314,11 +315,11 @@ def change_stage(db: Session, opp_id: str, new_stage: str, actor_id: str | None,
                                          "account_name": acc.name, "erp_customer_ref": acc.erp_customer_ref}))
         db.add(Task(title=f"Alta/pedido en ERP: {acc.name}", assignee_role="administracion",
                     related_type="opportunity", related_id=opp.id, origin="auto_pipeline",
-                    due_at=utcnow() + timedelta(days=1), priority="alta"))
+                    due_at=add_business_hours(utcnow(), 9), priority="alta"))
     if new_stage == "desarrollo_formula":
         db.add(Task(title=f"Desarrollar propuesta de fórmula: {opp.title}", assignee_role="calidad",
                     related_type="opportunity", related_id=opp.id, origin="auto_pipeline",
-                    due_at=utcnow() + timedelta(days=3)))
+                    due_at=add_business_hours(utcnow(), config.FORMULA_TASK_HOURS)))
     _system_activity(db, "opportunity", opp.id,
                      f"Etapa: {pipeline.STAGE_LABELS[before['stage']]} → {pipeline.STAGE_LABELS[new_stage]}",
                      actor_id, lost_reason)
@@ -441,7 +442,7 @@ def create_case(db: Session, data: dict, actor_id: str | None) -> Case:
                   "facturacion": "administracion"}.get(ctype, "atencion")
     db.add(Task(title=f"Atender {c.folio}: {subject}", assignee_role=owner_role, related_type="case",
                 related_id=c.id, origin="auto_case", priority="alta" if sev in ("alta", "critica") else "media",
-                due_at=utcnow() + timedelta(hours=8 if sev in ("alta", "critica") else 48)))
+                due_at=add_business_hours(utcnow(), config.CASE_SLA_HOURS[sev])))
     record(db, actor_id, "case.create", "case", c.id, after=snapshot(c))
     db.commit()
     return c
@@ -506,3 +507,87 @@ def timeline(db: Session, related_type: str, related_id: str) -> list[Activity]:
     return list(db.scalars(select(Activity).where(Activity.related_type == related_type,
                                                   Activity.related_id == related_id)
                            .order_by(Activity.occurred_at.desc())))
+
+
+# ---------------------------------------------------------------- fusión de duplicados (RF-35)
+MERGE_FIELDS = ["company_name", "email", "phone", "city", "state", "sector_code", "product_interest_text",
+                "est_volume_kg", "campaign", "message"]
+
+
+def merge_leads(db: Session, keep_id: str, dup_id: str, actor_id: str | None) -> Lead:
+    """Fusiona `dup` en `keep`: completa campos vacíos, mueve interacciones, tareas, casos y vínculos de
+    correo, y deja `dup` descartado con referencia (no se borra: trazabilidad)."""
+    if keep_id == dup_id:
+        raise DomainError("No se puede fusionar un lead consigo mismo")
+    keep, dup = get_or_404(db, Lead, keep_id, "Lead"), get_or_404(db, Lead, dup_id, "Lead")
+    for lead in (keep, dup):
+        if lead.status == "convertido":
+            raise DomainError(f"El lead {lead.full_name} ya fue convertido; fusiona desde la cuenta")
+        if lead.merged_into_id:
+            raise DomainError(f"El lead {lead.full_name} ya fue fusionado")
+    before_keep, before_dup = snapshot(keep), snapshot(dup)
+    filled = []
+    for f in MERGE_FIELDS:
+        if getattr(keep, f) in (None, "") and getattr(dup, f) not in (None, ""):
+            if f == "email" and db.scalar(select(Lead).where(Lead.email == dup.email, Lead.id != dup.id)):
+                continue
+            setattr(keep, f, getattr(dup, f))
+            filled.append(f)
+    if filled and "est_volume_kg" in filled:
+        keep.volume_band = _band_from_kg(keep.est_volume_kg)
+        keep.below_minimum = keep.volume_band == "menor_500kg"
+    moved = {"activities": 0, "tasks": 0, "cases": 0, "emails": 0}
+    for a in db.scalars(select(Activity).where(Activity.related_type == "lead", Activity.related_id == dup.id)):
+        a.related_id = keep.id
+        moved["activities"] += 1
+    for t in db.scalars(select(Task).where(Task.related_type == "lead", Task.related_id == dup.id)):
+        if t.origin == "auto_lead" and t.status == "pendiente":
+            t.status = "cancelada"  # ya existe la tarea de primer contacto del lead que se conserva
+        else:
+            t.related_id = keep.id
+            moved["tasks"] += 1
+    for c in db.scalars(select(Case).where(Case.lead_id == dup.id)):
+        c.lead_id = keep.id
+        moved["cases"] += 1
+    from app.models import EmailClassification  # import local para evitar ciclo conceptual
+    for ec in db.scalars(select(EmailClassification).where(EmailClassification.crm_link_id == dup.id)):
+        ec.crm_link_id = keep.id
+        ec.crm_links = {**(ec.crm_links or {}), "lead": keep.id}
+        moved["emails"] += 1
+    for other in db.scalars(select(Lead).where(Lead.possible_duplicate_of_id == dup.id)):
+        other.possible_duplicate_of_id = keep.id
+    if keep.possible_duplicate_of_id == dup.id:
+        keep.possible_duplicate_of_id, keep.duplicate_reason = None, None
+    dup.merged_into_id = keep.id
+    dup.status = "descartado"
+    dup.discard_reason = f"Fusionado con {keep.full_name} ({keep.id[:8]})"
+    dup.possible_duplicate_of_id = None
+    db.add(Activity(type="sistema", subject=f"Fusión: se integró el lead {dup.full_name}",
+                    body=f"Campos completados: {', '.join(filled) or 'ninguno'} · movidos: {moved}",
+                    related_type="lead", related_id=keep.id, actor_id=actor_id))
+    record(db, actor_id, "lead.merge", "lead", keep.id, before_keep, snapshot(keep))
+    record(db, actor_id, "lead.merged_into", "lead", dup.id, before_dup, snapshot(dup))
+    db.commit()
+    return keep
+
+
+# ---------------------------------------------------------------- estado de cotización
+QUOTE_TRANSITIONS = {"borrador": {"enviada", "rechazada"}, "enviada": {"aceptada", "rechazada", "vencida"},
+                     "aceptada": set(), "rechazada": set(), "vencida": {"enviada"}}
+
+
+def change_quote_status(db: Session, quote_id: str, new_status: str, actor_id: str | None) -> Quote:
+    """'enviada' solo registra que una persona la envió por su cuenta: el CRM no envía correos."""
+    q = get_or_404(db, Quote, quote_id, "Cotización")
+    if new_status not in QUOTE_TRANSITIONS.get(q.status, set()):
+        raise DomainError(f"Transición de cotización no permitida: {q.status} → {new_status}")
+    before = snapshot(q)
+    q.status = new_status
+    if new_status == "enviada":
+        q.sent_at = utcnow()
+        db.add(Task(title=f"Seguimiento a cotización {q.folio}", assignee_role="ventas", related_type="opportunity",
+                    related_id=q.opportunity_id, origin="auto_quote", due_at=add_business_hours(utcnow(), 27)))
+    _system_activity(db, "opportunity", q.opportunity_id, f"Cotización {q.folio}: {before['status']} → {new_status}", actor_id)
+    record(db, actor_id, "quote.status", "quote", q.id, before, snapshot(q))
+    db.commit()
+    return q

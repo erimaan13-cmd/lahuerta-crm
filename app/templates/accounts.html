@@ -2,7 +2,7 @@
 {% block content %}
 <h1>Cuentas</h1>
 <p>{% for lc in ['', 'prospecto','cliente_activo','cliente_recurrente','inactivo'] %}<a class="chip {{ 'ok' if (lifecycle or '')==lc }}" href="/accounts{{ '?lifecycle=' ~ lc if lc }}">{{ lc or 'todas' }}</a> {% endfor %}
-{% if has_permission(user.role, 'integration:run') %}<form class="inline" method="post" action="/integrations/erp-sync"><button class="sec">Sincronizar pedidos (ERP simulado)</button></form>{% endif %}</p>
+{% if has_permission(user.role, 'integration:run') %}<form class="inline" method="post" action="/integrations/erp-sync"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}"><button class="sec">Sincronizar pedidos (ERP simulado)</button></form>{% endif %}</p>
 <table><tr><th>Cuenta</th><th>Sector</th><th>Ciudad</th><th>Ciclo de vida</th><th>Contactos</th><th>Oportunidades</th><th>Pedidos (ref. ERP)</th></tr>
 {% for a in accounts %}<tr><td><a href="/accounts/{{ a.id }}">{{ a.name }}</a> {% if a.is_key_account %}<span class="chip ok">cuenta clave</span>{% endif %}<br><span class="small muted">{{ a.domain or '' }}</span></td>
 <td>{{ a.sector_code or '—' }}</td><td>{{ a.city or '—' }}</td><td><span class="chip">{{ a.lifecycle }}</span></td>
@@ -10,7 +10,7 @@
 {% endfor %}</table>
 {% if has_permission(user.role, 'account:write') %}
 <h2>Nueva cuenta</h2>
-<form class="card row" method="post" action="/accounts">
+<form class="card row" method="post" action="/accounts"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
   <label>Nombre*<input name="name" required></label><label>Dominio<input name="domain" placeholder="empresa.com.mx"></label>
   <label>Sector<select name="sector_code"><option value="">—</option>{% for s in sectors %}<option value="{{ s.code }}">{{ s.name }}</option>{% endfor %}</select></label>
   <label>Ciudad<input name="city"></label><label>Estado<input name="state"></label><button>Crear</button>

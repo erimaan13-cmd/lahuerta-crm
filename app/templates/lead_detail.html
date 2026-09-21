@@ -12,7 +12,10 @@
     <tr><th>Producto</th><td>{{ lead.product_interest_text or '—' }}</td><th>Volumen</th><td>{{ lead.volume_band }} {{ (lead.est_volume_kg|int ~ ' kg') if lead.est_volume_kg else '' }}</td></tr>
     <tr><th>Mensaje</th><td colspan="3">{{ lead.message or '—' }}</td></tr>
     {% if lead.duplicate_reason %}<tr><th>Duplicado</th><td colspan="3"><span class="chip warn">{{ lead.duplicate_reason }}</span>
-      {% if dup %} → <a href="/leads/{{ dup.id }}">{{ dup.full_name }}</a>{% endif %}</td></tr>{% endif %}
+      {% if dup %} → <a href="/leads/{{ dup.id }}">{{ dup.full_name }}</a>
+      {% if has_permission(user.role, 'lead:write') and lead.status != 'convertido' and dup.status != 'convertido' %}
+      <form class="inline" method="post" action="/leads/{{ lead.id }}/merge"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}"><input type="hidden" name="keep_id" value="{{ dup.id }}"><button class="sec">Fusionar en el original</button></form>{% endif %}{% endif %}</td></tr>{% endif %}
+    {% if lead.merged_into_id %}<tr><th>Fusionado en</th><td colspan="3"><a href="/leads/{{ lead.merged_into_id }}">ver lead que se conservó</a></td></tr>{% endif %}
     {% if lead.discard_reason %}<tr><th>Motivo descarte</th><td colspan="3">{{ lead.discard_reason }}</td></tr>{% endif %}
     {% if lead.converted_account_id %}<tr><th>Convertido</th><td colspan="3"><a href="/accounts/{{ lead.converted_account_id }}">Cuenta</a>
       {% if lead.converted_opportunity_id %} · <a href="/opportunities/{{ lead.converted_opportunity_id }}">Oportunidad</a>{% endif %}</td></tr>{% endif %}
@@ -23,13 +26,13 @@
 <div>
   {% if next_status and has_permission(user.role, 'lead:write') %}
   <h2>Cambiar estado</h2>
-  <form class="card" method="post" action="/leads/{{ lead.id }}/status">
+  <form class="card" method="post" action="/leads/{{ lead.id }}/status"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
     <select name="status">{% for s in next_status %}<option>{{ s }}</option>{% endfor %}</select>
     <p><input name="reason" placeholder="Motivo (obligatorio para descartar)" style="width:100%"></p><button>Aplicar</button>
   </form>{% endif %}
   {% if lead.status == 'calificado' and has_permission(user.role, 'lead:convert') %}
   <h2>Convertir</h2>
-  <form class="card" method="post" action="/leads/{{ lead.id }}/convert">
+  <form class="card" method="post" action="/leads/{{ lead.id }}/convert"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
     <p class="small muted">Crea o reutiliza la cuenta (por dominio o nombre) y el contacto (por correo).</p>
     <label class="small"><input type="checkbox" name="create_opportunity" checked> Crear oportunidad</label>
     <p><select name="opp_type"><option value="estandar">Estándar</option><option value="formula_personalizada">Fórmula personalizada</option><option value="recompra">Recompra</option></select></p>

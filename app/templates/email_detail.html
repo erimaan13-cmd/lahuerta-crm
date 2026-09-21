@@ -3,7 +3,7 @@
 {% set e = cls.extracted_entities %}
 <p class="small"><a href="/emails">← Correos</a> · <a href="/emails/needs-review">Needs Review</a></p>
 <h1>{{ msg.subject or '(sin asunto)' }}</h1>
-<p class="muted">{{ msg.from_name or '' }} &lt;{{ msg.from_email }}&gt; · {{ msg.received_at.strftime('%d/%m/%Y %H:%M') }} UTC · proveedor {{ msg.provider }}{% if msg.has_attachments %} · <span class="chip">adjuntos</span>{% endif %}</p>
+<p class="muted">{{ msg.from_name or '' }} &lt;{{ msg.from_email }}&gt; · {{ msg.received_at|local('%d/%m/%Y %H:%M') }} · proveedor {{ msg.provider }}{% if msg.has_attachments %} · <span class="chip">adjuntos</span>{% endif %}</p>
 <div class="two"><div>
   <h2>Cuerpo normalizado</h2><pre>{{ msg.body_clean }}</pre>
   <h2>Entidades extraídas</h2>
@@ -34,12 +34,12 @@
   </div>
   {% if has_permission(user.role,'email:review') and cls.review_status != 'aplicado' %}
   <h2>1 · Revisión humana</h2>
-  <form class="card" method="post" action="/emails/{{ msg.id }}/review">
+  <form class="card" method="post" action="/emails/{{ msg.id }}/review"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
     <select name="category">{% for code, meta in CATEGORIES.items() %}<option value="{{ code }}" {{ 'selected' if code==(cls.final_category or cls.category) }}>{{ meta.label }}</option>{% endfor %}</select>
     <button>Confirmar / corregir</button><p class="small muted">La corrección se guarda como etiqueta para recalibrar el clasificador.</p></form>
   {% if cls.review_status != 'needs_review' %}
   <h2>2 · Aplicar sugerencia</h2>
-  <form class="card" method="post" action="/emails/{{ msg.id }}/apply">
+  <form class="card" method="post" action="/emails/{{ msg.id }}/apply"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
     <select name="action">{% for a in ['crear_lead','crear_tarea','abrir_caso','registrar_actividad','reenviar_fuera_crm','ignorar','revisar'] %}<option {{ 'selected' if a==cls.suggested_action }}>{{ a }}</option>{% endfor %}</select>
     <button>Aplicar</button><p class="small muted">Nada se crea sin este clic. No se envía ninguna respuesta.</p></form>{% endif %}
   {% endif %}
