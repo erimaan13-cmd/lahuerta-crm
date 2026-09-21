@@ -132,3 +132,10 @@ def test_llm_disabled_by_default():
     llm = MockLLMClient(("LEAD_NUEVO", 0.9))
     r = run("Hola", "¿Me pueden llamar?", llm=llm)
     assert llm.calls == 0 and r.method == "rules"
+
+
+def test_company_suffix_sa_de_cv_is_not_a_job_application():
+    """Bug hallado en la evaluación independiente: 'S.A. de C.V.' activaba la regla de CV (empleo)."""
+    r = run("Re: COT-2026-0001", "Autorizado. Surtan 3 toneladas de arroz. Facturar a Comercial Norte SA de CV", kind="contacto")
+    assert "OTRO" not in r.scores
+    assert run("Vacante", "Adjunto mi CV para la vacante de almacén").classification == "OTRO"

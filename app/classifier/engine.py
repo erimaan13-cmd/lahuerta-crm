@@ -11,7 +11,7 @@ from app.classifier import normalize, rules, taxonomy
 from app.classifier.extract import CatalogItem, extract_all
 from app.classifier.llm import LLMClient, NullLLMClient
 
-CLASSIFIER_VERSION = "rules-1.1"
+CLASSIFIER_VERSION = "rules-1.1.1"
 PRIOR_MASS = 1.0  # masa de "incertidumbre": poca evidencia ⇒ baja confianza
 
 

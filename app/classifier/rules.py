@@ -102,7 +102,7 @@ RULES: dict[str, R] = {
         (r"\bpromocion\b|\% de descuento|reserve su stand|agende una demo|demo gratis", 2.5),
     ],
     "OTRO": [
-        (r"curriculum|\bcv\b|solicitud de empleo|\bvacante\b|me gustaria (trabajar|formar parte)|bolsa de trabajo", 4.0),
+        (r"curriculum|(adjunto|anexo|envio|comparto) (mi )?(cv|hoja de vida)|solicitud de empleo|\bvacante\b|me gustaria (trabajar|formar parte)|bolsa de trabajo", 4.0),
         (r"\bdonativo\b|\bdonacion\b|\bkermes\b|banco de alimentos|patrocinio", 4.0),
         (r"visita (academica|escolar|a su planta para un proyecto)|\bestudiantes\b|practicas profesionales|servicio social|\bdocente\b", 3.5),
         (r"felices fiestas|feliz navidad|muchas gracias por todo", 2.5),
