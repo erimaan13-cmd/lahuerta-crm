@@ -29,6 +29,10 @@
 | RF-42 | Notificaciones internas (correo/Slack) de tareas vencidas | Seguimiento | S |
 | NFR | Rotación de `CRM_SECRET_KEY`, cabeceras de seguridad (CSP, HSTS), límite de login en almacenamiento compartido | Antes de exponer a internet | S |
 | NFR | Paginación en listas | Rendimiento con volumen real | S |
+| AUD-1 | Política de retención del historial de accesos (p. ej. 12–24 meses) y archivo en frío | El historial crece ≈1 fila por clic | S |
+| AUD-2 | Verificación de integridad por lotes/puntos de control (hoy recalcula toda la cadena al abrir la página) | Rendimiento con millones de eventos | S |
+| AUD-3 | Secuencia de la BD o bloqueo para numerar la cadena con varios procesos (PostgreSQL) | Concurrencia en producción | S |
+| AUD-4 | Rol "auditor" (ve historial sin editar datos) si La Huerta lo pide | Separación de funciones | S |
 
 ## P2 — congelado durante el MVP
 

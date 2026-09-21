@@ -1,22 +1,25 @@
 """Aplicación FastAPI: interfaz CRM (HTML) + API REST (JSON). Las rutas solo validan permisos y
 delegan en app/services (arquitectura en capas, docs/02_PLAN.md §5)."""
+import csv
 import hmac
+import io
 import json
 import logging
 import secrets
 import time
 import uuid
 from collections import defaultdict, deque
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, File, Request, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
-from sqlalchemy import or_, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from app import config, db as dbmod
-from app.audit import request_id_var, snapshot
+from app.audit import ip_var, record, request_id_var, snapshot, verify_chain
 from app.classifier.taxonomy import CATEGORIES
 from app.integrations.email_providers import (EmlDirectoryProvider, MockMailboxProvider, RawEmail,
                                               parse_eml_bytes)
@@ -27,7 +30,8 @@ from app.permissions import ROLE_LABELS, has_permission
 from app.security import make_session_token, read_session_token, verify_password
 from app.services import crm, dashboard, email_pipeline, pipeline
 from app.services.automations import reorder_candidates, run_reorder_check
-from app.services.business_time import to_local
+from app.services import users as users_svc
+from app.services.business_time import TZ as BTZ, to_local, to_utc_naive
 from app.services.common import DomainError, get_or_404
 from app.services.quote_pdf import render_quote_pdf
 
@@ -73,10 +77,51 @@ class Forbidden(Exception):
         self.perm = perm
 
 
+ENTITY_PARAMS = {"lead_id": "lead", "account_id": "account", "opp_id": "opportunity", "case_id": "case",
+                 "email_id": "email", "quote_id": "quote", "task_id": "task", "user_id": "user"}
+SKIP_ACCESS_LOG = {"/health", "/login", "/logout", "/favicon.ico"}
+DENIED = {401, 403, 415, 429}
+
+
+def _log_access(request: Request, status: int, ms: float) -> None:
+    """Registra CADA solicitud de un usuario autenticado y todo intento rechazado (requisito de historial total)."""
+    path = request.url.path
+    if path in SKIP_ACCESS_LOG:
+        return
+    uid = read_session_token(request.cookies.get(config.SESSION_COOKIE))
+    denied = status in DENIED
+    if not uid and not denied:
+        return
+    gen = app.dependency_overrides.get(dbmod.get_db, dbmod.get_db)()
+    db = next(gen)
+    try:
+        if uid and db.get(User, uid) is None:
+            uid = None
+        route = request.scope.get("route")
+        template = getattr(route, "path", path)
+        etype, eid = "ruta", None
+        for k, v in (request.scope.get("path_params") or {}).items():
+            if k in ENTITY_PARAMS:
+                etype, eid = ENTITY_PARAMS[k], v
+                break
+        kind = "denegado" if denied else ("consulta" if request.method in ("GET", "HEAD") else "operacion")
+        full = path + (f"?{request.url.query}" if request.url.query else "")
+        record(db, uid, f"acceso.{kind}", etype, eid, category="seguridad" if denied else "acceso",
+               summary=f"{request.method} {template} → {status}", method=request.method, path=full[:300],
+               status=status, after={"ms": ms, "route": template})
+        db.commit()
+    except Exception:  # la bitácora nunca debe tumbar la respuesta; el error queda en el log técnico
+        db.rollback()
+        log.exception("audit_access_failed")
+    finally:
+        gen.close()
+
+
 @app.middleware("http")
 async def request_context(request: Request, call_next):
     rid = request.headers.get("X-Request-ID") or uuid.uuid4().hex[:16]
     token = request_id_var.set(rid)
+    ip_token = ip_var.set(request.client.host if request.client else None)
     t0 = time.perf_counter()
     csrf = request.cookies.get(CSRF_COOKIE) or secrets.token_urlsafe(24)
     request.state.csrf = csrf
@@ -89,13 +134,15 @@ async def request_context(request: Request, call_next):
             response = JSONResponse({"detail": "La API solo acepta Content-Type: application/json"}, status_code=415)
         else:
             response = await call_next(request)
+        ms = round((time.perf_counter() - t0) * 1000, 1)
+        _log_access(request, response.status_code, ms)
     finally:
         request_id_var.reset(token)
+        ip_var.reset(ip_token)
     response.headers["X-Request-ID"] = rid
     if request.cookies.get(CSRF_COOKIE) != csrf:
         response.set_cookie(CSRF_COOKIE, csrf, httponly=True, samesite="lax", max_age=config.SESSION_MAX_AGE_S)
-    log.info("request", extra={"path": request.url.path, "status": response.status_code,
-                               "ms": round((time.perf_counter() - t0) * 1000, 1)})
+    log.info("request", extra={"path": request.url.path, "status": response.status_code, "ms": ms})
     return response
 
 
@@ -160,6 +207,15 @@ def require(perm: str):
     return dep
 
 
+def entity_history(db: Session, user: User, entity_id: str) -> dict:
+    """Historial del registro (solo si el usuario puede ver la bitácora)."""
+    if not has_permission(user.role, "audit:read"):
+        return {}
+    evs = list(db.scalars(select(AuditEvent).where(AuditEvent.entity_id == entity_id)
+                          .order_by(AuditEvent.seq.desc()).limit(200)))
+    return {"history": evs, "history_id": entity_id}
+
+
 def render(request, name, user, **ctx):
     return templates.TemplateResponse(request, name, {"user": user, **ctx})
 
@@ -199,15 +255,25 @@ async def login(request: Request, db: Session = Depends(dbmod.get_db)):
     fails = _login_fails[key]
     while fails and now - fails[0] > config.LOGIN_LOCK_MINUTES * 60:
         fails.popleft()
+    user = db.scalar(select(User).where(User.email == email))
     if len(fails) >= config.LOGIN_MAX_FAILS:
+        record(db, None, "auth.bloqueado", "user", user.id if user else None, after={"email": email},
+               category="seguridad", summary=f"Intento de acceso bloqueado para {email}", status=429)
+        db.commit()
         return templates.TemplateResponse(request, "login.html", {"user": None, "error":
                                           f"Demasiados intentos. Espera {config.LOGIN_LOCK_MINUTES} minutos."}, status_code=429)
-    user = db.scalar(select(User).where(User.email == email))
     if not user or not user.is_active or not verify_password(f.get("password") or "", user.password_hash):
         fails.append(now)
+        reason = "usuario inexistente" if not user else ("usuario desactivado" if not user.is_active else "contraseña incorrecta")
+        record(db, None, "auth.login_fallido", "user", user.id if user else None,
+               after={"email": email, "motivo": reason, "intento": len(fails)}, category="seguridad",
+               summary=f"Inicio de sesión fallido ({reason}) para {email}", status=401)
+        db.commit()
         return templates.TemplateResponse(request, "login.html", {"user": None, "error": "Credenciales inválidas"},
                                           status_code=401)
     fails.clear()
+    record(db, user.id, "auth.login", "user", user.id, category="seguridad", summary=f"Inicio de sesión de {user.email}")
+    db.commit()
     resp = back("/")
     resp.set_cookie(config.SESSION_COOKIE, make_session_token(user.id), httponly=True, samesite="lax",
                     max_age=config.SESSION_MAX_AGE_S)
@@ -215,7 +281,11 @@ async def login(request: Request, db: Session = Depends(dbmod.get_db)):
 
 
 @app.post("/logout", dependencies=[Depends(csrf_protect)])
-def logout():
+def logout(request: Request, db: Session = Depends(dbmod.get_db)):
+    uid = read_session_token(request.cookies.get(config.SESSION_COOKIE))
+    if uid and db.get(User, uid):
+        record(db, uid, "auth.logout", "user", uid, category="seguridad", summary="Cierre de sesión")
+        db.commit()
     resp = back("/login")
     resp.delete_cookie(config.SESSION_COOKIE)
     return resp
@@ -249,7 +319,7 @@ async def ui_create_lead(request: Request, db: Session = Depends(dbmod.get_db), 
 def ui_lead(lead_id: str, request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("lead:read"))):
     lead = get_or_404(db, Lead, lead_id, "Lead")
     dup = db.get(Lead, lead.possible_duplicate_of_id) if lead.possible_duplicate_of_id else None
-    return render(request, "lead_detail.html", user, lead=lead, dup=dup, timeline=crm.timeline(db, "lead", lead.id),
+    return render(request, "lead_detail.html", user, **entity_history(db, user, lead.id), lead=lead, dup=dup, timeline=crm.timeline(db, "lead", lead.id),
                   next_status=sorted(crm.LEAD_TRANSITIONS.get(lead.status, set())))
 
 
@@ -298,7 +368,7 @@ def ui_account(account_id: str, request: Request, db: Session = Depends(dbmod.ge
     if acc.domain:
         conds.append(EmailMessage.from_email.like(f"%@{acc.domain}"))
     emails = list(db.scalars(select(EmailMessage).where(or_(*conds)).order_by(EmailMessage.received_at.desc())))
-    return render(request, "account_detail.html", user, acc=acc, emails=emails,
+    return render(request, "account_detail.html", user, **entity_history(db, user, acc.id), acc=acc, emails=emails,
                   timeline=crm.timeline(db, "account", acc.id), contact_ids=contact_ids,
                   opp_types=sorted(pipeline.OPP_TYPES), products=list(db.scalars(select(Product).order_by(Product.name))))
 
@@ -331,7 +401,7 @@ async def ui_create_opp(request: Request, db: Session = Depends(dbmod.get_db), u
 @app.get("/opportunities/{opp_id}", response_class=HTMLResponse)
 def ui_opp(opp_id: str, request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("opportunity:read"))):
     opp = get_or_404(db, Opportunity, opp_id, "Oportunidad")
-    return render(request, "opportunity_detail.html", user, opp=opp,
+    return render(request, "opportunity_detail.html", user, **entity_history(db, user, opp.id), opp=opp,
                   next_stages=sorted(pipeline.allowed_next(opp.type, opp.stage)),
                   stages=pipeline.stages_for(opp.type), timeline=crm.timeline(db, "opportunity", opp.id),
                   products=list(db.scalars(select(Product).order_by(Product.name))), packaging=sorted(crm.PACKAGING))
@@ -383,7 +453,7 @@ def ui_cases(request: Request, db: Session = Depends(dbmod.get_db), user: User =
 @app.get("/cases/{case_id}", response_class=HTMLResponse)
 def ui_case(case_id: str, request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("case:read"))):
     c = get_or_404(db, Case, case_id, "Caso")
-    return render(request, "case_detail.html", user, c=c, timeline=crm.timeline(db, "case", c.id),
+    return render(request, "case_detail.html", user, **entity_history(db, user, c.id), c=c, timeline=crm.timeline(db, "case", c.id),
                   next_status=sorted(crm.CASE_TRANSITIONS.get(c.status, set())))
 
 
@@ -414,7 +484,7 @@ def ui_needs_review(request: Request, db: Session = Depends(dbmod.get_db), user:
 @app.get("/emails/{email_id}", response_class=HTMLResponse)
 def ui_email(email_id: str, request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("email:read"))):
     msg = get_or_404(db, EmailMessage, email_id, "Correo")
-    return render(request, "email_detail.html", user, msg=msg, cls=msg.classification)
+    return render(request, "email_detail.html", user, **entity_history(db, user, msg.id), msg=msg, cls=msg.classification)
 
 
 @app.post("/emails/{email_id}/review", dependencies=[Depends(csrf_protect)])
@@ -451,11 +521,104 @@ def ui_search(request: Request, q: str = "", db: Session = Depends(dbmod.get_db)
     return render(request, "search.html", user, q=q, r=crm.search(db, q))
 
 
+AUDIT_PAGE = 100
+
+
+def _audit_query(db: Session, q: dict):
+    stmt = select(AuditEvent)
+    if q.get("actor"):
+        stmt = stmt.where(AuditEvent.actor_id == q["actor"])
+    if q.get("role"):
+        stmt = stmt.where(AuditEvent.actor_role == q["role"])
+    if q.get("category"):
+        stmt = stmt.where(AuditEvent.category == q["category"])
+    if q.get("entity_type"):
+        stmt = stmt.where(AuditEvent.entity_type == q["entity_type"])
+    if q.get("entity_id"):
+        stmt = stmt.where(AuditEvent.entity_id == q["entity_id"])
+    if q.get("action"):
+        stmt = stmt.where(AuditEvent.action.like(f"%{q['action']}%"))
+    for key, op in (("desde", ">="), ("hasta", "<")):
+        if q.get(key):
+            try:
+                d = datetime.fromisoformat(q[key])
+            except ValueError:
+                raise DomainError(f"Fecha inválida en '{key}': usa AAAA-MM-DD")
+            if key == "hasta":
+                d += timedelta(days=1)
+            d_utc = to_utc_naive(d.replace(tzinfo=BTZ))
+            stmt = stmt.where(AuditEvent.at >= d_utc if op == ">=" else AuditEvent.at < d_utc)
+    return stmt
+
+
 @app.get("/audit", response_class=HTMLResponse)
-def ui_audit(request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("audit:read"))):
-    events = list(db.scalars(select(AuditEvent).order_by(AuditEvent.at.desc()).limit(200)))
-    users = {u.id: u.full_name for u in db.scalars(select(User))}
-    return render(request, "audit.html", user, events=events, users=users)
+def ui_audit(request: Request, page: int = 1, db: Session = Depends(dbmod.get_db), user: User = Depends(require("audit:read"))):
+    q = {k: v for k, v in request.query_params.items() if k != "page" and v}
+    stmt = _audit_query(db, q)
+    total = db.scalar(select(func.count()).select_from(stmt.subquery()))
+    events = list(db.scalars(stmt.order_by(AuditEvent.seq.desc()).offset((max(page, 1) - 1) * AUDIT_PAGE).limit(AUDIT_PAGE)))
+    users = list(db.scalars(select(User).order_by(User.full_name)))
+    return render(request, "audit.html", user, events=events, users=users, f=q, page=page, total=total,
+                  pages=max(1, -(-total // AUDIT_PAGE)), chain=verify_chain(db),
+                  query_string="&".join(f"{k}={v}" for k, v in q.items()))
+
+
+@app.get("/audit.csv")
+def ui_audit_csv(request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("audit:read"))):
+    q = {k: v for k, v in request.query_params.items() if v}
+    buf = io.StringIO()
+    w = csv.writer(buf)
+    w.writerow(["seq", "fecha_local", "usuario", "rol", "categoria", "accion", "entidad", "entidad_id", "resumen",
+                "metodo", "ruta", "estado", "ip", "request_id", "antes", "despues", "hash"])
+    for ev in db.scalars(_audit_query(db, q).order_by(AuditEvent.seq)):
+        w.writerow([ev.seq, to_local(ev.at).strftime("%Y-%m-%d %H:%M:%S"), ev.actor_email or "sistema/anónimo",
+                    ev.actor_role or "", ev.category, ev.action, ev.entity_type, ev.entity_id or "", ev.summary or "",
+                    ev.method or "", ev.path or "", ev.status or "", ev.ip or "", ev.request_id or "",
+                    json.dumps(ev.before, ensure_ascii=False, default=str) if ev.before else "",
+                    json.dumps(ev.after, ensure_ascii=False, default=str) if ev.after else "", ev.hash])
+    return Response("\ufeff" + buf.getvalue(), media_type="text/csv; charset=utf-8",
+                    headers={"Content-Disposition": 'attachment; filename="bitacora_crm.csv"'})
+
+
+@app.get("/api/audit/verify")
+def api_audit_verify(db: Session = Depends(dbmod.get_db), user: User = Depends(require("audit:read"))):
+    return verify_chain(db)
+
+
+# ----------------------------------------------------------------------- usuarios (solo administradores)
+@app.get("/admin/users", response_class=HTMLResponse)
+def ui_users(request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("users:manage"))):
+    rows = []
+    for u in db.scalars(select(User).order_by(User.role, User.full_name)):
+        last = db.scalar(select(AuditEvent.at).where(AuditEvent.actor_id == u.id).order_by(AuditEvent.seq.desc()).limit(1))
+        n = db.scalar(select(func.count()).where(AuditEvent.actor_id == u.id))
+        rows.append({"u": u, "last": last, "n": n})
+    return render(request, "users.html", user, rows=rows, roles=list(ROLE_LABELS))
+
+
+@app.post("/admin/users", dependencies=[Depends(csrf_protect)])
+async def ui_create_user(request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("users:manage"))):
+    users_svc.create_user(db, await form_dict(request), user.id)
+    return back("/admin/users")
+
+
+@app.post("/admin/users/{user_id}/active", dependencies=[Depends(csrf_protect)])
+async def ui_user_active(user_id: str, request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("users:manage"))):
+    f = await form_dict(request)
+    users_svc.set_active(db, user_id, f.get("active") == "1", user.id)
+    return back("/admin/users")
+
+
+@app.post("/admin/users/{user_id}/role", dependencies=[Depends(csrf_protect)])
+async def ui_user_role(user_id: str, request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("users:manage"))):
+    users_svc.change_role(db, user_id, (await form_dict(request)).get("role"), user.id)
+    return back("/admin/users")
+
+
+@app.post("/admin/users/{user_id}/password", dependencies=[Depends(csrf_protect)])
+async def ui_user_password(user_id: str, request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("users:manage"))):
+    users_svc.reset_password(db, user_id, (await form_dict(request)).get("password"), user.id)
+    return back("/admin/users")
 
 
 @app.post("/integrations/erp-sync", dependencies=[Depends(csrf_protect)])
@@ -624,11 +787,9 @@ def api_dashboard(db: Session = Depends(dbmod.get_db), user: User = Depends(requ
 
 
 @app.get("/api/audit")
-def api_audit(entity_id: str | None = None, db: Session = Depends(dbmod.get_db), user: User = Depends(require("audit:read"))):
-    stmt = select(AuditEvent).order_by(AuditEvent.at)
-    if entity_id:
-        stmt = stmt.where(AuditEvent.entity_id == entity_id)
-    return ser(list(db.scalars(stmt)))
+def api_audit(request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("audit:read"))):
+    q = {k: v for k, v in request.query_params.items() if v}
+    return ser(list(db.scalars(_audit_query(db, q).order_by(AuditEvent.seq))))
 
 
 @app.get("/api/export")

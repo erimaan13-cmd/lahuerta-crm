@@ -36,4 +36,5 @@
     <p><select name="product_ids" multiple size="5" style="width:100%">{% for p in products %}<option value="{{ p.id }}">{{ p.name }}</option>{% endfor %}</select></p>
     <button>Crear oportunidad</button></form>{% endif %}
 </div></div>
+{% include "_history.html" %}
 {% endblock %}

@@ -16,4 +16,5 @@
 <p><input name="lot_reference" placeholder="Lote (obligatorio para resolver reclamaciones)" value="{{ c.lot_reference or '' }}" style="width:100%"></p><button>Aplicar</button>
 <p class="small muted">"escalado_qms" genera un evento de integración hacia el QMS (simulado).</p></form>{% endif %}
 </div></div>
+{% include "_history.html" %}
 {% endblock %}

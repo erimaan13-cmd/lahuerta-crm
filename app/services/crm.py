@@ -381,6 +381,8 @@ def log_activity(db: Session, data: dict, actor_id: str | None) -> Activity:
         lead = db.get(Lead, rid)
         if lead.status == "nuevo":
             lead.status = "contactado"
+            record(db, actor_id, "lead.status", "lead", lead.id, {"status": "nuevo"}, {"status": "contactado"},
+                   summary="Automático: primer contacto registrado")
             for t in db.scalars(select(Task).where(Task.related_id == rid, Task.origin == "auto_lead",
                                                    Task.status == "pendiente")):
                 t.status = "hecha"

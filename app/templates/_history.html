@@ -1,0 +1,10 @@
+{% if has_permission(user.role, 'audit:read') and history is defined %}
+<h2>Historial de este registro <span class="small muted">(visible solo para administradores)</span></h2>
+<table><tr><th>Fecha</th><th>Usuario</th><th>Área</th><th>Acción</th><th>Detalle</th></tr>
+{% for ev in history %}<tr><td class="small">{{ ev.at|local('%d/%m/%Y %H:%M:%S') }}</td>
+<td class="small">{{ ev.actor_email or 'sistema' }}</td><td class="small">{{ ROLE_LABELS.get(ev.actor_role, ev.actor_role or '—') }}</td>
+<td class="small"><b>{{ ev.action }}</b>{% if ev.summary %}<br><span class="muted">{{ ev.summary }}</span>{% endif %}</td>
+<td class="small">{% if ev.before and ev.after %}{% for k, v in ev.after.items() %}{% if ev.before.get(k) != v and k not in ['updated_at'] %}<b>{{ k }}</b>: {{ ev.before.get(k) }} → {{ v }}<br>{% endif %}{% endfor %}{% endif %}</td></tr>
+{% else %}<tr><td colspan="5" class="muted">Sin eventos.</td></tr>{% endfor %}</table>
+<p class="small"><a href="/audit?entity_id={{ history_id }}">Ver en el historial completo →</a></p>
+{% endif %}

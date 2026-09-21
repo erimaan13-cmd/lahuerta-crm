@@ -24,6 +24,7 @@ DEMO_PASSWORD = "demo1234"  # contraseña de demostración, pública a propósit
 
 USERS = [
     ("admin@demo.local", "Admin Demo", "admin"),
+    ("director@demo.local", "Dirección General Demo (administrador principal)", "admin"),
     ("ventas1@demo.local", "Vendedora Industrial Demo", "ventas"),
     ("ventas2@demo.local", "Vendedor Demo", "ventas"),
     ("atencion@demo.local", "Atención Demo", "atencion"),

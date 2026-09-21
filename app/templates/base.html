@@ -39,7 +39,8 @@ button.sec{background:#fff;color:var(--brand);border:1px solid var(--brand)}
   <span class="brand">CRM La Huerta · MVP</span>
   <a href="/">Dashboard</a><a href="/leads">Leads</a><a href="/accounts">Cuentas</a><a href="/opportunities">Pipeline</a>
   <a href="/tasks">Tareas</a><a href="/cases">Casos</a><a href="/emails">Correos</a><a href="/emails/needs-review">Needs Review</a>
-  {% if has_permission(user.role, 'audit:read') %}<a href="/audit">Auditoría</a>{% endif %}
+  {% if has_permission(user.role, 'audit:read') %}<a href="/audit">Historial</a>{% endif %}
+  {% if has_permission(user.role, 'users:manage') %}<a href="/admin/users">Usuarios</a>{% endif %}
   <form class="search" action="/search"><input name="q" placeholder="Buscar nombre, empresa, correo, tel." value="{{ q or '' }}"></form>
   <span class="small">{{ user.full_name }} · {{ ROLE_LABELS[user.role] }}</span>
   <form class="inline" method="post" action="/logout"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}"><button class="sec">Salir</button></form>

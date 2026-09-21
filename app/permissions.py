@@ -7,22 +7,23 @@ ALL = {
     "activity:write", "task:read", "task:write",
     "case:read", "case:write", "quote:write",
     "email:read", "email:ingest", "email:review",
-    "dashboard:read", "audit:read", "integration:run", "export:read",
+    "dashboard:read", "audit:read", "integration:run", "export:read", "users:manage",
 }
 READ = {p for p in ALL if p.endswith(":read")}
+ADMIN_ONLY = {"audit:read", "export:read", "users:manage"}
 
 ROLE_PERMISSIONS: dict[str, set[str]] = {
     "admin": set(ALL),
-    "ventas": READ - {"audit:read", "export:read"} | {
+    "ventas": READ - ADMIN_ONLY | {
         "lead:write", "lead:convert", "account:write", "opportunity:write", "activity:write",
         "task:write", "case:write", "quote:write", "email:review"},
-    "atencion": READ - {"audit:read", "export:read"} | {
+    "atencion": READ - ADMIN_ONLY | {
         "lead:write", "activity:write", "task:write", "case:write", "email:ingest", "email:review"},
-    "calidad": READ - {"audit:read", "export:read"} | {
+    "calidad": READ - ADMIN_ONLY | {
         "case:write", "activity:write", "task:write", "email:review"},
-    "administracion": READ - {"audit:read", "export:read"} | {
+    "administracion": READ - ADMIN_ONLY | {
         "case:write", "activity:write", "task:write", "email:ingest", "email:review", "integration:run"},
-    "lectura": READ - {"audit:read", "export:read"},
+    "lectura": READ - ADMIN_ONLY,
 }
 
 ROLE_LABELS = {

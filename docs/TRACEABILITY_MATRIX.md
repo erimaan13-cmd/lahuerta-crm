@@ -1,7 +1,7 @@
 # TRACEABILITY_MATRIX
 
 `EVIDENCIA → PROCESO → REQUERIMIENTO → ENTIDAD → MÓDULO → PRUEBA`
-Evidencias: `docs/01_INVESTIGACION.md §2`. Requerimientos: `docs/02_PLAN.md §1`. Pruebas en `tests/` (**127 casos, todos pasan** — iteración 2, 21-sep-2026). Estado: ✅ implementado y probado · 🟡 simulado/mock probado · ⬜ solo diseño.
+Evidencias: `docs/01_INVESTIGACION.md §2`. Requerimientos: `docs/02_PLAN.md §1`. Pruebas en `tests/` (**139 casos, todos pasan** — iteración 3, 21-sep-2026). Estado: ✅ implementado y probado · 🟡 simulado/mock probado · ⬜ solo diseño.
 
 | Evidencia | Proceso | Requerimiento | Entidad | Módulo | Prueba(s) | Estado |
 |---|---|---|---|---|---|---|
@@ -60,3 +60,21 @@ Evidencias: `docs/01_INVESTIGACION.md §2`. Requerimientos: `docs/02_PLAN.md §1
 1. **La cifra del clasificador de la iteración 1 era optimista**: con un corpus independiente, v1.0 acertaba 53 % (no 89 %). Documentado y corregido en v1.1.
 2. **"S.A. de C.V." se leía como currículum** (regla de empleo) y arrastraba correos de pedido a OTRO. Corregido en rules-1.1.1, con prueba de regresión.
 3. Las acciones de la API sin cuerpo (p. ej. `POST /api/integrations/erp-sync`) respondían 415 tras exigir JSON. Se ajustó: se rechaza cualquier Content-Type distinto de JSON y se permiten POST sin cuerpo.
+
+## Iteración 3 — Historial total para administradores
+
+Origen: requisito de Erii (21-sep-2026): "cada acción realizada por todos los usuarios de todas las áreas y tareas debe dejar registro e historial visible por el administrador principal o principales".
+
+| Requisito | Módulo | Prueba(s) | Estado |
+|---|---|---|---|
+| Toda solicitud de todo usuario queda registrada (consulta, envío, descarga, exportación) con usuario, área, IP, ruta y resultado | middleware `_log_access` | `test_bitacora::test_every_request_of_every_user_is_logged` | ✅ |
+| Todo cambio de datos tiene autor y área, incluidos los cambios automáticos | `audit.record` en servicios | `::test_all_business_events_have_an_actor`, `::test_business_events_freeze_actor_role_even_if_role_changes_later` | ✅ |
+| Inicios y cierres de sesión, fallos y bloqueos | `main.login/logout` | `::test_auth_events_login_fail_lock_logout` | ✅ |
+| Intentos rechazados (sin sesión, sin permiso, sin CSRF) | middleware | `::test_denied_attempts_are_logged_with_and_without_session` | ✅ |
+| Nadie puede editar ni borrar el historial sin que se detecte | `audit.verify_chain`, listeners ORM | `::test_chain_detects_edit_and_delete`, `::test_orm_cannot_update_or_delete_audit` | ✅ |
+| Visible solo para administradores, con filtros por usuario, área, tipo, entidad, acción y fechas; exportable a CSV | `/audit`, `/audit.csv`, `/api/audit`, `/api/audit/verify` | `::test_audit_views_admin_only_with_filters_and_csv` | ✅ |
+| Historial dentro de cada registro (lead, cuenta, oportunidad, caso, correo) | `_history.html` | `::test_entity_history_visible_only_to_admin` | ✅ |
+| Varios administradores; alta, baja, cambio de área y contraseña, todo registrado | `/admin/users`, `services/users.py` | `::test_user_management_is_audited_and_protected`, `::test_last_admin_and_self_protection` | ✅ |
+| Migración de bases existentes sin perder historial | `migrations/0003` (encadena eventos previos) | `::test_migration_backfills_chain_for_existing_events` | ✅ |
+
+Hallazgo de verificación: `verify_chain` leía objetos en caché de la sesión y **no detectaba** una alteración hecha por SQL en la misma sesión. Corregido con `populate_existing`; lo cubre `test_chain_detects_edit_and_delete`.

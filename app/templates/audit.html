@@ -1,9 +1,36 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Bitácora de auditoría <span class="small muted">(últimos 200 eventos, solo lectura)</span></h1>
-<table><tr><th>Fecha</th><th>Actor</th><th>Acción</th><th>Entidad</th><th>Cambios</th><th>Request</th></tr>
-{% for ev in events %}<tr><td class="small">{{ ev.at|local('%d/%m %H:%M:%S') }}</td><td class="small">{{ users.get(ev.actor_id, 'sistema') }}</td>
-<td><span class="chip">{{ ev.action }}</span></td><td class="small">{{ ev.entity_type }}<br>{{ (ev.entity_id or '')[:8] }}</td>
-<td class="small">{% if ev.before and ev.after %}{% for k, v in ev.after.items() %}{% if ev.before.get(k) != v and k not in ['updated_at'] %}<b>{{ k }}</b>: {{ ev.before.get(k) }} → {{ v }}<br>{% endif %}{% endfor %}{% elif ev.after %}{{ (ev.after|string)[:160] }}{% endif %}</td>
-<td class="small muted">{{ ev.request_id or '' }}</td></tr>{% endfor %}</table>
+<h1>Historial completo <span class="small muted">(solo administradores · solo lectura)</span></h1>
+<p>{% if chain.ok %}<span class="chip ok">Integridad verificada: {{ chain.checked }} eventos encadenados sin alteraciones</span>
+{% else %}<span class="chip bad">¡Alerta de integridad! Evento #{{ chain.broken_seq }}: {{ chain.reason }}</span>{% endif %}
+<span class="small muted">Cada evento guarda el hash del anterior; editar o borrar una fila rompe la cadena.</span></p>
+
+<form class="card row" method="get" action="/audit">
+  <label>Usuario<select name="actor"><option value="">(todos)</option>{% for u in users %}<option value="{{ u.id }}" {{ 'selected' if f.actor==u.id }}>{{ u.full_name }} · {{ u.email }}</option>{% endfor %}</select></label>
+  <label>Área / rol<select name="role"><option value="">(todas)</option>{% for r, lbl in ROLE_LABELS.items() %}<option value="{{ r }}" {{ 'selected' if f.role==r }}>{{ lbl }}</option>{% endfor %}<option value="sistema" {{ 'selected' if f.role=='sistema' }}>Sistema</option></select></label>
+  <label>Tipo<select name="category"><option value="">(todos)</option>{% for c, lbl in [('negocio','Cambios de datos'),('acceso','Consultas y envíos'),('seguridad','Seguridad'),('sistema','Sistema')] %}<option value="{{ c }}" {{ 'selected' if f.category==c }}>{{ lbl }}</option>{% endfor %}</select></label>
+  <label>Entidad<select name="entity_type"><option value="">(todas)</option>{% for e in ['lead','account','contact','opportunity','quote','case','task','activity','email','email_classification','user','integration','automation','ruta'] %}<option {{ 'selected' if f.entity_type==e }}>{{ e }}</option>{% endfor %}</select></label>
+  <label>Acción contiene<input name="action" value="{{ f.action or '' }}" placeholder="p. ej. stage, login"></label>
+  <label>Desde<input type="date" name="desde" value="{{ f.desde or '' }}"></label>
+  <label>Hasta<input type="date" name="hasta" value="{{ f.hasta or '' }}"></label>
+  {% if f.entity_id %}<input type="hidden" name="entity_id" value="{{ f.entity_id }}">{% endif %}
+  <button>Filtrar</button> <a href="/audit">limpiar</a>
+  <a class="btn" href="/audit.csv?{{ query_string }}">Exportar CSV</a>
+</form>
+<p class="small muted">{{ total }} eventos · página {{ page }} de {{ pages }} · horas en tiempo de Monterrey</p>
+<table><tr><th>#</th><th>Fecha</th><th>Usuario</th><th>Área</th><th>Tipo</th><th>Acción</th><th>Entidad</th><th>Detalle</th><th>IP</th></tr>
+{% for ev in events %}<tr>
+<td class="small muted">{{ ev.seq }}</td>
+<td class="small">{{ ev.at|local('%d/%m/%Y %H:%M:%S') }}</td>
+<td class="small">{% if ev.actor_id %}<a href="/audit?actor={{ ev.actor_id }}">{{ ev.actor_email or ev.actor_id[:8] }}</a>{% else %}<span class="muted">{{ 'sistema' if ev.actor_role == 'sistema' else 'anónimo' }}</span>{% endif %}</td>
+<td class="small">{{ ROLE_LABELS.get(ev.actor_role, ev.actor_role or '—') }}</td>
+<td><span class="chip {{ 'bad' if ev.category=='seguridad' and (ev.status or 0) >= 400 else ('warn' if ev.category=='seguridad' else ('ok' if ev.category=='negocio' else '')) }}">{{ ev.category }}</span></td>
+<td class="small"><b>{{ ev.action }}</b>{% if ev.summary %}<br><span class="muted">{{ ev.summary }}</span>{% endif %}</td>
+<td class="small">{{ ev.entity_type }}{% if ev.entity_id %}<br><a href="/audit?entity_id={{ ev.entity_id }}">{{ ev.entity_id[:8] }}</a>{% endif %}</td>
+<td class="small">{% if ev.before and ev.after %}{% for k, v in ev.after.items() %}{% if ev.before.get(k) != v and k not in ['updated_at'] %}<b>{{ k }}</b>: {{ ev.before.get(k) }} → {{ v }}<br>{% endif %}{% endfor %}
+{% elif ev.after and ev.category == 'negocio' %}{{ (ev.after|string)[:160] }}{% elif ev.path %}<span class="muted">{{ ev.path[:80] }}</span>{% endif %}</td>
+<td class="small muted">{{ ev.ip or '' }}</td></tr>
+{% else %}<tr><td colspan="9" class="muted">Sin eventos con esos filtros.</td></tr>{% endfor %}</table>
+<p>{% if page > 1 %}<a href="/audit?{{ query_string }}&page={{ page-1 }}">← anteriores</a>{% endif %}
+{% if page < pages %} · <a href="/audit?{{ query_string }}&page={{ page+1 }}">siguientes →</a>{% endif %}</p>
 {% endblock %}

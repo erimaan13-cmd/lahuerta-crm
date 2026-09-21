@@ -21,7 +21,7 @@ Usuarios de demostración (contraseña `demo1234` para todos, solo demo):
 
 | Correo | Rol |
 |---|---|
-| admin@demo.local | Administrador del sistema (todo, incluye auditoría) |
+| admin@demo.local · director@demo.local | Administrador del sistema (todo, incluye **Historial** y **Usuarios**) |
 | ventas1@demo.local / ventas2@demo.local | Ventas |
 | atencion@demo.local | Atención a clientes |
 | calidad@demo.local | Calidad e inocuidad |
@@ -36,12 +36,13 @@ Usuarios de demostración (contraseña `demo1234` para todos, solo demo):
 4. **Vertical slice 2** — Correos → abrir "Solicitud de cotización para 3 hoteles" (entidades extraídas, evidencia de reglas) → *Aplicar* `crear_lead`. Luego **Needs Review** → "Reclamación orégano…" → confirmar → *Aplicar* `abrir_caso` (lote incluido). Subir un `.eml` propio desde `/emails`.
 5. **Cuenta 360** — "Restaurantes Sabor Norteño": oportunidades, pedidos (referencia ERP simulado), casos, correos e interacciones.
 6. **Auditoría** (`/audit`, como admin): quién cambió qué, con antes/después.
-7. **Iteración 2** — en el dashboard, "Recompra pendiente" (Alimentos Procesados del Bajío). En Leads, abrir "Roberto Vela" → **Fusionar en el original**. En la oportunidad "Resurtido trimestral…" → **PDF** de la cotización y **Marcar enviada** (crea la tarea de seguimiento). Las fechas de vencimiento respetan L–V 8–17, hora de Monterrey.
+7. **Historial total** (como `director@demo.local`): menú **Historial** → filtra por usuario o área; cada clic, cambio, descarga, inicio de sesión y acceso denegado aparece con fecha, usuario, área e IP. **Exportar CSV**. En cualquier lead/cuenta/oportunidad, al final: "Historial de este registro". Menú **Usuarios**: altas, bajas, cambio de área y contraseña (también registrados).
+8. **Iteración 2** — en el dashboard, "Recompra pendiente" (Alimentos Procesados del Bajío). En Leads, abrir "Roberto Vela" → **Fusionar en el original**. En la oportunidad "Resurtido trimestral…" → **PDF** de la cotización y **Marcar enviada** (crea la tarea de seguimiento). Las fechas de vencimiento respetan L–V 8–17, hora de Monterrey.
 
 ## Pruebas
 
 ```bash
-python -m pytest -q                                   # 127 pruebas: dominio, clasificador, correo, API, RBAC, auditoría, CSRF, migraciones
+python -m pytest -q                                   # 139 pruebas: dominio, clasificador, correo, API, RBAC, historial, CSRF, migraciones
 python -m scripts.eval_corpus independiente --sweep   # evaluación honesta del clasificador (ver docs/05)
 python scripts/backup_db.py                           # respaldo con marca de tiempo en backups/
 python -m app.services.automations                    # revisión de recompra (programable 1 vez al día)
@@ -80,7 +81,7 @@ app/
   integrations/      email_providers.py (EML/Mock/Gmail-stub) · erp.py (mock + sync)
   security.py · permissions.py · audit.py · config.py · seed.py
 data/                demo_emails.json · sample_emails/*.eml · eval/ (corpus de evaluación congelados + guía de etiquetado)
-migrations/          Alembic (0001 esquema MVP, 0002 iteración 2)
+migrations/          Alembic (0001 esquema MVP, 0002 iteración 2, 0003 historial encadenado)
 scripts/             eval_corpus.py · eval_classifier.py · backup_db.py
 docs/                investigación, plan, stack, clasificador, diagramas, decisiones, trazabilidad, backlog, informe
 tests/               pytest

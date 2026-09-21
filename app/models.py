@@ -301,14 +301,27 @@ class IntegrationEvent(Base, TimestampMixin):
 
 
 class AuditEvent(Base):
-    """Bitácora solo-inserción. No existe endpoint para editarla ni borrarla (RNF-05)."""
+    """Bitácora solo-inserción y encadenada (RNF-05). Registra acciones de negocio, accesos y eventos de
+    seguridad de todos los usuarios. El ORM impide editarla o borrarla (ver app/audit.py) y cada fila lleva
+    el hash de la anterior: cualquier alteración directa en la BD se detecta con verify_chain()."""
     __tablename__ = "audit_events"
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    seq: Mapped[int | None] = mapped_column(Integer, unique=True, index=True)
     at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)
-    actor_id: Mapped[str | None] = mapped_column(String(36))
-    action: Mapped[str] = mapped_column(String(40))
+    actor_id: Mapped[str | None] = mapped_column(String(36), index=True)
+    actor_email: Mapped[str | None] = mapped_column(String(200))
+    actor_role: Mapped[str | None] = mapped_column(String(30), index=True)
+    category: Mapped[str] = mapped_column(String(20), default="negocio", index=True)  # negocio|acceso|seguridad|sistema
+    action: Mapped[str] = mapped_column(String(60), index=True)
     entity_type: Mapped[str] = mapped_column(String(30), index=True)
     entity_id: Mapped[str | None] = mapped_column(String(36), index=True)
+    summary: Mapped[str | None] = mapped_column(String(300))
     before: Mapped[dict | None] = mapped_column(JSON)
     after: Mapped[dict | None] = mapped_column(JSON)
+    ip: Mapped[str | None] = mapped_column(String(64))
+    method: Mapped[str | None] = mapped_column(String(8))
+    path: Mapped[str | None] = mapped_column(String(300))
+    status: Mapped[int | None] = mapped_column(Integer)
     request_id: Mapped[str | None] = mapped_column(String(40))
+    prev_hash: Mapped[str | None] = mapped_column(String(64))
+    hash: Mapped[str | None] = mapped_column(String(64))
