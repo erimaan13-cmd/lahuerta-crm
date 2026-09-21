@@ -1,0 +1,770 @@
+[
+ {
+  "id": "D01",
+  "label": "ADMIN_FACTURACION",
+  "sender_kind": "contacto",
+  "from_email": "cxp@clientey.example",
+  "subject": "Diferencia en estado de cuenta",
+  "body": "Buenas tardes,\n\nConciliando su estado de cuenta contra nuestros registros encontramos una diferencia de $12,480.00. Creemos que es la nota de crédito NC-331 que no está aplicada. ¿Nos ayudan a revisarlo?\n\nCuentas por Pagar"
+ },
+ {
+  "id": "D02",
+  "label": "PROVEEDOR_COMPRAS",
+  "sender_kind": "proveedor",
+  "from_email": "cobranza@proveedor-y.example",
+  "subject": "Estado de cuenta al 20 de septiembre",
+  "body": "Estimado cliente:\n\nLe enviamos su estado de cuenta al 20 de septiembre de 2026. Saldo vencido: $348,900.00 MXN correspondiente a las facturas A-5521 y A-5530. Le agradeceremos programar el pago a la brevedad.\n\nCobranza\nProveedor Y"
+ },
+ {
+  "id": "D03",
+  "label": "SPAM_NO_RELEVANTE",
+  "sender_kind": "desconocido",
+  "from_email": "boletin@industriaalimentaria.example",
+  "subject": "Boletín semanal - Industria Alimentaria",
+  "body": "Boletín Industria Alimentaria | Semana 38\n\n- Tendencias en ingredientes funcionales 2027\n- Expo Alimentos Monterrey abre registro\n- Entrevista: el futuro del empaque sustentable\n\nRecibes este correo porque estás suscrito. Cancelar suscripción."
+ },
+ {
+  "id": "D04",
+  "label": "ADMIN_FACTURACION",
+  "sender_kind": "cuenta_dominio",
+  "from_email": "portal.proveedores@clientey.example",
+  "subject": "Acceso a portal de proveedores para carga de facturas",
+  "body": "Estimado proveedor:\n\nA partir del 1 de octubre, todas las facturas dirigidas a Grupo Cliente Y deberán cargarse en nuestro portal de proveedores (XML + PDF + OC). Le enviamos su usuario y contraseña temporal. Facturas enviadas por correo ya no serán procesadas.\n\nÁrea de Cuentas por Pagar\nGrupo Cliente Y"
+ },
+ {
+  "id": "D05",
+  "label": "PEDIDO",
+  "sender_kind": "cuenta_dominio",
+  "from_email": "j.alanis@clientey.example",
+  "subject": "Pedido sucursal Cumbres",
+  "body": "Buenas tardes, por indicación de Laura Treviño les envío el pedido de la sucursal Cumbres, ya que ella está de vacaciones:\n\nArroz súper extra: 30 bultos de 50 kg\nFrijol pinto: 25 bultos de 50 kg\nChile de árbol: 4 cajas de 10 kg\n\nEntregar viernes antes de las 11 am. Cualquier cosa a este correo o al 81 1555 3030.\n\nJavier Alanís\nGrupo Cliente Y"
+ },
+ {
+  "id": "D06",
+  "label": "CALIDAD_RECLAMACION",
+  "sender_kind": "contacto",
+  "from_email": "cxp@clientey.example",
+  "subject": "Factura F-8891 - retenida por paprika fuera de especificación",
+  "body": "Buenas tardes,\n\nLes informamos que la factura F-8891 queda retenida para pago. Calidad reportó que la paprika del lote PAP-0822 llegó con color de 95 ASTA, cuando la especificación acordada es 120 ASTA mínimo.\n\nLiberaremos el pago hasta que se resuelva la no conformidad con el área de calidad.\n\nCuentas por Pagar\nGrupo Cliente Y"
+ },
+ {
+  "id": "D07",
+  "label": "DOCUMENTACION_CALIDAD",
+  "sender_kind": "contacto",
+  "from_email": "auditoria.proveedores@clientey.example",
+  "subject": "Cuestionario anual de evaluación de proveedores 2026",
+  "body": "Estimados,\n\nComo cada año, les compartimos el cuestionario de evaluación de proveedores 2026. Les pedimos llenarlo completo y regresarlo con las evidencias solicitadas (programa de limpieza, control de plagas, trazabilidad) a más tardar el 15 de octubre.\n\nSaludos,\nCoordinación de Auditorías\nGrupo Cliente Y"
+ },
+ {
+  "id": "D08",
+  "label": "SOLICITUD_COTIZACION",
+  "sender_kind": "desconocido",
+  "from_email": "chef.marcos.ibarra@gmail.com",
+  "subject": "chile guajillo",
+  "body": "hola buenas tardes\ncuanto sale el chile guajillo por tonelada? tenemos 6 sucursales de birria y nos echamos como 800 kg al mes entre todas\nsi me dicen precio y si incluye flete a Guadalupe se los agradezco\nMarcos"
+ },
+ {
+  "id": "D09",
+  "label": "SOLICITUD_COTIZACION",
+  "sender_kind": "desconocido",
+  "from_email": "compras@embutidosdelnorte.example",
+  "subject": "Precio pimienta negra molida",
+  "body": "Buen día,\n\nSomos fabricante de embutidos en Apodaca, N.L. Estamos evaluando proveedores para pimienta negra molida malla 30. Nuestro consumo es de aprox. 1,000 kg mensuales.\n\n¿Me podrían indicar precio por kg puesto en planta, presentación disponible (saco de 25 kg de preferencia) y condiciones de pago?\n\nSaludos cordiales,\nIng. Rogelio Treviño\nJefe de Compras\nEmbutidos del Norte S.A. de C.V.\nTel. 81 8340 1122"
+ },
+ {
+  "id": "D10",
+  "label": "SPAM_NO_RELEVANTE",
+  "sender_kind": "desconocido",
+  "from_email": "ventas.datos2026@gmail.com",
+  "subject": "base de datos restaurantes mexico",
+  "body": "Vendemos base de datos actualizada de 50,000 restaurantes, hoteles y comedores de México con correo, teléfono y nombre del encargado de compras. Precio especial $1,999 solo esta semana. Pago por transferencia o OXXO."
+ },
+ {
+  "id": "D11",
+  "label": "LOGISTICA_ENTREGA",
+  "sender_kind": "contacto",
+  "from_email": "mariela.torres@clientey.example",
+  "subject": "Retraso pedido semana 39",
+  "body": "Hola, el pedido de la semana 39 que era para el miércoles todavía no llega, ¿me dan fecha? Y aprovecho: la factura de ese pedido la necesito con uso de CFDI G01, no G03 como la vez pasada.\n\nGracias\nMariela"
+ },
+ {
+  "id": "D12",
+  "label": "FORMULA_PERSONALIZADA",
+  "sender_kind": "desconocido",
+  "from_email": "id@botanascrujis.example",
+  "subject": "Desarrollo de sazonador chile-limón",
+  "body": "Buenas tardes,\n\nSomos Botanas Crujis, fabricamos papas y cacahuates en Guadalupe, N.L. Buscamos un proveedor que nos desarrolle un sazonador tipo chile-limón para papa, con buena adherencia y bajo en sodio.\n\n¿Podrían prepararnos 3 variantes de muestra (1 kg c/u) para pruebas en línea? El volumen estimado ya en producción sería de 2 toneladas mensuales.\n\nSaludos,\nQFB Liliana Méndez\nInvestigación y Desarrollo\nBotanas Crujis"
+ },
+ {
+  "id": "D13",
+  "label": "FORMULA_PERSONALIZADA",
+  "sender_kind": "desconocido",
+  "from_email": "marketing@alitasfuego.example",
+  "subject": "Rub exclusivo para alitas",
+  "body": "Hola,\n\nSomos Alitas Fuego, cadena de 15 restaurantes. Queremos un rub (mezcla seca) exclusivo para nuestra marca, con perfil chipotle-miel, que nadie más pueda comprar. ¿Trabajan desarrollos exclusivos? ¿Cuál sería el proceso y tiempos para tener muestras?\n\nPaola Guajardo\nMercadotecnia - Alitas Fuego\n81 3300 2020"
+ },
+ {
+  "id": "D14",
+  "label": "DOCUMENTACION_CALIDAD",
+  "sender_kind": "contacto",
+  "from_email": "calidad@clientey.example",
+  "subject": "Ficha técnica y COA comino lote CMN-2609",
+  "body": "Buen día,\n\nPara liberar el comino molido recibido hoy (lote CMN-2609), requerimos su certificado de análisis y la ficha técnica actualizada, ya que la que tenemos en expediente es de 2024.\n\nGracias.\nQ. Daniela Cárdenas\nAseguramiento de Calidad"
+ },
+ {
+  "id": "D15",
+  "label": "SPAM_NO_RELEVANTE",
+  "sender_kind": "desconocido",
+  "from_email": "promociones@montacargasnl.example",
+  "subject": "Montacargas en renta con 30% de descuento",
+  "body": "¡PROMOCIÓN SEPTIEMBRE!\n\nRenta de montacargas eléctricos y de combustión con 30% de descuento el primer mes. Servicio de mantenimiento incluido. Atendemos todo Nuevo León.\n\nLlame ya: 81 4000 0000"
+ },
+ {
+  "id": "D16",
+  "label": "DOCUMENTACION_CALIDAD",
+  "sender_kind": "cuenta_dominio",
+  "from_email": "altaproveedores@clientey.example",
+  "subject": "Alta de proveedor - documentos requeridos",
+  "body": "Estimado proveedor:\n\nPara concluir su registro en nuestro padrón de proveedores de la planta Saltillo, es necesario que nos haga llegar la siguiente documentación:\n\n1. Certificado FSSC 22000 vigente\n2. Carta garantía de inocuidad y cumplimiento NOM-251-SSA1\n3. Cuestionario de proveedor (adjunto) firmado\n4. Programa de control de alérgenos\n\nPlazo: 10 días hábiles.\n\nDepartamento de Desarrollo de Proveedores\nGrupo Cliente Y"
+ },
+ {
+  "id": "D17",
+  "label": "CALIDAD_RECLAMACION",
+  "sender_kind": "contacto",
+  "from_email": "qa.manager@clientey.example",
+  "subject": "Non-conformance - insects found in sesame lot",
+  "body": "Hello,\n\nDuring incoming inspection of PO 7710-B we found live insects (suspected Plodia) in 2 of 80 bags of hulled sesame, lot SES-2608-14. The entire lot is on hold.\n\nPlease send your corrective action report (8D) and arrange pickup and replacement ASAP.\n\nRegards,\nKaren Whitfield\nQA Manager, Cliente Y Foods Inc."
+ },
+ {
+  "id": "D18",
+  "label": "ADMIN_FACTURACION",
+  "sender_kind": "contacto",
+  "from_email": "ap@clientey.example",
+  "subject": "Invoice copy request - PO 7730-B",
+  "body": "Hello,\n\nWe haven't received the invoice for PO 7730-B. Could you please resend both the PDF and XML files to this address? Our payment run closes on Friday.\n\nThanks,\nAccounts Payable\nCliente Y Foods Inc."
+ },
+ {
+  "id": "D19",
+  "label": "FORMULA_PERSONALIZADA",
+  "sender_kind": "contacto",
+  "from_email": "eruiz@clientey.example",
+  "subject": "Ajuste fórmula LH-07",
+  "body": "Pedro, buen día.\n\nPor el nuevo etiquetado nos piden bajar el sodio de la fórmula LH-07 (sazonador para carne) aprox. un 20% sin que pierda sabor. ¿Pueden hacer una versión ajustada y mandarnos muestra para prueba en cocina?\n\nChef Ernesto Ruiz\nGrupo Cliente Y"
+ },
+ {
+  "id": "D20",
+  "label": "LEAD_NUEVO",
+  "sender_kind": "desconocido",
+  "from_email": "ops@freshboxmx.example",
+  "subject": "brochure?",
+  "body": "Hi! We're FreshBox, a meal-kit startup, estamos expandiendo operaciones a Monterrey este Q4. Do you have a product list or brochure you can share? Nos interesa sobre todo arroz, frijol y mezclas de especias. Thanks!!\n\nSofía Benavides | Ops Lead | FreshBox MX"
+ },
+ {
+  "id": "D21",
+  "label": "LEAD_NUEVO",
+  "sender_kind": "desconocido",
+  "from_email": "botanaslacruz.compras@gmail.com",
+  "subject": "contacto vendedor bajio",
+  "body": "buenas tardes, me pasan el contacto de algun vendedor para la zona bajio? tenemos una fabrica de botanas en Celaya y andamos buscando proveedor de chiles secos y sazonadores\ngracias"
+ },
+ {
+  "id": "D22",
+  "label": "OTRO",
+  "sender_kind": "desconocido",
+  "from_email": "jorge.salazar.mx@gmail.com",
+  "subject": "Re: reunión del sábado",
+  "body": "Primo, ya quedó lo del sábado, llevo la carne y tú el carbón. Nos vemos a las 3 en casa de mi tía.\n\n(perdón, creo que me equivoqué de correo, este era para Pedro Salazar)"
+ },
+ {
+  "id": "D23",
+  "label": "PEDIDO",
+  "sender_kind": "contacto",
+  "from_email": "compras.mty@clientey.example",
+  "subject": "OC-45821",
+  "body": "Buenos días,\n\nAdjunto orden de compra OC-45821 con el siguiente detalle:\n\n- Comino molido: 1,200 kg (48 sacos de 25 kg)\n- Pimentón ahumado: 800 kg (32 sacos de 25 kg)\n\nEntrega: jueves 24 de septiembre en CEDIS Guadalupe, horario de recibo 7:00 a 13:00.\n\nFavor de confirmar recepción.\n\nSaludos,\nAna Lucía Rdz.\nCompras - Grupo Cliente Y\n81 8000 1100"
+ },
+ {
+  "id": "D24",
+  "label": "LOGISTICA_ENTREGA",
+  "sender_kind": "cuenta_dominio",
+  "from_email": "m.cantu@clientey.example",
+  "subject": "Cambio de domicilio de entrega",
+  "body": "Buen día,\n\nSoy Martín Cantú, jefe de almacén de la nueva planta de Grupo Cliente Y en Pesquería. A partir del 1 de octubre los pedidos de la planta Escobedo se entregarán aquí:\n\nCarretera Pesquería km 8, Parque Industrial Pesquería, N.L.\nHorario de recibo: lunes a viernes 7:00 a 15:00\n\nFavor de actualizar sus rutas.\n\nMartín Cantú"
+ },
+ {
+  "id": "D25",
+  "label": "PEDIDO",
+  "sender_kind": "contacto",
+  "from_email": "purchasing@clientey.example",
+  "subject": "PO 7730-B release",
+  "body": "Hi Pedro,\n\nPlease find attached PO 7730-B releasing the next shipment under our blanket agreement:\n\n- Hulled sesame seeds, 2 metric tons (80 bags x 25 kg)\n- Delivery to Apodaca plant, Dock 3, no later than Oct 2nd.\n\nKindly confirm.\n\nRegards,\nMark Sullivan\nPurchasing Manager\nCliente Y Foods Inc. - Mexico Operations"
+ },
+ {
+  "id": "D26",
+  "label": "SOLICITUD_COTIZACION",
+  "sender_kind": "contacto",
+  "from_email": "adriana.salinas@clientey.example",
+  "subject": "Nuevo producto - ajonjolí",
+  "body": "Hola Pedro, ¿qué tal?\n\nComo sabes ya les compramos comino y pimentón cada mes. Ahora vamos a lanzar una línea de panes con semilla y queremos ver en cuánto nos dejarían el ajonjolí descortezado, unas 2 toneladas para arrancar y luego 1 t mensual.\n\n¿Me mandas números esta semana?\n\nAdriana Salinas\nCompras | Panificadora Regia (Grupo Cliente Y)\n81 1234 5566 ext. 204"
+ },
+ {
+  "id": "D27",
+  "label": "LOGISTICA_ENTREGA",
+  "sender_kind": "contacto",
+  "from_email": "roberto.garza@clientey.example",
+  "subject": "Pedido sin llegar",
+  "body": "Pedro, ya van 4 días y no llega el pedido del chile ancho. Ustedes prometen entrega en 72 horas y me tienen parada la línea de salsas. ¿Dónde viene la unidad?\n\nRoberto"
+ },
+ {
+  "id": "D28",
+  "label": "SEGUIMIENTO_COMERCIAL",
+  "sender_kind": "contacto",
+  "from_email": "roberto.garza@clientey.example",
+  "subject": "RE: Propuesta comino y pimienta Q4",
+  "body": "Pedro,\n\nRevisamos su propuesta. El precio del comino está como 8% arriba de lo que nos ofrece otro proveedor. Si pueden mejorar al menos a la par, cerramos el Q4 con ustedes. La pimienta está bien.\n\nQuedo en espera.\nRoberto\n\nEl mar, 15 sep 2026 a las 10:12, Pedro Leal <pedro@lahuerta.example> escribió:\n> Roberto, adjunto propuesta para el cuarto trimestre:\n> Comino molido $98.50/kg, pimienta negra molida $182.00/kg\n> Vigencia 15 días."
+ },
+ {
+  "id": "D29",
+  "label": "PEDIDO",
+  "sender_kind": "contacto",
+  "from_email": "laura.trevino@clientey.example",
+  "subject": "Fwd: pedido semanal sazonador",
+  "body": "Pedro, te reenvío lo del chef para que lo surtan, por favor.\n\n---------- Forwarded message ---------\nDe: Chef Ernesto Ruiz <eruiz@clientey.example>\nDate: lun, 21 sept 2026 a las 8:15\nSubject: pedido semanal sazonador\nTo: Laura Treviño <laura.trevino@clientey.example>\n\nLaura, ocupamos 600 kg del sazonador para pollo fórmula LH-12, igual que el mes pasado, en cubetas de 20 kg. Para el jueves por favor, ya casi no hay."
+ },
+ {
+  "id": "D30",
+  "label": "PROVEEDOR_COMPRAS",
+  "sender_kind": "proveedor",
+  "from_email": "importaciones@proveedor-y.example",
+  "subject": "Documentos de importación contenedor MSKU 4471902",
+  "body": "Buen día,\n\nAdjuntamos documentos del contenedor MSKU 4471902 (pimienta negra entera, 18 t):\n- BL original escaneado\n- Factura comercial y packing list\n- Certificado fitosanitario de origen\n- Pedimento 26 28 3065 6001234\n\nEl agente aduanal indica que el despacho será el jueves.\n\nDepartamento de Importaciones\nProveedor Y"
+ },
+ {
+  "id": "D31",
+  "label": "SEGUIMIENTO_COMERCIAL",
+  "sender_kind": "lead",
+  "from_email": "hector.villarreal@prospectoy.example",
+  "subject": "¿y la propuesta?",
+  "body": "Hola Pedro, ¿cómo vas? Quedaste de enviarnos la propuesta la semana pasada y no me ha llegado nada. Tengo junta con dirección el miércoles y la necesito para presentarla.\n\nSaludos,\nHéctor"
+ },
+ {
+  "id": "D32",
+  "label": "PROVEEDOR_COMPRAS",
+  "sender_kind": "proveedor",
+  "from_email": "importaciones@proveedor-y.example",
+  "subject": "Retraso arribo contenedor clavo",
+  "body": "Pedro, te aviso que el buque con el contenedor de clavo entero (TGHU 8823015) trae retraso por congestión en Manzanillo. Nueva ETA 2 de octubre en lugar del 25 de septiembre. Te voy informando.\n\nSaludos,\nImportaciones Proveedor Y"
+ },
+ {
+  "id": "D33",
+  "label": "LOGISTICA_ENTREGA",
+  "sender_kind": "contacto",
+  "from_email": "mariela.torres@clientey.example",
+  "subject": "Faltante en entrega de hoy",
+  "body": "Hola, en la entrega de hoy venían 10 costales de ajo en polvo en lugar de 15 como dice la remisión R-20931. El resto llegó bien. ¿Me mandan los 5 faltantes mañana?\n\nMariela Torres\nAlmacén MP"
+ },
+ {
+  "id": "D34",
+  "label": "CALIDAD_RECLAMACION",
+  "sender_kind": "contacto",
+  "from_email": "chuy.cocina@clientey.example",
+  "subject": "chile de arbol",
+  "body": "pedro el chile de arbol que llego vino con muchisimo tallo y huele a humedad, algunas bolsas hasta con puntitos blancos. que hacemos? no lo voy a usar asi"
+ },
+ {
+  "id": "D35",
+  "label": "CALIDAD_RECLAMACION",
+  "sender_kind": "contacto",
+  "from_email": "eruiz@clientey.example",
+  "subject": "sazonador LH-12 sabe diferente",
+  "body": "Pedro, el sazonador para pollo LH-12 del último envío (lote LH12-2609) sabe diferente, más salado y con menos ajo. Ya tuvimos quejas de clientes en dos sucursales. ¿Cambiaron algo en la fórmula? Detuvimos su uso mientras nos dicen.\n\nErnesto"
+ },
+ {
+  "id": "D36",
+  "label": "SEGUIMIENTO_COMERCIAL",
+  "sender_kind": "contacto",
+  "from_email": "chuy.cocina@clientey.example",
+  "subject": "lo del arroz",
+  "body": "oye y lo de la cotizacion del arroz?? sigo esperando desde el viernes, si no me la mandas hoy le compro al de siempre eh"
+ },
+ {
+  "id": "D37",
+  "label": "PEDIDO",
+  "sender_kind": "contacto",
+  "from_email": "mariela.torres@clientey.example",
+  "subject": "Pedido semana 39 + factura pendiente",
+  "body": "Hola buen día,\n\nLes paso el pedido de esta semana:\n* 15 costales de 25 kg de ajo en polvo\n* 10 costales de 25 kg de cebolla en polvo\n* 25 cajas de 10 kg de sal con ajo\n\nEntrega el miércoles en Planta Escobedo.\n\nY de paso, ¿me reenvían la factura del pedido pasado? no la encuentro en el correo.\n\nGracias!\nMariela Torres\nAlmacén MP"
+ },
+ {
+  "id": "D38",
+  "label": "OTRO",
+  "sender_kind": "contacto",
+  "from_email": "laura.trevino@clientey.example",
+  "subject": "¡Gracias!",
+  "body": "Hola Pedro y equipo,\n\nSolo para agradecerles por el detalle que nos mandaron por nuestro aniversario, a todo el equipo le encantó. ¡Saludos y buen fin de semana!\n\nLaura"
+ },
+ {
+  "id": "D39",
+  "label": "LOGISTICA_ENTREGA",
+  "sender_kind": "contacto",
+  "from_email": "chuy.cocina@clientey.example",
+  "subject": "chofer",
+  "body": "pedro el chofer no trae la remision y vigilancia no lo deja pasar, mandamela por aqui rapido porfa para que entre"
+ },
+ {
+  "id": "D40",
+  "label": "SEGUIMIENTO_COMERCIAL",
+  "sender_kind": "contacto",
+  "from_email": "adriana.salinas@clientey.example",
+  "subject": "Re: Propuesta ajonjolí",
+  "body": "Hola Pedro,\n\nGracias por la propuesta. Por ahora no vamos a avanzar con el ajonjolí, el precio quedó fuera del presupuesto que nos aprobaron para el lanzamiento. Lo retomamos en enero cuando se abra el nuevo presupuesto, ¿va?\n\nSaludos,\nAdriana"
+ },
+ {
+  "id": "D41",
+  "label": "LEAD_NUEVO",
+  "sender_kind": "desconocido",
+  "from_email": "a.paredes.consultor@outlook.com",
+  "subject": "Recomendación del Ing. Cantú",
+  "body": "Estimado equipo de Especias La Huerta:\n\nEl Ing. Samuel Cantú, de Industrias Cantú, me recomendó contactarlos. Asesoro a una cadena de comedores industriales en Ramos Arizpe que está buscando un proveedor formal de granos y condimentos.\n\n¿Podríamos agendar una llamada breve para conocer su portafolio y forma de trabajo? Tengo disponibilidad jueves y viernes por la tarde.\n\nSaludos,\nAlfredo Paredes\nConsultor en Servicios de Alimentación\n844 190 2277"
+ },
+ {
+  "id": "D42",
+  "label": "FORMULA_PERSONALIZADA",
+  "sender_kind": "contacto",
+  "from_email": "eruiz@clientey.example",
+  "subject": "Sazonador para línea vegana",
+  "body": "Pedro,\n\nEstamos desarrollando una línea de hamburguesas vegetales y necesitamos un sazonador tipo \"res asada\" sin ingredientes de origen animal ni alérgenos. ¿Pueden trabajar una propuesta de fórmula? Cuando tengan la muestra nos dicen el costo aproximado por kg.\n\nChef Ernesto Ruiz"
+ },
+ {
+  "id": "D43",
+  "label": "SOLICITUD_COTIZACION",
+  "sender_kind": "desconocido",
+  "from_email": "procurement@texmexfoods.example",
+  "subject": "Request for pricing - dehydrated garlic granules",
+  "body": "Hello,\n\nWe are a food manufacturer based in San Antonio, TX, sourcing from Mexico for our salsa line. Could you please send your best price for dehydrated garlic granules (8-16 mesh), 5,000 lbs per month, FCA Monterrey?\n\nPlease also include lead time and minimum order.\n\nThanks,\nJennifer Hollis\nProcurement Specialist\nTexMex Foods LLC\n+1 210 555 0147"
+ },
+ {
+  "id": "D44",
+  "label": "OTRO",
+  "sender_kind": "desconocido",
+  "from_email": "donativos@bancodealimentosnl.example",
+  "subject": "Solicitud de donativo en especie",
+  "body": "Estimados amigos de Especias La Huerta:\n\nEl Banco de Alimentos de Nuevo León atiende a más de 30,000 familias. Les invitamos a sumarse con un donativo en especie de granos (arroz o frijol) para nuestra campaña de otoño. Emitimos recibo deducible.\n\nCon gratitud,\nCoordinación de Donativos"
+ },
+ {
+  "id": "D45",
+  "label": "SPAM_NO_RELEVANTE",
+  "sender_kind": "desconocido",
+  "from_email": "growth@rankfastseo.example",
+  "subject": "Your website is not ranking on Google",
+  "body": "Hi,\n\nI was checking your website and noticed it's not on the first page of Google for key terms. We can fix it in 30 days guaranteed. Can I send you a free audit?\n\nRegards,\nKevin\nRank Fast SEO"
+ },
+ {
+  "id": "D46",
+  "label": "LOGISTICA_ENTREGA",
+  "sender_kind": "contacto",
+  "from_email": "compras.mty@clientey.example",
+  "subject": "¿Hora de llegada OC-45821?",
+  "body": "Pedro, ¿me confirmas a qué hora llega la unidad con la OC-45821? El andén se cierra a la 1 y tengo que avisar a recibo.\n\nAna Lucía"
+ },
+ {
+  "id": "D47",
+  "label": "SPAM_NO_RELEVANTE",
+  "sender_kind": "desconocido",
+  "from_email": "notificaciones@sat-avisos-mx.example",
+  "subject": "URGENTE: Su RFC ha sido suspendido",
+  "body": "Estimado contribuyente,\n\nDetectamos irregularidades en su declaración. Su RFC será suspendido en 24 horas si no actualiza sus datos en el siguiente enlace:\nhttp://sat-actualiza-datos.example/login\n\nServicio de Administración Tributaria"
+ },
+ {
+  "id": "D48",
+  "label": "PEDIDO",
+  "sender_kind": "contacto",
+  "from_email": "compras.mty@clientey.example",
+  "subject": "Reposición igual a OC-3310",
+  "body": "Buen día Pedro,\n\nNecesitamos que nos manden de nuevo lo mismo de la OC-3310, mismas cantidades y presentaciones. Entrega martes 29. Te genero el nuevo número de OC en cuanto me lo libere el sistema, pero tómalo como confirmado.\n\nSaludos\nAna Lucía"
+ },
+ {
+  "id": "D49",
+  "label": "OTRO",
+  "sender_kind": "desconocido",
+  "from_email": "mariana.cortes.iia@gmail.com",
+  "subject": "Solicitud de empleo - Ingeniera en Alimentos",
+  "body": "Buenas tardes,\n\nMi nombre es Mariana Cortés, soy Ingeniera en Industrias Alimentarias egresada del ITESM. Me interesa formar parte de su equipo en el área de calidad o desarrollo de producto. Adjunto mi CV.\n\nQuedo a sus órdenes.\nMariana Cortés\n81 1987 6543"
+ },
+ {
+  "id": "D50",
+  "label": "CALIDAD_RECLAMACION",
+  "sender_kind": "contacto",
+  "from_email": "calidad@clientey.example",
+  "subject": "Lote 26-0915 pimienta negra - humedad",
+  "body": "Buen día,\n\nAl recibir el lote 26-0915 de pimienta negra molida (OC-45390, 40 sacos), nuestro laboratorio detectó humedad de 14.2% (especificación máx. 12%) y presencia de grumos. El lote quedó retenido en cuarentena.\n\nSolicitamos su análisis de causa y propuesta de reposición.\n\nQ. Daniela Cárdenas\nAseguramiento de Calidad\nGrupo Cliente Y"
+ },
+ {
+  "id": "D51",
+  "label": "LOGISTICA_ENTREGA",
+  "sender_kind": "contacto",
+  "from_email": "purchasing@clientey.example",
+  "subject": "Delivery window change - dock closed Friday",
+  "body": "Hi Pedro,\n\nHeads up: our receiving dock will be closed this Friday for maintenance. Please reschedule the PO 7730-B delivery for Thursday before 2 pm or Monday morning, whichever works for your transport.\n\nThanks,\nMark"
+ },
+ {
+  "id": "D52",
+  "label": "LOGISTICA_ENTREGA",
+  "sender_kind": "contacto",
+  "from_email": "compras.merida@clientey.example",
+  "subject": "Guía de embarque Mérida",
+  "body": "Buenas tardes,\n\n¿Me podrían compartir el número de guía o link de rastreo del embarque que salió el lunes a nuestra sucursal Mérida? Queremos saber si llega antes del fin de semana.\n\nSaludos,\nIrma Can\nCompras Sureste - Grupo Cliente Y"
+ },
+ {
+  "id": "D53",
+  "label": "PROVEEDOR_COMPRAS",
+  "sender_kind": "proveedor",
+  "from_email": "export@proveedor-y.example",
+  "subject": "Offer: Indian hulled sesame 99.95%",
+  "body": "Dear Sir,\n\nWe are pleased to offer:\nProduct: Hulled sesame seeds, 99.95% purity, Indian origin\nQuantity: 20 MT (1 FCL)\nPrice: USD 1,780/MT CIF Manzanillo\nShipment: November 2026\nValidity: 5 days\n\nKindly revert with your confirmation.\n\nBest regards,\nRajesh Kumar\nExport Desk, Proveedor Y Agro"
+ },
+ {
+  "id": "D54",
+  "label": "ADMIN_FACTURACION",
+  "sender_kind": "contacto",
+  "from_email": "contabilidad@clientey.example",
+  "subject": "Actualización de datos fiscales",
+  "body": "Estimados,\n\nLes informamos que cambiamos de domicilio fiscal. Adjuntamos nueva Constancia de Situación Fiscal para que a partir de hoy las facturas se emitan con el código postal 66050.\n\nSaludos,\nContabilidad Grupo Cliente Y"
+ },
+ {
+  "id": "D55",
+  "label": "CALIDAD_RECLAMACION",
+  "sender_kind": "contacto",
+  "from_email": "roberto.garza@clientey.example",
+  "subject": "Entrega tarde y costales rotos",
+  "body": "Pedro,\n\nLa entrega de ayer llegó con 5 horas de retraso, pero lo peor es que 3 costales de chile guajillo venían rotos, con producto regado y sucio del piso de la caja, y dos más mojados. Eso no lo podemos usar. Necesito que me digan cómo lo van a reponer.\n\nRoberto Garza"
+ },
+ {
+  "id": "D56",
+  "label": "DOCUMENTACION_CALIDAD",
+  "sender_kind": "contacto",
+  "from_email": "adriana.salinas@clientey.example",
+  "subject": "carta garantía linaza",
+  "body": "Hola Pedro,\n\nNuestro cliente de exportación nos pide una carta garantía de que la linaza que nos surten es libre de OGM y sin contacto cruzado con gluten. ¿Me la pueden hacer en papel membretado y firmada por su responsable de calidad?\n\nGracias,\nAdriana"
+ },
+ {
+  "id": "D57",
+  "label": "FORMULA_PERSONALIZADA",
+  "sender_kind": "contacto",
+  "from_email": "laura.trevino@clientey.example",
+  "subject": "Retroalimentación muestras adobo",
+  "body": "Hola Pedro,\n\nHicimos el panel sensorial con las 3 muestras de adobo que nos mandaron. La muestra B fue la preferida, pero piden que quede más ahumada y un poco menos de comino. ¿Nos pueden mandar una muestra B2 con esos ajustes?\n\nGracias,\nLaura"
+ },
+ {
+  "id": "D58",
+  "label": "OTRO",
+  "sender_kind": "contacto",
+  "from_email": "purchasing@clientey.example",
+  "subject": "Automatic reply: PO 7730-B",
+  "body": "Thank you for your email. I am out of the office until September 28 with limited access to email. For urgent matters please contact purchasing.backup@clientey.example.\n\nMark Sullivan"
+ },
+ {
+  "id": "D59",
+  "label": "FORMULA_PERSONALIZADA",
+  "sender_kind": "lead",
+  "from_email": "hector.villarreal@prospectoy.example",
+  "subject": "Maquila de mezcla propia",
+  "body": "Pedro,\n\nOtra consulta: nosotros tenemos nuestra propia receta de mezcla para barras (canela, jengibre y nuez moscada). ¿Ustedes podrían maquilarla con nuestra fórmula? Obviamente necesitaríamos firmar un convenio de confidencialidad antes de compartirla.\n\nHéctor"
+ },
+ {
+  "id": "D60",
+  "label": "PROVEEDOR_COMPRAS",
+  "sender_kind": "proveedor",
+  "from_email": "ventas.empaque@proveedor-y.example",
+  "subject": "Cotización costales de polipropileno",
+  "body": "Hola Pedro,\n\nComo lo solicitaste, te cotizo costales de polipropileno laminado grado alimenticio, 25 kg, impresos a 2 tintas con su logo:\n- 10,000 pzas: $9.80 c/u\n- 20,000 pzas: $8.95 c/u\nTiempo de entrega: 3 semanas después de aprobar arte.\n\nSaludos,\nLiliana Pérez\nEmpaques Proveedor Y"
+ },
+ {
+  "id": "D61",
+  "label": "FORMULA_PERSONALIZADA",
+  "sender_kind": "desconocido",
+  "from_email": "hello@borderbitesco.example",
+  "subject": "Private label taco seasoning",
+  "body": "Hi,\n\nWe're launching our own brand of taco seasoning for the US market and we're looking for a manufacturer in Mexico that can develop the blend and pack it under our label (1 lb pouches). Do you offer private label / co-packing? We'd love to start with samples.\n\nCheers,\nTom Delgado\nBorder Bites Co."
+ },
+ {
+  "id": "D62",
+  "label": "OTRO",
+  "sender_kind": "desconocido",
+  "from_email": "vinculacion@utfoodtech.example",
+  "subject": "Visita académica a planta",
+  "body": "Buen día,\n\nSoy docente de la carrera de Tecnología de Alimentos. Me gustaría saber si es posible organizar una visita a su planta con un grupo de 25 alumnos de 7° semestre durante octubre, para conocer procesos de molienda y envasado.\n\nMtra. Elena Saucedo\nUniversidad Tecnológica"
+ },
+ {
+  "id": "D63",
+  "label": "SEGUIMIENTO_COMERCIAL",
+  "sender_kind": "lead",
+  "from_email": "m.oconnor@prospectoy.example",
+  "subject": "Following up on your proposal",
+  "body": "Hi Pedro,\n\nThanks for the proposal you sent last Tuesday. Overall the numbers work for us. The only sticking point is payment terms: our standard is net 60, and your proposal says net 30. Is there any flexibility there? If so, we'd be ready to move forward.\n\nBest regards,\nMegan O'Connor\nProspecto Y Hospitality Group"
+ },
+ {
+  "id": "D64",
+  "label": "FORMULA_PERSONALIZADA",
+  "sender_kind": "contacto",
+  "from_email": "chuy.cocina@clientey.example",
+  "subject": "adobo arrachera",
+  "body": "pedro necesitamos un adobo para arrachera, que sepa tipo el de los restaurantes de carne asada de san pedro, pero SIN glutamato porque los clientes se quejan. me pueden hacer algo asi? unos 200 kg al mes"
+ },
+ {
+  "id": "D65",
+  "label": "PEDIDO",
+  "sender_kind": "contacto",
+  "from_email": "chuy.cocina@clientey.example",
+  "subject": "para el lunes",
+  "body": "q tal pedro, surtanme 40 bultos de frijol negro y 20 de arroz porfa pa el lunes temprano, lo de siempre a la sucursal de Linda Vista\ngracias!!"
+ },
+ {
+  "id": "D66",
+  "label": "SOLICITUD_COTIZACION",
+  "sender_kind": "cuenta_dominio",
+  "from_email": "v.montemayor@clientey.example",
+  "subject": "Cotización orégano y paprika - Planta Saltillo",
+  "body": "Buenas tardes,\n\nSoy Verónica Montemayor, me acabo de integrar al área de compras de la planta Saltillo. Me comentaron que ustedes ya surten a la planta de Monterrey.\n\n¿Me podrían cotizar lo siguiente?\n- Orégano mexicano seco, 600 kg\n- Paprika dulce 120 ASTA, 500 kg\n\nEntrega en Saltillo, Coah.\n\nGracias de antemano.\nVerónica Montemayor\nGrupo Cliente Y - Planta Saltillo"
+ },
+ {
+  "id": "D67",
+  "label": "ADMIN_FACTURACION",
+  "sender_kind": "contacto",
+  "from_email": "roberto.garza@clientey.example",
+  "subject": "Ampliación de línea de crédito",
+  "body": "Pedro,\n\nCon el contrato anual vamos a traer más volumen y la línea de crédito actual de $500 mil ya no nos alcanza. ¿Podrían ampliarla a $900 mil con 45 días? Si necesitan estados financieros los pido a contabilidad.\n\nRoberto"
+ },
+ {
+  "id": "D68",
+  "label": "OTRO",
+  "sender_kind": "contacto",
+  "from_email": "roberto.garza@clientey.example",
+  "subject": "llámame",
+  "body": "Pedro, llámame cuando puedas.\n\nEnviado desde mi iPhone"
+ },
+ {
+  "id": "D69",
+  "label": "OTRO",
+  "sender_kind": "desconocido",
+  "from_email": "tesis.fernanda.m@hotmail.com",
+  "subject": "Encuesta para tesis",
+  "body": "hola buenas tardes, soy estudiante de la maestria en administracion y estoy haciendo mi tesis sobre pymes del sector alimentos en NL, me ayudarian contestando una encuesta de 10 min? aqui les dejo el link, muchas gracias!!"
+ },
+ {
+  "id": "D70",
+  "label": "ADMIN_FACTURACION",
+  "sender_kind": "contacto",
+  "from_email": "tesoreria@clientey.example",
+  "subject": "Comprobante de pago",
+  "body": "Buen día,\n\nAdjuntamos comprobante de transferencia SPEI por $186,420.50 que cubre las facturas F-10233 y F-10240. Favor de aplicar el pago y enviarnos el complemento.\n\nTesorería\nGrupo Cliente Y"
+ },
+ {
+  "id": "D71",
+  "label": "SEGUIMIENTO_COMERCIAL",
+  "sender_kind": "lead",
+  "from_email": "karla.ochoa@prospectoy.example",
+  "subject": "RE: Cotización mezcla de especias",
+  "body": "Pedro, ya lo presenté a dirección. Les gustó, pero nos piden un descuento por volumen si subimos a 2 toneladas mensuales en vez de 1. ¿Qué tanto podrían mover el precio?\n\nKarla"
+ },
+ {
+  "id": "D72",
+  "label": "LEAD_NUEVO",
+  "sender_kind": "desconocido",
+  "from_email": "noreply@formularios-web.example",
+  "subject": "Nuevo mensaje desde el formulario de contacto",
+  "body": "Has recibido un nuevo mensaje desde el formulario de contacto del sitio web.\n\nNombre: Arturo Cavazos\nEmpresa: Panificadora San Nicolás\nTeléfono: 81 8765 4411\nCorreo: acavazos@panificadorasn.example\nMensaje: Quiero información de sus semillas (linaza, chía, ajonjolí) y saber si pueden visitarnos para presentarnos la empresa.\n\n--\nEste mensaje fue enviado automáticamente."
+ },
+ {
+  "id": "D73",
+  "label": "ADMIN_FACTURACION",
+  "sender_kind": "contacto",
+  "from_email": "cxp@clientey.example",
+  "subject": "Solicitud de refacturación F-10187",
+  "body": "Buenas tardes,\n\nLa factura F-10187 se emitió con el RFC de la razón social anterior. Favor de cancelarla y emitirla nuevamente a nombre de Grupo Cliente Y S.A. de C.V., RFC GCY190312AB4, uso CFDI G01, método PPD.\n\nCuentas por Pagar"
+ },
+ {
+  "id": "D74",
+  "label": "SPAM_NO_RELEVANTE",
+  "sender_kind": "desconocido",
+  "from_email": "it-support@mailadmin-secure.example",
+  "subject": "Mailbox storage full",
+  "body": "Your mailbox has exceeded its storage limit. You will not be able to receive new messages until you validate your account.\n\nClick here to increase your quota: http://mail-quota-upgrade.example\n\nIT Help Desk"
+ },
+ {
+  "id": "D75",
+  "label": "DOCUMENTACION_CALIDAD",
+  "sender_kind": "contacto",
+  "from_email": "almacen@clientey.example",
+  "subject": "faltan certificados",
+  "body": "Buenas tardes, en la remisión de ayer no venían los certificados de análisis de los lotes de arroz y frijol. El producto está bien pero sin los COA no nos dejan darlo de alta en el sistema. Me los mandan por aquí por favor\n\nAlmacén Comedor Planta 2"
+ },
+ {
+  "id": "D76",
+  "label": "PROVEEDOR_COMPRAS",
+  "sender_kind": "proveedor",
+  "from_email": "ventas@proveedor-y.example",
+  "subject": "Aviso de ajuste de precios - octubre",
+  "body": "Estimados clientes:\n\nPor la baja producción en Vietnam, a partir del 1 de octubre la pimienta negra entera tendrá un incremento de 12% sobre la lista vigente. Los pedidos confirmados antes del 30 de septiembre se respetan al precio actual.\n\nAtentamente,\nÓscar Medina\nProveedor Y Importaciones"
+ },
+ {
+  "id": "D77",
+  "label": "SPAM_NO_RELEVANTE",
+  "sender_kind": "desconocido",
+  "from_email": "eventos@marketingb2bpro.example",
+  "subject": "Webinar gratuito: Cómo triplicar tus ventas B2B",
+  "body": "¡Hola!\n\nTe invitamos a nuestro webinar gratuito \"Cómo triplicar tus ventas B2B con LinkedIn\" este jueves a las 18:00 h. Cupo limitado. Regístrate aquí.\n\nSi no deseas recibir más correos, haz clic aquí para darte de baja."
+ },
+ {
+  "id": "D78",
+  "label": "SEGUIMIENTO_COMERCIAL",
+  "sender_kind": "lead",
+  "from_email": "compras@prospectoy.example",
+  "subject": "Re: Cotización COT-2310",
+  "body": "Gracias por la información. Dos dudas antes de decidir:\n1. ¿La validez es de 15 días naturales o hábiles?\n2. ¿El flete a Monclova está incluido o se cobra aparte?\n\nSaludos,\nLic. Fernando Rangel\nCompras - Prospecto Y\n\nEl mar, 15 sep 2026 a las 13:47, Pedro Leal <pedro@lahuerta.example> escribió:\n> Fernando, adjuntamos cotización COT-2310 para frijol pinto y arroz.\n> Quedamos atentos."
+ },
+ {
+  "id": "D79",
+  "label": "LEAD_NUEVO",
+  "sender_kind": "desconocido",
+  "from_email": "abastecimiento@hotelesmarazul.example",
+  "subject": "Solicitud de catálogo de productos",
+  "body": "Estimados señores:\n\nPor medio del presente, el área de Abastecimiento de Hoteles Mar Azul (8 propiedades en Quintana Roo) les solicita de la manera más atenta su catálogo de productos y fichas generales, ya que estamos ampliando nuestra base de proveedores de abarrotes secos para nuestras cocinas.\n\nAgradeceremos también nos indiquen si tienen cobertura en la zona sureste.\n\nAtentamente,\nLic. Mariana Poot\nCoordinadora de Abastecimiento\nHoteles Mar Azul\n998 881 4400"
+ },
+ {
+  "id": "D80",
+  "label": "DOCUMENTACION_CALIDAD",
+  "sender_kind": "lead",
+  "from_email": "karla.ochoa@prospectoy.example",
+  "subject": "Documentación para evaluación",
+  "body": "Pedro, para avanzar con la evaluación como proveedor, compártenos por favor ficha técnica y hoja de seguridad del ajo en polvo y la cebolla en polvo, más su certificado FSSC. Con eso calidad puede darles el visto bueno.\n\nKarla Ochoa\nGerente de Calidad"
+ },
+ {
+  "id": "D81",
+  "label": "DOCUMENTACION_CALIDAD",
+  "sender_kind": "contacto",
+  "from_email": "auditoria.proveedores@clientey.example",
+  "subject": "Auditoría a proveedor - información previa",
+  "body": "Buen día,\n\nProgramamos la auditoría a su planta para el 20 de octubre. Previo a la visita requerimos nos envíen: plan HACCP vigente, programa de control de plagas con los últimos 3 reportes, y registros de calibración de básculas.\n\nSaludos,\nIng. Tomás Leyva\nAuditor de Proveedores\nGrupo Cliente Y"
+ },
+ {
+  "id": "D82",
+  "label": "LEAD_NUEVO",
+  "sender_kind": "lead",
+  "from_email": "karla.ochoa@prospectoy.example",
+  "subject": "Visita a sus instalaciones",
+  "body": "Hola Pedro,\n\nComo te comenté en la expo, al equipo de calidad le gustaría conocer su planta y el proceso de molienda y esterilización antes de avanzar. ¿Tendrían disponibilidad para recibirnos la próxima semana, martes o miércoles en la mañana?\n\nSeríamos 3 personas.\n\nSaludos,\nKarla Ochoa\nGerente de Calidad\nAlimentos Prospecto Y"
+ },
+ {
+  "id": "D83",
+  "label": "SOLICITUD_COTIZACION",
+  "sender_kind": "desconocido",
+  "from_email": "comedor_industrial_sta@hotmail.com",
+  "subject": "lista de precios",
+  "body": "Hola vi su pagina, me pueden pasar lista de precios de frijol pinto y arroz sinaloa en bulto de 50 kg? manejo un comedor industrial de 1200 empleados en Santa Catarina, compramos como 60 bultos de cada uno al mes\n\ngracias\nLupita Garza"
+ },
+ {
+  "id": "D84",
+  "label": "SEGUIMIENTO_COMERCIAL",
+  "sender_kind": "contacto",
+  "from_email": "direccion@clientey.example",
+  "subject": "Contrato anual 2027",
+  "body": "Estimado Pedro:\n\nSobre la propuesta de contrato anual que nos enviaron: aceptamos el volumen comprometido de 18 toneladas anuales, pero requerimos precio fijo por 6 meses en lugar de 3, y revisión semestral con tope de 5%. Si les parece, lo formalizamos en la reunión del día 30.\n\nAtentamente,\nC.P. Gabriela Lozano\nDirección de Abastecimiento\nGrupo Cliente Y"
+ },
+ {
+  "id": "D85",
+  "label": "PROVEEDOR_COMPRAS",
+  "sender_kind": "proveedor",
+  "from_email": "ventas@proveedor-y.example",
+  "subject": "Oferta comino nueva cosecha",
+  "body": "Estimado Pedro:\n\nYa tenemos disponible comino entero de nueva cosecha, origen Siria/Turquía, 99% pureza. Precio USD 4.35/kg LAB Manzanillo, contenedor de 20 t, embarque octubre. Tenemos 3 contenedores comprometidos, si le interesa aparte uno le pido confirmar esta semana.\n\nSaludos,\nÓscar Medina\nProveedor Y Importaciones\n33 3615 9900"
+ },
+ {
+  "id": "D86",
+  "label": "SOLICITUD_COTIZACION",
+  "sender_kind": "desconocido",
+  "from_email": "logistica@carnesdelalaguna.example",
+  "subject": "Canela y clavo",
+  "body": "Que tal, necesitamos saber en cuanto nos dejarian 20 sacos de 25 kg de canela molida y 10 sacos de clavo entero, y aparte cuanto seria el flete hasta Torreon.\nSomos obrador de carnes frias.\n\nAtte. Julio Esparza\nCarnes de La Laguna\n871 700 3344"
+ },
+ {
+  "id": "D87",
+  "label": "ADMIN_FACTURACION",
+  "sender_kind": "contacto",
+  "from_email": "cxp@clientey.example",
+  "subject": "complementos de pago pendientes",
+  "body": "Hola, nos faltan los complementos de pago (REP) de los pagos de agosto, sin ellos no podemos cerrar el mes. Son 4 pagos, la relación va en el excel adjunto.\n\nGracias\nCuentas por Pagar"
+ },
+ {
+  "id": "D88",
+  "label": "CALIDAD_RECLAMACION",
+  "sender_kind": "cuenta_dominio",
+  "from_email": "laboratorio.saltillo@clientey.example",
+  "subject": "Resultado microbiológico orégano lote ORE-2607",
+  "body": "Estimados,\n\nSomos el laboratorio de la planta Saltillo. En el análisis de rutina del orégano lote ORE-2607 obtuvimos coliformes totales de 2,300 UFC/g, por encima del límite de 1,000 UFC/g de nuestra especificación. Adjuntamos reporte.\n\nSolicitamos el retiro de las 12 cajas restantes y su certificado de esterilización de ese lote.\n\nIng. Paulina Rocha\nLaboratorio de Calidad - Planta Saltillo"
+ },
+ {
+  "id": "D89",
+  "label": "LEAD_NUEVO",
+  "sender_kind": "desconocido",
+  "from_email": "franquicias@tacoselguero.example",
+  "subject": "Información de productos",
+  "body": "Buen día. Somos una franquicia de taquerías con 22 puntos en Nuevo León y Coahuila. Queremos centralizar la compra de chiles secos, especias y frijol. ¿Qué productos manejan, cuál es el volumen mínimo por pedido y en qué zonas entregan?\n\nQuedo atento, gracias.\nRicardo Elizondo\nDir. de Operaciones - Tacos El Güero"
+ },
+ {
+  "id": "D90",
+  "label": "PROVEEDOR_COMPRAS",
+  "sender_kind": "desconocido",
+  "from_email": "chilesdelaltiplano@gmail.com",
+  "subject": "Productores de chile guajillo Zacatecas",
+  "body": "Buen día, somos productores de chile guajillo y puya en Fresnillo, Zacatecas. Tenemos 40 toneladas de guajillo de primera, seco y limpio, listo para entregar. Vendemos directo, sin intermediarios. Si les interesa les mandamos muestra y precio por kg.\n\nSaludos\nRamiro Félix\n492 110 3344"
+ },
+ {
+  "id": "D91",
+  "label": "LEAD_NUEVO",
+  "sender_kind": "desconocido",
+  "from_email": "d.reyes@greenplatekitchens.example",
+  "subject": "Introduction - potential supplier for our kitchens",
+  "body": "Hi there,\n\nI'm the Culinary Director at Green Plate Kitchens, we run central kitchens for corporate cafeterias in Monterrey and CDMX. A colleague mentioned your spice mills and the FSSC 22000 certification.\n\nWould you be open to a 30-minute call next week to walk us through your portfolio and how you usually work with institutional clients?\n\nBest,\nDaniel Reyes\nGreen Plate Kitchens"
+ },
+ {
+  "id": "D92",
+  "label": "SOLICITUD_COTIZACION",
+  "sender_kind": "lead",
+  "from_email": "hector.villarreal@prospectoy.example",
+  "subject": "Re: gusto en saludarlos",
+  "body": "Hola Pedro,\n\nGracias por la reunión del jueves. Ya platiqué con producción y sí nos interesa la linaza dorada. ¿Nos pueden dar precio por 3 toneladas, en costal de 25 kg, con entrega a Escobedo?\n\nSaludos\nHéctor Villarreal\nNutribarras del Norte (Prospecto Y)\n81 2222 9087\n\nEl jue, 17 sep 2026 a las 16:02, Pedro Leal <pedro@lahuerta.example> escribió:\n> Héctor, fue un gusto. Quedo atento a lo que definan en producción."
+ },
+ {
+  "id": "D93",
+  "label": "SPAM_NO_RELEVANTE",
+  "sender_kind": "desconocido",
+  "from_email": "dhl-entregas@envios-retenidos.example",
+  "subject": "Su paquete está retenido",
+  "body": "DHL Express\n\nSu paquete no pudo ser entregado por falta de pago de impuestos ($45.00 MXN). Para liberar el envío realice el pago en el siguiente enlace dentro de las próximas 12 horas.\n\nNúmero de rastreo: MX99281734"
+ },
+ {
+  "id": "D94",
+  "label": "DOCUMENTACION_CALIDAD",
+  "sender_kind": "contacto",
+  "from_email": "qa.manager@clientey.example",
+  "subject": "Updated FSSC 22000 certificate and allergen statement",
+  "body": "Hi team,\n\nOur supplier file shows your FSSC 22000 certificate expiring next month. Could you please send the renewed certificate once available, along with an updated allergen statement for all products you supply to us?\n\nThank you,\nKaren Whitfield\nQA Manager"
+ },
+ {
+  "id": "D95",
+  "label": "PEDIDO",
+  "sender_kind": "contacto",
+  "from_email": "roberto.garza@clientey.example",
+  "subject": "RE: Cotización COT-2291 chile ancho",
+  "body": "Pedro,\n\nConfirmamos la cotización COT-2291. Favor de programar 3 toneladas de chile ancho en total, en 3 entregas de 1 t por semana a partir del 28 de septiembre. La OC formal te la manda Ana Lucía hoy en la tarde, pero ya pueden ir preparando.\n\nRoberto Garza\nGerente de Planta\n\n-----Mensaje original-----\nDe: Pedro Leal\nEnviado: viernes, 18 de septiembre de 2026 11:40\nAsunto: Cotización COT-2291 chile ancho\n> Roberto, te comparto cotización para 3 t de chile ancho con precio fijo 60 días."
+ },
+ {
+  "id": "D96",
+  "label": "CALIDAD_RECLAMACION",
+  "sender_kind": "contacto",
+  "from_email": "almacen@clientey.example",
+  "subject": "piedras en frijol",
+  "body": "Buenas, en los bultos de frijol pinto que llegaron ayer encontramos piedritas, en 3 bultos de 25 revisados. En cocina ya se quejaron porque a un empleado casi se le rompe un diente. Necesitamos que vengan a revisar y lo cambien.\n\nSaludos\nAlmacén Comedor Planta 2"
+ }
+]

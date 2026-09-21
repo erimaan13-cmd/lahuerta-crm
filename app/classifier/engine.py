@@ -11,7 +11,7 @@ from app.classifier import normalize, rules, taxonomy
 from app.classifier.extract import CatalogItem, extract_all
 from app.classifier.llm import LLMClient, NullLLMClient
 
-CLASSIFIER_VERSION = "rules-1.0"
+CLASSIFIER_VERSION = "rules-1.1"
 PRIOR_MASS = 1.0  # masa de "incertidumbre": poca evidencia ⇒ baja confianza
 
 
@@ -45,7 +45,9 @@ class ClassifierResult:
 def _apply_context(scores: dict[str, float], sender_kind: str, ents: dict) -> dict[str, float]:
     s = dict(scores)
     if sender_kind == "proveedor":
-        s["PROVEEDOR_COMPRAS"] = s.get("PROVEEDOR_COMPRAS", 0) + 3.0
+        # un proveedor conocido casi siempre escribe como proveedor (incluso si habla de facturas o precios)
+        others = max([v for k, v in s.items() if k != "PROVEEDOR_COMPRAS"] or [0])
+        s["PROVEEDOR_COMPRAS"] = max(s.get("PROVEEDOR_COMPRAS", 0), others) + 3.0
     if sender_kind in ("contacto", "lead", "cuenta_dominio"):
         s.pop("LEAD_NUEVO", None)  # ya existe en el CRM: no es prospecto nuevo
         s.pop("SPAM_NO_RELEVANTE", None)
@@ -62,6 +64,11 @@ def _apply_context(scores: dict[str, float], sender_kind: str, ents: dict) -> di
         s["SEGUIMIENTO_COMERCIAL"] = s.get("SEGUIMIENTO_COMERCIAL", 0) + 1.0
     if ents["references"].get("lot_ref") and "CALIDAD_RECLAMACION" in s:
         s["CALIDAD_RECLAMACION"] += 1.0
+    for winner, min_score, losers in rules.PRIORITY_ABSORB:
+        if s.get(winner, 0) >= min_score:
+            for loser in losers:
+                if loser in s:
+                    s[winner] += s.pop(loser)
     return s
 
 

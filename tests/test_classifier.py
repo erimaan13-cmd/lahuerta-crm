@@ -51,9 +51,26 @@ def test_ambiguous_mixed_email_needs_review_by_margin():
     assert r.needs_review and "margen" in (r.review_reason or "")
 
 
-def test_english_email_is_not_forced_into_a_category():
+def test_english_quote_is_recognized_since_v1_1():
     r = run("Request for quotation", "We would like a quotation for 2 tons of ground cumin")
-    assert r.needs_review  # limitación conocida del MVP (reglas en español)
+    assert r.classification == "SOLICITUD_COTIZACION"
+
+
+def test_unsupported_language_is_not_forced_into_a_category():
+    r = run("Pedido de proposta", "Gostaríamos de receber uma proposta para cominho moído")
+    assert r.needs_review  # portugués: sin reglas → revisión humana
+
+
+@pytest.mark.parametrize("subject,body,kind,expected", [
+    ("RE: Propuesta", "Gracias por la propuesta, ¿el precio es negociable si subimos volumen?", "contacto", "SEGUIMIENTO_COMERCIAL"),
+    ("Pedido + factura", "Favor de surtir 1,200 kg de arroz y mandar la factura con el nuevo RFC", "contacto", "PEDIDO"),
+    ("Entrega y producto", "Llegó tarde y los costales venían rotos y mojados", "contacto", "CALIDAD_RECLAMACION"),
+    ("Aviso", "Su cuenta ha sido suspendida, verifique sus datos. Factura pendiente", "desconocido", "SPAM_NO_RELEVANTE"),
+    ("Automatic reply: PO 12", "I am out of the office until Monday", "contacto", "OTRO"),
+    ("Estado de cuenta", "Le enviamos su estado de cuenta con saldo vencido", "proveedor", "PROVEEDOR_COMPRAS"),
+])
+def test_mixed_email_priority_rules(subject, body, kind, expected):
+    assert run(subject, body, kind=kind).classification == expected
 
 
 def test_known_sender_is_never_new_lead():
@@ -101,10 +118,10 @@ def test_normalization_strips_html_and_quoted_history():
 def test_hybrid_llm_only_called_when_uncertain(monkeypatch):
     monkeypatch.setattr(config, "LLM_ENABLED", True)
     agree = MockLLMClient(("LEAD_NUEVO", 0.9))
-    r = run("Request for quotation", "We would like a quotation for 2 tons of ground cumin", llm=agree)
+    r = run("Hola", "¿Tienen comino?", llm=agree)
     assert agree.calls == 1 and r.method == "hybrid" and not r.needs_review
     disagree = MockLLMClient(("SPAM_NO_RELEVANTE", 0.95))
-    r = run("Request for quotation", "We would like a quotation for 2 tons of ground cumin", llm=disagree)
+    r = run("Hola", "¿Tienen comino?", llm=disagree)
     assert r.needs_review and "llm=" in r.review_reason
     confident = MockLLMClient(("OTRO", 0.99))
     run("Factura", "Favor de enviar la factura XML y el complemento de pago", kind="contacto", llm=confident)
