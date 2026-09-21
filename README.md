@@ -89,7 +89,8 @@ tests/               pytest
 
 ## Documentación
 
-- `docs/INFORME_FINAL.md` — informe A–Q (empezar aquí)
+- `docs/ENTREGA_ABRAHAM.md` — entrega técnica para revisión y auditoría (empezar aquí si vas a revisar el código)
+- `docs/INFORME_FINAL.md` — informe A–Q
 - `docs/01_INVESTIGACION.md` — Evidence Ledger, organigrama, capability map, procesos, Salesforce, CRM vs ERP/WMS/QMS
 - `docs/02_PLAN.md` — requerimientos, NFR, dominio, pipeline, arquitectura
 - `docs/03_SELECTOR_DE_STACK.md` · `docs/04_CLASIFICADOR.md` · `docs/05_EVALUACION_CLASIFICADOR.md` · `docs/DIAGRAMAS.md`
