@@ -1,5 +1,7 @@
 # Informe final — MVP CRM provisional · Empacadora La Huerta
 
+> **Actualización (iteración 2):** la cifra del clasificador de la sección J (16/18) fue superada por una evaluación independiente: v1.0 = 53 %, v1.1.1 = 75 % de exactitud. Ver `05_EVALUACION_CLASIFICADOR.md` e `INFORME_ITERACION_2.md`.
+
 Fecha: lunes 21-sep-2026, ≈03:00 h Monterrey (plazo tomado: 21-sep 12:00; el encargo también menciona 22-sep — ver D-01).
 
 **Conclusión:** el MVP es **ejecutable y demostrable**: dos vertical slices completos (lead → cuenta/contacto → oportunidad → cotización → pipeline → actividad/tarea; correo → clasificación → extracción → vínculo CRM → Needs Review → acción humana) y dashboard, con **95 pruebas automatizadas aprobadas**, auditoría, RBAC y datos sintéticos. Lo simulado: ERP, QMS, Gmail y el paso LLM (interfaces definidas y probadas con mocks).
