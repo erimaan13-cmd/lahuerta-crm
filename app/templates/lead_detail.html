@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+<p class="small"><a href="/leads">← Leads</a></p>
+<h1>{{ lead.full_name }} <span class="chip">{{ lead.status }}</span>
+{% if lead.below_minimum %}<span class="chip warn">Bajo mínimo (500 kg)</span>{% endif %}</h1>
+<div class="two">
+<div>
+  <table>
+    <tr><th>Empresa</th><td>{{ lead.company_name or '—' }}</td><th>Sector</th><td>{{ lead.sector_code or '—' }}</td></tr>
+    <tr><th>Correo</th><td>{{ lead.email or '—' }}</td><th>Teléfono</th><td>{{ lead.phone or '—' }}</td></tr>
+    <tr><th>Ciudad</th><td>{{ lead.city or '—' }} {{ lead.state or '' }}</td><th>Origen</th><td>{{ lead.source }} {{ lead.campaign or '' }}</td></tr>
+    <tr><th>Producto</th><td>{{ lead.product_interest_text or '—' }}</td><th>Volumen</th><td>{{ lead.volume_band }} {{ (lead.est_volume_kg|int ~ ' kg') if lead.est_volume_kg else '' }}</td></tr>
+    <tr><th>Mensaje</th><td colspan="3">{{ lead.message or '—' }}</td></tr>
+    {% if lead.duplicate_reason %}<tr><th>Duplicado</th><td colspan="3"><span class="chip warn">{{ lead.duplicate_reason }}</span>
+      {% if dup %} → <a href="/leads/{{ dup.id }}">{{ dup.full_name }}</a>{% endif %}</td></tr>{% endif %}
+    {% if lead.discard_reason %}<tr><th>Motivo descarte</th><td colspan="3">{{ lead.discard_reason }}</td></tr>{% endif %}
+    {% if lead.converted_account_id %}<tr><th>Convertido</th><td colspan="3"><a href="/accounts/{{ lead.converted_account_id }}">Cuenta</a>
+      {% if lead.converted_opportunity_id %} · <a href="/opportunities/{{ lead.converted_opportunity_id }}">Oportunidad</a>{% endif %}</td></tr>{% endif %}
+  </table>
+  {% set rtype='lead' %}{% set rid=lead.id %}{% set next_url='/leads/' ~ lead.id %}
+  {% include "_timeline.html" %}
+</div>
+<div>
+  {% if next_status and has_permission(user.role, 'lead:write') %}
+  <h2>Cambiar estado</h2>
+  <form class="card" method="post" action="/leads/{{ lead.id }}/status">
+    <select name="status">{% for s in next_status %}<option>{{ s }}</option>{% endfor %}</select>
+    <p><input name="reason" placeholder="Motivo (obligatorio para descartar)" style="width:100%"></p><button>Aplicar</button>
+  </form>{% endif %}
+  {% if lead.status == 'calificado' and has_permission(user.role, 'lead:convert') %}
+  <h2>Convertir</h2>
+  <form class="card" method="post" action="/leads/{{ lead.id }}/convert">
+    <p class="small muted">Crea o reutiliza la cuenta (por dominio o nombre) y el contacto (por correo).</p>
+    <label class="small"><input type="checkbox" name="create_opportunity" checked> Crear oportunidad</label>
+    <p><select name="opp_type"><option value="estandar">Estándar</option><option value="formula_personalizada">Fórmula personalizada</option><option value="recompra">Recompra</option></select></p>
+    <p><input name="opp_title" placeholder="Título de la oportunidad (opcional)" style="width:100%"></p>
+    <button>Convertir lead</button>
+  </form>{% endif %}
+</div>
+</div>
+{% endblock %}

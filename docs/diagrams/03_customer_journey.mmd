@@ -1,0 +1,21 @@
+flowchart LR
+  L[Lead<br/>web · WhatsApp · tel · correo] --> K[Contacto<br/>tarea SLA 4 h]
+  K --> Q{Calificación<br/>≥500 kg · B2B · MX}
+  Q -- no --> X[Descartado<br/>con motivo]
+  Q -- sí --> CV[Conversión<br/>Cuenta + Contacto]
+  CV --> R[Oportunidad:<br/>Requerimiento]
+  R -- estándar / recompra --> COT[Cotización]
+  R -- fórmula personalizada --> DF[Desarrollo de fórmula] --> MS[Muestra enviada]
+  MS -- ajustes --> DF
+  MS --> MA[Muestra aprobada] --> COT
+  COT --> NEG[Negociación] --> G{Decisión}
+  COT --> G
+  G -- perdida + motivo --> LO[Perdida]
+  G -- ganada --> W[Ganada<br/>evento ERP + tarea Admin]
+  W --> PED[Pedido en ERP<br/>OrderReference en CRM]
+  PED --> ENT[Entrega < 72 h<br/>estado desde ERP/WMS]
+  ENT --> SEG[Seguimiento]
+  SEG --> INC{¿Incidencia?}
+  INC -- sí --> CASE[Caso / reclamación<br/>lote obligatorio → QMS]
+  INC -- no --> RC[Recompra<br/>nueva oportunidad tipo recompra]
+  CASE --> RC

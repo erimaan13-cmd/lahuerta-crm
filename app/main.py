@@ -1,0 +1,590 @@
+"""Aplicación FastAPI: interfaz CRM (HTML) + API REST (JSON). Las rutas solo validan permisos y
+delegan en app/services (arquitectura en capas, docs/02_PLAN.md §5)."""
+import json
+import logging
+import time
+import uuid
+from pathlib import Path
+
+from fastapi import Depends, FastAPI, File, Request, UploadFile
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.templating import Jinja2Templates
+from sqlalchemy import or_, select
+from sqlalchemy.orm import Session
+
+from app import config, db as dbmod
+from app.audit import request_id_var, snapshot
+from app.classifier.taxonomy import CATEGORIES
+from app.integrations.email_providers import (EmlDirectoryProvider, MockMailboxProvider, RawEmail,
+                                              parse_eml_bytes)
+from app.integrations.erp import MockErpAdapter, sync_orders
+from app.models import (Account, AuditEvent, Case, Contact, EmailClassification, EmailMessage, Lead,
+                        Opportunity, Product, Quote, Sector, Task, User)
+from app.permissions import ROLE_LABELS, has_permission
+from app.security import make_session_token, read_session_token, verify_password
+from app.services import crm, dashboard, email_pipeline, pipeline
+from app.services.common import DomainError, get_or_404
+
+BASE = Path(__file__).resolve().parent
+
+
+class JsonFormatter(logging.Formatter):
+    def format(self, record):
+        payload = {"ts": self.formatTime(record), "level": record.levelname, "logger": record.name,
+                   "msg": record.getMessage(), "request_id": request_id_var.get()}
+        for k in ("email_id", "category", "confidence", "review", "path", "status", "ms"):
+            if hasattr(record, k):
+                payload[k] = getattr(record, k)
+        return json.dumps(payload, ensure_ascii=False)
+
+
+_h = logging.StreamHandler()
+_h.setFormatter(JsonFormatter())
+logging.getLogger("crm").handlers = [_h]
+logging.getLogger("crm").setLevel(logging.INFO)
+log = logging.getLogger("crm.http")
+
+app = FastAPI(title="CRM provisional — La Huerta (MVP)", version="0.1.0")
+templates = Jinja2Templates(directory=str(BASE / "templates"))
+templates.env.globals.update(STAGE_LABELS=pipeline.STAGE_LABELS, CATEGORIES=CATEGORIES,
+                             ROLE_LABELS=ROLE_LABELS, has_permission=has_permission)
+
+
+class NotAuthenticated(Exception):
+    pass
+
+
+class Forbidden(Exception):
+    def __init__(self, perm):
+        self.perm = perm
+
+
+@app.middleware("http")
+async def request_context(request: Request, call_next):
+    rid = request.headers.get("X-Request-ID") or uuid.uuid4().hex[:16]
+    token = request_id_var.set(rid)
+    t0 = time.perf_counter()
+    try:
+        response = await call_next(request)
+    finally:
+        request_id_var.reset(token)
+    response.headers["X-Request-ID"] = rid
+    log.info("request", extra={"path": request.url.path, "status": response.status_code,
+                               "ms": round((time.perf_counter() - t0) * 1000, 1)})
+    return response
+
+
+def _is_api(request: Request) -> bool:
+    return request.url.path.startswith("/api")
+
+
+@app.exception_handler(DomainError)
+async def domain_error_handler(request: Request, exc: DomainError):
+    if _is_api(request):
+        return JSONResponse({"detail": exc.message}, status_code=exc.status_code)
+    return templates.TemplateResponse(request, "error.html", {"message": exc.message, "user": None},
+                                      status_code=exc.status_code)
+
+
+@app.exception_handler(NotAuthenticated)
+async def not_auth_handler(request: Request, exc):
+    if _is_api(request):
+        return JSONResponse({"detail": "No autenticado"}, status_code=401)
+    return RedirectResponse("/login", status_code=303)
+
+
+@app.exception_handler(Forbidden)
+async def forbidden_handler(request: Request, exc: Forbidden):
+    msg = f"Tu rol no tiene el permiso '{exc.perm}'"
+    if _is_api(request):
+        return JSONResponse({"detail": msg}, status_code=403)
+    return templates.TemplateResponse(request, "error.html", {"message": msg, "user": None}, status_code=403)
+
+
+def current_user(request: Request, db: Session = Depends(dbmod.get_db)) -> User:
+    uid = read_session_token(request.cookies.get(config.SESSION_COOKIE))
+    user = db.get(User, uid) if uid else None
+    if not user or not user.is_active:
+        raise NotAuthenticated()
+    return user
+
+
+def require(perm: str):
+    def dep(user: User = Depends(current_user)) -> User:
+        if not has_permission(user.role, perm):
+            raise Forbidden(perm)
+        return user
+    return dep
+
+
+def render(request, name, user, **ctx):
+    return templates.TemplateResponse(request, name, {"user": user, **ctx})
+
+
+def back(url: str):
+    return RedirectResponse(url, status_code=303)
+
+
+async def form_dict(request: Request) -> dict:
+    return {k: v for k, v in (await request.form()).items()}
+
+
+def ser(obj):
+    if isinstance(obj, list):
+        return [ser(o) for o in obj]
+    return snapshot(obj)
+
+
+# ======================================================================= salud y sesión
+@app.get("/health")
+def health(db: Session = Depends(dbmod.get_db)):
+    db.execute(select(1))
+    return {"status": "ok", "version": app.version}
+
+
+@app.get("/login", response_class=HTMLResponse)
+def login_page(request: Request):
+    return templates.TemplateResponse(request, "login.html", {"user": None, "error": None})
+
+
+@app.post("/login")
+async def login(request: Request, db: Session = Depends(dbmod.get_db)):
+    f = await form_dict(request)
+    user = db.scalar(select(User).where(User.email == (f.get("email") or "").strip().lower()))
+    if not user or not user.is_active or not verify_password(f.get("password") or "", user.password_hash):
+        return templates.TemplateResponse(request, "login.html", {"user": None, "error": "Credenciales inválidas"},
+                                          status_code=401)
+    resp = back("/")
+    resp.set_cookie(config.SESSION_COOKIE, make_session_token(user.id), httponly=True, samesite="lax",
+                    max_age=config.SESSION_MAX_AGE_S)
+    return resp
+
+
+@app.post("/logout")
+def logout():
+    resp = back("/login")
+    resp.delete_cookie(config.SESSION_COOKIE)
+    return resp
+
+
+# ======================================================================= UI
+@app.get("/", response_class=HTMLResponse)
+def ui_dashboard(request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("dashboard:read"))):
+    my_tasks = list(db.scalars(select(Task).where(Task.status == "pendiente",
+                                                  (Task.assignee_id == user.id) | (Task.assignee_role == user.role))
+                               .order_by(Task.due_at).limit(10)))
+    return render(request, "dashboard.html", user, m=dashboard.metrics(db), my_tasks=my_tasks)
+
+
+@app.get("/leads", response_class=HTMLResponse)
+def ui_leads(request: Request, status: str | None = None, sector: str | None = None, source: str | None = None,
+             db: Session = Depends(dbmod.get_db), user: User = Depends(require("lead:read"))):
+    leads = crm.filter_leads(db, status or None, sector or None, source or None)
+    return render(request, "leads.html", user, leads=leads, sectors=list(db.scalars(select(Sector))),
+                  sources=sorted(crm.LEAD_SOURCES), f={"status": status, "sector": sector, "source": source})
+
+
+@app.post("/leads")
+async def ui_create_lead(request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("lead:write"))):
+    lead, _ = crm.create_lead(db, await form_dict(request), user.id)
+    return back(f"/leads/{lead.id}")
+
+
+@app.get("/leads/{lead_id}", response_class=HTMLResponse)
+def ui_lead(lead_id: str, request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("lead:read"))):
+    lead = get_or_404(db, Lead, lead_id, "Lead")
+    dup = db.get(Lead, lead.possible_duplicate_of_id) if lead.possible_duplicate_of_id else None
+    return render(request, "lead_detail.html", user, lead=lead, dup=dup, timeline=crm.timeline(db, "lead", lead.id),
+                  next_status=sorted(crm.LEAD_TRANSITIONS.get(lead.status, set())))
+
+
+@app.post("/leads/{lead_id}/status")
+async def ui_lead_status(lead_id: str, request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("lead:write"))):
+    f = await form_dict(request)
+    crm.change_lead_status(db, lead_id, f.get("status"), user.id, f.get("reason"))
+    return back(f"/leads/{lead_id}")
+
+
+@app.post("/leads/{lead_id}/convert")
+async def ui_lead_convert(lead_id: str, request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("lead:convert"))):
+    f = await form_dict(request)
+    r = crm.convert_lead(db, lead_id, user.id, create_opportunity="create_opportunity" in f,
+                         opp_type=f.get("opp_type") or "estandar", opp_title=f.get("opp_title") or None)
+    return back(f"/opportunities/{r['opportunity'].id}" if r["opportunity"] else f"/accounts/{r['account'].id}")
+
+
+@app.post("/activities")
+async def ui_activity(request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("activity:write"))):
+    f = await form_dict(request)
+    crm.log_activity(db, f, user.id)
+    return back(f.get("next") or "/")
+
+
+@app.get("/accounts", response_class=HTMLResponse)
+def ui_accounts(request: Request, lifecycle: str | None = None, db: Session = Depends(dbmod.get_db), user: User = Depends(require("account:read"))):
+    stmt = select(Account).order_by(Account.name)
+    if lifecycle:
+        stmt = stmt.where(Account.lifecycle == lifecycle)
+    return render(request, "accounts.html", user, accounts=list(db.scalars(stmt)), lifecycle=lifecycle,
+                  sectors=list(db.scalars(select(Sector))))
+
+
+@app.post("/accounts")
+async def ui_create_account(request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("account:write"))):
+    acc = crm.create_account(db, await form_dict(request), user.id)
+    return back(f"/accounts/{acc.id}")
+
+
+@app.get("/accounts/{account_id}", response_class=HTMLResponse)
+def ui_account(account_id: str, request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("account:read"))):
+    acc = get_or_404(db, Account, account_id, "Cuenta")
+    contact_ids = [c.id for c in acc.contacts]
+    conds = [EmailMessage.from_email.in_([c.email for c in acc.contacts if c.email])]
+    if acc.domain:
+        conds.append(EmailMessage.from_email.like(f"%@{acc.domain}"))
+    emails = list(db.scalars(select(EmailMessage).where(or_(*conds)).order_by(EmailMessage.received_at.desc())))
+    return render(request, "account_detail.html", user, acc=acc, emails=emails,
+                  timeline=crm.timeline(db, "account", acc.id), contact_ids=contact_ids,
+                  opp_types=sorted(pipeline.OPP_TYPES), products=list(db.scalars(select(Product).order_by(Product.name))))
+
+
+@app.post("/accounts/{account_id}/contacts")
+async def ui_create_contact(account_id: str, request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("account:write"))):
+    crm.create_contact(db, account_id, await form_dict(request), user.id)
+    return back(f"/accounts/{account_id}")
+
+
+@app.get("/opportunities", response_class=HTMLResponse)
+def ui_opps(request: Request, type: str | None = None, db: Session = Depends(dbmod.get_db), user: User = Depends(require("opportunity:read"))):
+    stmt = select(Opportunity).order_by(Opportunity.updated_at.desc())
+    if type:
+        stmt = stmt.where(Opportunity.type == type)
+    opps = list(db.scalars(stmt))
+    cols = {s: [o for o in opps if o.stage == s] for s in pipeline.STAGE_LABELS}
+    return render(request, "opportunities.html", user, cols=cols, opp_type=type, opp_types=sorted(pipeline.OPP_TYPES))
+
+
+@app.post("/opportunities")
+async def ui_create_opp(request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("opportunity:write"))):
+    form = await request.form()
+    f = {k: v for k, v in form.items()}
+    f["product_ids"] = form.getlist("product_ids")
+    opp = crm.create_opportunity(db, f, user.id)
+    return back(f"/opportunities/{opp.id}")
+
+
+@app.get("/opportunities/{opp_id}", response_class=HTMLResponse)
+def ui_opp(opp_id: str, request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("opportunity:read"))):
+    opp = get_or_404(db, Opportunity, opp_id, "Oportunidad")
+    return render(request, "opportunity_detail.html", user, opp=opp,
+                  next_stages=sorted(pipeline.allowed_next(opp.type, opp.stage)),
+                  stages=pipeline.stages_for(opp.type), timeline=crm.timeline(db, "opportunity", opp.id),
+                  products=list(db.scalars(select(Product).order_by(Product.name))), packaging=sorted(crm.PACKAGING))
+
+
+@app.post("/opportunities/{opp_id}/stage")
+async def ui_opp_stage(opp_id: str, request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("opportunity:write"))):
+    f = await form_dict(request)
+    crm.change_stage(db, opp_id, f.get("stage"), user.id, f.get("lost_reason"))
+    return back(f"/opportunities/{opp_id}")
+
+
+@app.post("/opportunities/{opp_id}/quotes")
+async def ui_quote(opp_id: str, request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("quote:write"))):
+    f = await form_dict(request)
+    items = [{"product_id": f.get(f"product_id_{i}"), "qty_kg": f.get(f"qty_kg_{i}"), "packaging": f.get(f"packaging_{i}"),
+              "unit_price_mxn": f.get(f"unit_price_mxn_{i}")} for i in range(3) if f.get(f"product_id_{i}")]
+    crm.create_quote(db, opp_id, items, user.id)
+    return back(f"/opportunities/{opp_id}")
+
+
+@app.get("/tasks", response_class=HTMLResponse)
+def ui_tasks(request: Request, status: str = "pendiente", role: str | None = None, db: Session = Depends(dbmod.get_db), user: User = Depends(require("task:read"))):
+    stmt = select(Task).where(Task.status == status).order_by(Task.due_at)
+    if role:
+        stmt = stmt.where(Task.assignee_role == role)
+    return render(request, "tasks.html", user, tasks=list(db.scalars(stmt)), status=status, role=role)
+
+
+@app.post("/tasks")
+async def ui_create_task(request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("task:write"))):
+    f = await form_dict(request)
+    crm.create_task(db, f, user.id)
+    return back(f.get("next") or "/tasks")
+
+
+@app.post("/tasks/{task_id}/complete")
+async def ui_complete_task(task_id: str, request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("task:write"))):
+    f = await form_dict(request)
+    crm.complete_task(db, task_id, user.id)
+    return back(f.get("next") or "/tasks")
+
+
+@app.get("/cases", response_class=HTMLResponse)
+def ui_cases(request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("case:read"))):
+    return render(request, "cases.html", user, cases=list(db.scalars(select(Case).order_by(Case.created_at.desc()))))
+
+
+@app.get("/cases/{case_id}", response_class=HTMLResponse)
+def ui_case(case_id: str, request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("case:read"))):
+    c = get_or_404(db, Case, case_id, "Caso")
+    return render(request, "case_detail.html", user, c=c, timeline=crm.timeline(db, "case", c.id),
+                  next_status=sorted(crm.CASE_TRANSITIONS.get(c.status, set())))
+
+
+@app.post("/cases/{case_id}/status")
+async def ui_case_status(case_id: str, request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("case:write"))):
+    f = await form_dict(request)
+    crm.change_case_status(db, case_id, f.get("status"), user.id, f.get("lot_reference"))
+    return back(f"/cases/{case_id}")
+
+
+@app.get("/emails", response_class=HTMLResponse)
+def ui_emails(request: Request, category: str | None = None, review: str | None = None,
+              db: Session = Depends(dbmod.get_db), user: User = Depends(require("email:read"))):
+    stmt = select(EmailMessage).join(EmailClassification).order_by(EmailMessage.received_at.desc())
+    if category:
+        stmt = stmt.where(EmailClassification.category == category)
+    if review:
+        stmt = stmt.where(EmailClassification.review_status == review)
+    return render(request, "emails.html", user, emails=list(db.scalars(stmt)), category=category, review=review)
+
+
+@app.get("/emails/needs-review", response_class=HTMLResponse)
+def ui_needs_review(request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("email:read"))):
+    return render(request, "emails.html", user, emails=email_pipeline.needs_review_queue(db), category=None,
+                  review="needs_review", title="Bandeja Needs Review")
+
+
+@app.get("/emails/{email_id}", response_class=HTMLResponse)
+def ui_email(email_id: str, request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("email:read"))):
+    msg = get_or_404(db, EmailMessage, email_id, "Correo")
+    return render(request, "email_detail.html", user, msg=msg, cls=msg.classification)
+
+
+@app.post("/emails/{email_id}/review")
+async def ui_email_review(email_id: str, request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("email:review"))):
+    f = await form_dict(request)
+    email_pipeline.review(db, email_id, user.id, f.get("category") or None)
+    return back(f"/emails/{email_id}")
+
+
+@app.post("/emails/{email_id}/apply")
+async def ui_email_apply(email_id: str, request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("email:review"))):
+    f = await form_dict(request)
+    email_pipeline.apply_suggestion(db, email_id, user.id, f.get("action") or None)
+    return back(f"/emails/{email_id}")
+
+
+@app.post("/emails/ingest-demo")
+def ui_ingest_demo(db: Session = Depends(dbmod.get_db), user: User = Depends(require("email:ingest"))):
+    data = config.BASE_DIR / "data"
+    email_pipeline.ingest(db, MockMailboxProvider(data / "demo_emails.json"), actor_id=user.id)
+    email_pipeline.ingest(db, EmlDirectoryProvider(data / "sample_emails"), actor_id=user.id)
+    return back("/emails")
+
+
+@app.post("/emails/upload")
+async def ui_upload_eml(file: UploadFile = File(...), db: Session = Depends(dbmod.get_db), user: User = Depends(require("email:ingest"))):
+    raw = parse_eml_bytes(await file.read(), provider="eml_upload")
+    msg, _ = email_pipeline.process_raw(db, raw, actor_id=user.id)
+    return back(f"/emails/{msg.id}")
+
+
+@app.get("/search", response_class=HTMLResponse)
+def ui_search(request: Request, q: str = "", db: Session = Depends(dbmod.get_db), user: User = Depends(require("lead:read"))):
+    return render(request, "search.html", user, q=q, r=crm.search(db, q))
+
+
+@app.get("/audit", response_class=HTMLResponse)
+def ui_audit(request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("audit:read"))):
+    events = list(db.scalars(select(AuditEvent).order_by(AuditEvent.at.desc()).limit(200)))
+    users = {u.id: u.full_name for u in db.scalars(select(User))}
+    return render(request, "audit.html", user, events=events, users=users)
+
+
+@app.post("/integrations/erp-sync")
+def ui_erp_sync(db: Session = Depends(dbmod.get_db), user: User = Depends(require("integration:run"))):
+    from app.seed import demo_erp_orders
+    sync_orders(db, MockErpAdapter(demo_erp_orders()), user.id)
+    return back("/accounts")
+
+
+# ======================================================================= API REST (JSON)
+@app.post("/api/leads", status_code=201)
+async def api_create_lead(request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("lead:write"))):
+    lead, created = crm.create_lead(db, await request.json(), user.id)
+    return JSONResponse({"lead": ser(lead), "created": created}, status_code=201 if created else 200)
+
+
+@app.get("/api/leads")
+def api_leads(status: str | None = None, sector: str | None = None, source: str | None = None,
+              db: Session = Depends(dbmod.get_db), user: User = Depends(require("lead:read"))):
+    return ser(crm.filter_leads(db, status, sector, source))
+
+
+@app.post("/api/leads/{lead_id}/status")
+async def api_lead_status(lead_id: str, request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("lead:write"))):
+    b = await request.json()
+    return ser(crm.change_lead_status(db, lead_id, b.get("status"), user.id, b.get("reason")))
+
+
+@app.post("/api/leads/{lead_id}/convert")
+async def api_lead_convert(lead_id: str, request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("lead:convert"))):
+    b = await request.json()
+    r = crm.convert_lead(db, lead_id, user.id, b.get("create_opportunity", True), b.get("opp_type", "estandar"), b.get("opp_title"))
+    return {k: ser(v) if hasattr(v, "__table__") else v for k, v in r.items()}
+
+
+@app.post("/api/accounts", status_code=201)
+async def api_create_account(request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("account:write"))):
+    return ser(crm.create_account(db, await request.json(), user.id))
+
+
+@app.get("/api/accounts/{account_id}")
+def api_account(account_id: str, db: Session = Depends(dbmod.get_db), user: User = Depends(require("account:read"))):
+    acc = get_or_404(db, Account, account_id, "Cuenta")
+    return {"account": ser(acc), "contacts": ser(acc.contacts), "opportunities": ser(acc.opportunities),
+            "orders": ser(acc.orders), "cases": ser(acc.cases), "timeline": ser(crm.timeline(db, "account", acc.id))}
+
+
+@app.post("/api/opportunities", status_code=201)
+async def api_create_opp(request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("opportunity:write"))):
+    return ser(crm.create_opportunity(db, await request.json(), user.id))
+
+
+@app.post("/api/opportunities/{opp_id}/stage")
+async def api_opp_stage(opp_id: str, request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("opportunity:write"))):
+    b = await request.json()
+    return ser(crm.change_stage(db, opp_id, b.get("stage"), user.id, b.get("lost_reason")))
+
+
+@app.post("/api/opportunities/{opp_id}/quotes", status_code=201)
+async def api_quote(opp_id: str, request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("quote:write"))):
+    q = crm.create_quote(db, opp_id, (await request.json()).get("items") or [], user.id)
+    return {"quote": ser(q), "items": ser(q.items), "total_mxn": q.total_mxn, "total_kg": q.total_kg}
+
+
+@app.post("/api/activities", status_code=201)
+async def api_activity(request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("activity:write"))):
+    return ser(crm.log_activity(db, await request.json(), user.id))
+
+
+@app.get("/api/timeline/{related_type}/{related_id}")
+def api_timeline(related_type: str, related_id: str, db: Session = Depends(dbmod.get_db), user: User = Depends(require("lead:read"))):
+    return ser(crm.timeline(db, related_type, related_id))
+
+
+@app.get("/api/tasks")
+def api_tasks(status: str = "pendiente", role: str | None = None, db: Session = Depends(dbmod.get_db), user: User = Depends(require("task:read"))):
+    stmt = select(Task).where(Task.status == status)
+    if role:
+        stmt = stmt.where(Task.assignee_role == role)
+    return ser(list(db.scalars(stmt)))
+
+
+@app.post("/api/tasks", status_code=201)
+async def api_create_task(request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("task:write"))):
+    return ser(crm.create_task(db, await request.json(), user.id))
+
+
+@app.post("/api/tasks/{task_id}/complete")
+def api_complete_task(task_id: str, db: Session = Depends(dbmod.get_db), user: User = Depends(require("task:write"))):
+    return ser(crm.complete_task(db, task_id, user.id))
+
+
+@app.post("/api/cases", status_code=201)
+async def api_create_case(request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("case:write"))):
+    return ser(crm.create_case(db, await request.json(), user.id))
+
+
+@app.post("/api/cases/{case_id}/status")
+async def api_case_status(case_id: str, request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("case:write"))):
+    b = await request.json()
+    return ser(crm.change_case_status(db, case_id, b.get("status"), user.id, b.get("lot_reference")))
+
+
+@app.post("/api/emails/ingest")
+async def api_ingest(request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("email:ingest"))):
+    """Ingesta de correos ya normalizados por un proveedor externo (formato RawEmail)."""
+    items = await request.json()
+    if not isinstance(items, list):
+        raise DomainError("Se espera una lista de correos")
+
+    class _ListProvider:
+        name = "api"
+
+        def fetch(self):
+            out = []
+            for it in items:
+                try:
+                    out.append(RawEmail(provider=it.get("provider", "api"), message_id=it["message_id"],
+                                        from_email=(it.get("from_email") or "").lower(), from_name=it.get("from_name"),
+                                        subject=it.get("subject", ""), body=it.get("body", ""), to=it.get("to"),
+                                        is_demo=bool(it.get("is_demo", False))))
+                except KeyError as e:
+                    raise DomainError(f"Falta el campo {e}")
+            return out
+    return email_pipeline.ingest(db, _ListProvider(), actor_id=user.id)
+
+
+@app.get("/api/emails")
+def api_emails(review_status: str | None = None, category: str | None = None, db: Session = Depends(dbmod.get_db), user: User = Depends(require("email:read"))):
+    stmt = select(EmailMessage).join(EmailClassification)
+    if review_status:
+        stmt = stmt.where(EmailClassification.review_status == review_status)
+    if category:
+        stmt = stmt.where(EmailClassification.category == category)
+    out = []
+    for m in db.scalars(stmt):
+        c = m.classification
+        out.append({"email_id": m.id, "from": m.from_email, "subject": m.subject, "classification": c.category,
+                    "confidence": c.confidence, "extracted_entities": c.extracted_entities,
+                    "suggested_owner": c.suggested_owner_role, "suggested_action": c.suggested_action,
+                    "crm_entity_link": {"type": c.crm_link_type, "id": c.crm_link_id, "all": c.crm_links},
+                    "review_status": c.review_status, "review_reason": c.review_reason})
+    return out
+
+
+@app.post("/api/emails/{email_id}/review")
+async def api_email_review(email_id: str, request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("email:review"))):
+    b = await request.json()
+    return ser(email_pipeline.review(db, email_id, user.id, b.get("category")))
+
+
+@app.post("/api/emails/{email_id}/apply")
+async def api_email_apply(email_id: str, request: Request, db: Session = Depends(dbmod.get_db), user: User = Depends(require("email:review"))):
+    b = await request.json()
+    return email_pipeline.apply_suggestion(db, email_id, user.id, b.get("action"))
+
+
+@app.get("/api/search")
+def api_search(q: str, db: Session = Depends(dbmod.get_db), user: User = Depends(require("lead:read"))):
+    return {k: ser(v) for k, v in crm.search(db, q).items()}
+
+
+@app.get("/api/dashboard")
+def api_dashboard(db: Session = Depends(dbmod.get_db), user: User = Depends(require("dashboard:read"))):
+    return dashboard.metrics(db)
+
+
+@app.get("/api/audit")
+def api_audit(entity_id: str | None = None, db: Session = Depends(dbmod.get_db), user: User = Depends(require("audit:read"))):
+    stmt = select(AuditEvent).order_by(AuditEvent.at)
+    if entity_id:
+        stmt = stmt.where(AuditEvent.entity_id == entity_id)
+    return ser(list(db.scalars(stmt)))
+
+
+@app.get("/api/export")
+def api_export(db: Session = Depends(dbmod.get_db), user: User = Depends(require("export:read"))):
+    """Portabilidad de datos (RNF-11): volcado JSON de las entidades comerciales."""
+    return {name: ser(list(db.scalars(select(model)))) for name, model in
+            {"accounts": Account, "contacts": Contact, "leads": Lead, "opportunities": Opportunity,
+             "quotes": Quote, "cases": Case, "tasks": Task}.items()}
+
+
+@app.post("/api/integrations/erp-sync")
+def api_erp_sync(db: Session = Depends(dbmod.get_db), user: User = Depends(require("integration:run"))):
+    from app.seed import demo_erp_orders
+    return sync_orders(db, MockErpAdapter(demo_erp_orders()), user.id)

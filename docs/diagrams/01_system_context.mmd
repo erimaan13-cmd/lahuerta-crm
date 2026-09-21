@@ -1,0 +1,23 @@
+flowchart LR
+  subgraph Externos
+    P[Prospectos B2B<br/>industria, hoteles,<br/>restaurantes, comedores]
+    C[Clientes existentes]
+    S[Proveedores / importación]
+    W[Sitio web<br/>form. contacto + catálogo]
+    WA[Teléfono / WhatsApp]
+  end
+  subgraph LaHuerta[Empacadora La Huerta]
+    U[Usuarios internos<br/>Ventas · Atención · Calidad<br/>Administración · Dirección]
+    CRM[[CRM provisional MVP]]
+  end
+  MAIL[(Buzón compartido<br/>administracion@ — solo lectura)]
+  ERP[(ERP / facturación<br/>FUTURO — hoy mock)]
+  WMS[(WMS / inventario-lotes<br/>FUTURO)]
+  QMS[(QMS FSSC 22000<br/>FUTURO)]
+  P --> W --> CRM
+  P --> WA --> U
+  P & C & S --> MAIL --> CRM
+  U <--> CRM
+  CRM <-. referencias / eventos .-> ERP
+  CRM <-. lotes / disponibilidad .-> WMS
+  CRM -. reclamaciones escaladas .-> QMS

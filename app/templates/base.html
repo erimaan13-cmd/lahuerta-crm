@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}CRM La Huerta (MVP){% endblock %}</title>
+<style>
+:root{--bg:#f6f4ef;--card:#fff;--ink:#1f2328;--muted:#6b6f76;--line:#e3dfd6;--brand:#8a3b12;--brand2:#c0632a;--ok:#1f7a4d;--warn:#b7791f;--bad:#b42318;--chip:#f1ebe2}
+*{box-sizing:border-box}body{margin:0;font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+a{color:var(--brand);text-decoration:none}a:hover{text-decoration:underline}
+header{background:var(--brand);color:#fff;padding:10px 16px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+header a{color:#fff;opacity:.9}header a:hover{opacity:1}header .brand{font-weight:700;margin-right:8px}
+header form.search{margin-left:auto}header input{padding:5px 8px;border-radius:6px;border:0;width:200px}
+.demo{background:#fff3cd;color:#664d03;padding:6px 16px;font-size:12px;border-bottom:1px solid #f0d78c}
+main{padding:16px;max-width:1280px;margin:0 auto}
+h1{font-size:20px;margin:4px 0 12px}h2{font-size:16px;margin:16px 0 8px}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}
+.kpi .n{font-size:26px;font-weight:700}.kpi .l{color:var(--muted);font-size:12px}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+th,td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{background:#faf8f4;font-weight:600;font-size:12px;color:var(--muted)}
+.chip{display:inline-block;padding:1px 8px;border-radius:999px;background:var(--chip);font-size:12px;white-space:nowrap}
+.ok{background:#dcfce7;color:var(--ok)}.warn{background:#fef3c7;color:var(--warn)}.bad{background:#fee2e2;color:var(--bad)}
+.muted{color:var(--muted)}.small{font-size:12px}
+form.inline{display:inline}input,select,textarea{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:#fff;max-width:100%}
+textarea{width:100%}button,.btn{font:inherit;background:var(--brand);color:#fff;border:0;border-radius:6px;padding:6px 12px;cursor:pointer}
+button.sec{background:#fff;color:var(--brand);border:1px solid var(--brand)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:end}.row label{display:flex;flex-direction:column;font-size:12px;color:var(--muted)}
+.kanban{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(200px,1fr);gap:10px;overflow-x:auto}
+.kanban .col{background:#efebe3;border-radius:10px;padding:8px}.kanban .item{background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px;margin-top:8px}
+.two{display:grid;grid-template-columns:2fr 1fr;gap:12px}@media(max-width:900px){.two{grid-template-columns:1fr}}
+.timeline li{margin-bottom:8px}pre{white-space:pre-wrap;background:#faf8f4;padding:8px;border-radius:6px;border:1px solid var(--line)}
+.bar{height:8px;background:var(--brand2);border-radius:4px}
+</style>
+</head>
+<body>
+{% if user %}
+<header>
+  <span class="brand">CRM La Huerta · MVP</span>
+  <a href="/">Dashboard</a><a href="/leads">Leads</a><a href="/accounts">Cuentas</a><a href="/opportunities">Pipeline</a>
+  <a href="/tasks">Tareas</a><a href="/cases">Casos</a><a href="/emails">Correos</a><a href="/emails/needs-review">Needs Review</a>
+  {% if has_permission(user.role, 'audit:read') %}<a href="/audit">Auditoría</a>{% endif %}
+  <form class="search" action="/search"><input name="q" placeholder="Buscar nombre, empresa, correo, tel." value="{{ q or '' }}"></form>
+  <span class="small">{{ user.full_name }} · {{ ROLE_LABELS[user.role] }}</span>
+  <form class="inline" method="post" action="/logout"><button class="sec">Salir</button></form>
+</header>
+<div class="demo">Entorno de demostración con <b>datos sintéticos</b>. Ninguna empresa, persona o pedido corresponde a clientes reales de Empacadora La Huerta.</div>
+{% endif %}
+<main>{% block content %}{% endblock %}</main>
+</body>
+</html>

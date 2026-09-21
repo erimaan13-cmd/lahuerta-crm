@@ -1,0 +1,22 @@
+%% ORGANIGRAMA INFERIDO — NO OFICIAL. Confianza entre paréntesis; evidencia en docs/01_INVESTIGACION.md §3A
+flowchart TB
+  DG["Dirección General<br/>(fuerte · E02,E12)"]
+  COM["Comercial / Ventas<br/>vendedores industriales<br/>(fuerte · E14,E15,E18)"]
+  ATC["Atención a clientes<br/>(débil como área separada · E13,E14)"]
+  ADM["Administración<br/>facturación / cobranza?<br/>(fuerte / cobranza DESCONOCIDA · E13,E16,E17)"]
+  CMP["Compras / Importaciones<br/>(fuerte · E08)"]
+  OPS["Operaciones"]
+  ALM["Almacén e inventario<br/>stock de seguridad<br/>(fuerte · E04,E05,E18)"]
+  MOL["Molienda · acondicionamiento · empaque<br/>(fuerte · E04,E07,E10)"]
+  LOG["Logística / distribución<br/>propia o tercerizada DESCONOCIDO<br/>(fuerte · E05)"]
+  CAL["Calidad e inocuidad FSSC 22000<br/>(fuerte · E03,E18,E24)"]
+  DEV["Desarrollo / formulación<br/>(función verificada E06; área separada: débil)"]
+  MKT["Marketing (parcialmente externo)<br/>(fuerte · E15,E20)"]
+  DG --> COM & ADM & CMP & OPS & CAL & MKT
+  COM --- ATC
+  OPS --> ALM & MOL & LOG
+  CAL --- DEV
+  COM -. requerimiento / muestra .- DEV
+  COM -. reclamaciones .- CAL
+  COM -. pedido .- ADM
+  CMP -. recepción .- ALM

@@ -1,0 +1,22 @@
+flowchart TB
+  A[EMAIL PROVIDER<br/>EML · Mock · Gmail readonly P1] --> B[INGESTA<br/>idempotente por Message-ID]
+  B --> C[NORMALIZACIÓN<br/>HTML→texto · quitar historial · acentos]
+  C --> D[IDENTIDAD DEL REMITENTE<br/>contacto · lead · dominio de cuenta · proveedor · desconocido]
+  D --> E[CLASIFICACIÓN POR REGLAS<br/>puntajes ponderados + contexto]
+  C --> F[EXTRACCIÓN<br/>empresa · tel · ciudad · sector · producto · kg · urgencia · folios]
+  E --> G{confianza ≥ 0.60<br/>y margen ≥ 0.15?}
+  G -- no, y LLM activo --> H[LLM puerto híbrido<br/>desactivado en MVP] --> G2{¿coincide?}
+  G2 -- no --> NR
+  G2 -- sí --> I
+  G -- no --> NR[NEEDS REVIEW]
+  G -- sí --> S{¿categoría sensible?<br/>CALIDAD_RECLAMACION / OTRO}
+  S -- sí --> NR
+  S -- no --> I[AUTO: sugerencia lista]
+  F --> V[VINCULACIÓN CRM<br/>contacto → cuenta; COT → oportunidad;<br/>CASO/lote → caso; pedido → OrderReference]
+  V --> I
+  V --> NR
+  NR --> HR[Humano confirma o corrige<br/>etiqueta auditada]
+  HR --> I
+  I --> AP[Humano aplica acción<br/>crear lead · tarea · caso · actividad · enrutar fuera]
+  AP --> Z[(CRM + AuditEvent)]
+  X[[Nunca: responder · borrar · archivar · mover correos]]

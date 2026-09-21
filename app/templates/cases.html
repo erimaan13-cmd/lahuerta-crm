@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Casos (servicio / reclamaciones)</h1>
+<p class="small muted">La investigación y acciones correctivas de calidad viven en el QMS; aquí se gestiona la relación con el cliente y la trazabilidad al lote.</p>
+<table><tr><th>Folio</th><th>Asunto</th><th>Tipo</th><th>Severidad</th><th>Estado</th><th>Lote</th><th>Cuenta</th></tr>
+{% for c in cases %}<tr><td><a href="/cases/{{ c.id }}">{{ c.folio }}</a></td><td>{{ c.subject }}</td><td>{{ c.type }}</td>
+<td><span class="chip {{ 'bad' if c.severity in ['alta','critica'] }}">{{ c.severity }}</span></td><td><span class="chip">{{ c.status }}</span></td>
+<td>{{ c.lot_reference or '—' }}</td><td>{% if c.account %}<a href="/accounts/{{ c.account_id }}">{{ c.account.name }}</a>{% else %}lead{% endif %}</td></tr>
+{% else %}<tr><td colspan="7" class="muted">Sin casos.</td></tr>{% endfor %}</table>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ title or 'Correos clasificados' }}</h1>
+<p>{% for code, meta in CATEGORIES.items() %}<a class="chip {{ 'ok' if category==code }}" href="/emails?category={{ code }}">{{ meta.label }}</a> {% endfor %}<a href="/emails">todas</a></p>
+<p>{% for r in ['needs_review','auto','confirmado','corregido','aplicado'] %}<a class="chip {{ 'ok' if review==r }}" href="/emails?review={{ r }}">{{ r }}</a> {% endfor %}</p>
+{% if has_permission(user.role,'email:ingest') %}
+<div class="card row"><form class="inline" method="post" action="/emails/ingest-demo"><button class="sec">Ingerir buzón de demostración</button></form>
+<form class="inline" method="post" action="/emails/upload" enctype="multipart/form-data"><input type="file" name="file" accept=".eml" required> <button class="sec">Subir .eml</button></form>
+<span class="small muted">Solo lectura: el sistema nunca responde, borra, archiva ni modifica buzones.</span></div>{% endif %}
+<table style="margin-top:10px"><tr><th>Recibido (UTC)</th><th>Remitente</th><th>Asunto</th><th>Categoría</th><th>Confianza</th><th>Revisión</th><th>Vínculo CRM</th><th>Sugerencia</th></tr>
+{% for m in emails %}{% set c = m.classification %}<tr>
+<td class="small">{{ m.received_at.strftime('%d/%m %H:%M') }}</td><td class="small">{{ m.from_name or '' }}<br>{{ m.from_email }}<br><span class="muted">{{ c.extracted_entities.sender_kind }}</span></td>
+<td><a href="/emails/{{ m.id }}">{{ m.subject or '(sin asunto)' }}</a></td>
+<td>{{ CATEGORIES[c.final_category or c.category].label }}{% if c.final_category and c.final_category != c.category %}<br><span class="small muted">(modelo: {{ c.category }})</span>{% endif %}</td>
+<td><span class="chip {{ 'ok' if c.confidence>=0.6 else 'warn' }}">{{ '%.2f'|format(c.confidence) }}</span></td>
+<td><span class="chip {{ 'bad' if c.review_status=='needs_review' }}">{{ c.review_status }}</span></td>
+<td class="small">{{ c.crm_link_type or '—' }}</td><td class="small">{{ c.suggested_action_label }} → <b>{{ c.suggested_owner_role or '—' }}</b></td></tr>
+{% else %}<tr><td colspan="8" class="muted">Sin correos.</td></tr>{% endfor %}</table>
+{% endblock %}

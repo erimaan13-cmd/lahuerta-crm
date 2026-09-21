@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Búsqueda: “{{ q }}”</h1>
+{% if q|length < 2 %}<p class="muted">Escribe al menos 2 caracteres.</p>{% endif %}
+<div class="grid">
+<div class="card"><h2>Leads</h2>{% for l in r.leads %}<p><a href="/leads/{{ l.id }}">{{ l.full_name }}</a> <span class="small muted">{{ l.company_name or '' }} · {{ l.status }}</span></p>{% else %}<p class="muted">—</p>{% endfor %}</div>
+<div class="card"><h2>Cuentas</h2>{% for a in r.accounts %}<p><a href="/accounts/{{ a.id }}">{{ a.name }}</a></p>{% else %}<p class="muted">—</p>{% endfor %}</div>
+<div class="card"><h2>Contactos</h2>{% for c in r.contacts %}<p><a href="/accounts/{{ c.account_id }}">{{ c.full_name }}</a> <span class="small muted">{{ c.email or '' }}</span></p>{% else %}<p class="muted">—</p>{% endfor %}</div>
+<div class="card"><h2>Oportunidades</h2>{% for o in r.opportunities %}<p><a href="/opportunities/{{ o.id }}">{{ o.title }}</a></p>{% else %}<p class="muted">—</p>{% endfor %}</div>
+</div>
+{% endblock %}

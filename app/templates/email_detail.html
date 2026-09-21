@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+{% set e = cls.extracted_entities %}
+<p class="small"><a href="/emails">← Correos</a> · <a href="/emails/needs-review">Needs Review</a></p>
+<h1>{{ msg.subject or '(sin asunto)' }}</h1>
+<p class="muted">{{ msg.from_name or '' }} &lt;{{ msg.from_email }}&gt; · {{ msg.received_at.strftime('%d/%m/%Y %H:%M') }} UTC · proveedor {{ msg.provider }}{% if msg.has_attachments %} · <span class="chip">adjuntos</span>{% endif %}</p>
+<div class="two"><div>
+  <h2>Cuerpo normalizado</h2><pre>{{ msg.body_clean }}</pre>
+  <h2>Entidades extraídas</h2>
+  <table>
+    <tr><th>Tipo de remitente</th><td>{{ e.sender_kind }}</td><th>Empresa</th><td>{{ e.company or '—' }} <span class="small muted">({{ e.company_source }})</span></td></tr>
+    <tr><th>Teléfonos</th><td>{{ e.phones|join(', ') or '—' }}</td><th>Ciudad</th><td>{{ e.city or '—' }} {{ e.state or '' }}</td></tr>
+    <tr><th>Sector</th><td>{{ e.sector or '—' }}</td><th>Urgencia</th><td><span class="chip {{ 'bad' if e.urgency=='alta' }}">{{ e.urgency }}</span></td></tr>
+    <tr><th>Productos</th><td>{% for p in e.products %}<span class="chip">{{ p.name }}</span> {% else %}—{% endfor %}</td>
+        <th>Cantidades</th><td>{% for q in e.quantities %}{{ q.qty|round(1) }} {{ q.unit }}{% if q.kg %} ≈ {{ q.kg|round|int }} kg{% if q.kg_inferred %}*{% endif %}{% endif %}<br>{% else %}—{% endfor %}
+        {% if e.total_kg %}<b>Total ≈ {{ e.total_kg|round|int }} kg</b> {% if e.below_minimum %}<span class="chip warn">&lt; 500 kg</span>{% endif %}{% endif %}</td></tr>
+    <tr><th>Referencias</th><td colspan="3">{% for k, v in e.references.items() %}<span class="chip">{{ k }}: {{ v|join(', ') }}</span> {% else %}—{% endfor %}</td></tr>
+  </table>
+  <p class="small muted">* saco/bulto convertido a 25 kg (presentación industrial publicada); verificar con el cliente.</p>
+  <h2>Evidencia de las reglas</h2>
+  <table><tr><th>Categoría</th><th>Puntaje</th><th>Patrones</th></tr>
+  {% for k, v in cls.scores.items()|sort(attribute=1, reverse=True) %}<tr><td>{{ CATEGORIES[k].label }}</td><td>{{ v }}</td><td class="small">{{ (e.rule_evidence.get(k) or [])|join(' · ') }}</td></tr>{% else %}<tr><td colspan="3" class="muted">Ninguna regla disparó.</td></tr>{% endfor %}</table>
+</div><div>
+  <div class="card">
+    <p><b>classification:</b> {{ CATEGORIES[cls.category].label }} <span class="small muted">({{ cls.category }})</span><br>
+    <b>confidence:</b> {{ '%.2f'|format(cls.confidence) }} · margen {{ '%.2f'|format(cls.margin) }} · método {{ cls.method }} · {{ cls.classifier_version }}<br>
+    <b>review_status:</b> <span class="chip {{ 'bad' if cls.review_status=='needs_review' }}">{{ cls.review_status }}</span>
+    {% if cls.review_reason %}<br><span class="small muted">{{ cls.review_reason }}</span>{% endif %}
+    {% if cls.final_category %}<br><b>final_category:</b> {{ CATEGORIES[cls.final_category].label }}{% endif %}</p>
+    <p><b>suggested_owner:</b> {{ cls.suggested_owner_role or '—' }}<br><b>suggested_action:</b> {{ cls.suggested_action_label }}</p>
+    <p><b>crm_entity_link:</b> {% if cls.crm_link_type %}{{ cls.crm_link_type }}{% else %}sin vínculo{% endif %}<br>
+    {% for k, v in (cls.crm_links or {}).items() %}{% if k in ['lead','account','opportunity','case'] %}<a class="chip" href="/{{ {'lead':'leads','account':'accounts','opportunity':'opportunities','case':'cases'}[k] }}/{{ v }}">{{ k }}</a> {% else %}<span class="chip">{{ k }}</span> {% endif %}{% endfor %}</p>
+    {% if cls.applied_entity_type %}<p class="chip ok">Aplicado → {{ cls.applied_entity_type }}</p>{% endif %}
+  </div>
+  {% if has_permission(user.role,'email:review') and cls.review_status != 'aplicado' %}
+  <h2>1 · Revisión humana</h2>
+  <form class="card" method="post" action="/emails/{{ msg.id }}/review">
+    <select name="category">{% for code, meta in CATEGORIES.items() %}<option value="{{ code }}" {{ 'selected' if code==(cls.final_category or cls.category) }}>{{ meta.label }}</option>{% endfor %}</select>
+    <button>Confirmar / corregir</button><p class="small muted">La corrección se guarda como etiqueta para recalibrar el clasificador.</p></form>
+  {% if cls.review_status != 'needs_review' %}
+  <h2>2 · Aplicar sugerencia</h2>
+  <form class="card" method="post" action="/emails/{{ msg.id }}/apply">
+    <select name="action">{% for a in ['crear_lead','crear_tarea','abrir_caso','registrar_actividad','reenviar_fuera_crm','ignorar','revisar'] %}<option {{ 'selected' if a==cls.suggested_action }}>{{ a }}</option>{% endfor %}</select>
+    <button>Aplicar</button><p class="small muted">Nada se crea sin este clic. No se envía ninguna respuesta.</p></form>{% endif %}
+  {% endif %}
+</div></div>
+{% endblock %}

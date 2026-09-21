@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Leads</h1>
+<form class="row card" method="get">
+  <label>Estado<select name="status"><option value="">(todos)</option>{% for s in ['nuevo','contactado','calificado','convertido','descartado'] %}<option {{ 'selected' if f.status==s }}>{{ s }}</option>{% endfor %}</select></label>
+  <label>Sector<select name="sector"><option value="">(todos)</option>{% for s in sectors %}<option value="{{ s.code }}" {{ 'selected' if f.sector==s.code }}>{{ s.name }}</option>{% endfor %}</select></label>
+  <label>Origen<select name="source"><option value="">(todos)</option>{% for s in sources %}<option {{ 'selected' if f.source==s }}>{{ s }}</option>{% endfor %}</select></label>
+  <button>Filtrar</button> <a href="/leads">limpiar</a>
+</form>
+<table style="margin-top:10px"><tr><th>Nombre</th><th>Empresa</th><th>Sector</th><th>Volumen</th><th>Origen</th><th>Estado</th><th>Alertas</th><th>Alta</th></tr>
+{% for l in leads %}<tr>
+  <td><a href="/leads/{{ l.id }}">{{ l.full_name }}</a><br><span class="small muted">{{ l.email or '' }} {{ l.phone or '' }}</span></td>
+  <td>{{ l.company_name or '—' }}<br><span class="small muted">{{ l.city or '' }}</span></td><td>{{ l.sector_code or '—' }}</td>
+  <td>{{ l.volume_band }}{% if l.est_volume_kg %}<br><span class="small">{{ l.est_volume_kg|int }} kg</span>{% endif %}</td>
+  <td>{{ l.source }}</td><td><span class="chip">{{ l.status }}</span></td>
+  <td>{% if l.below_minimum %}<span class="chip warn">&lt; 500 kg</span>{% endif %} {% if l.duplicate_reason %}<span class="chip warn" title="{{ l.duplicate_reason }}">posible duplicado</span>{% endif %}</td>
+  <td class="small">{{ l.created_at.strftime('%d/%m %H:%M') }}</td></tr>
+{% else %}<tr><td colspan="8" class="muted">Sin resultados.</td></tr>{% endfor %}
+</table>
+
+{% if has_permission(user.role, 'lead:write') %}
+<h2>Nuevo lead (campos de los formularios públicos)</h2>
+<form class="card" method="post" action="/leads">
+  <div class="row">
+    <label>Nombre*<input name="full_name" required></label><label>Empresa<input name="company_name"></label>
+    <label>Correo<input name="email" type="email"></label><label>Teléfono<input name="phone"></label><label>Ciudad<input name="city"></label>
+    <label>Sector<select name="sector_code"><option value="">—</option>{% for s in sectors %}<option value="{{ s.code }}">{{ s.name }}</option>{% endfor %}</select></label>
+  </div><div class="row" style="margin-top:8px">
+    <label>Producto de interés<input name="product_interest_text"></label>
+    <label>Cantidad<select name="volume_band"><option value="">(calcular por kg)</option><option value="500kg_1t">500 kg (mínimo) a una tonelada</option><option value="mas_1t">Más de una tonelada</option><option value="menor_500kg">Menos de 500 kg</option></select></label>
+    <label>kg estimados<input name="est_volume_kg" type="number" min="1" step="any"></label>
+    <label>Origen<select name="source">{% for s in sources %}<option {{ 'selected' if s=='web_contacto' }}>{{ s }}</option>{% endfor %}</select></label>
+    <label>Campaña<input name="campaign"></label>
+  </div>
+  <p><label class="small muted">¿En qué podemos ayudarte?<textarea name="message" rows="2"></textarea></label></p>
+  <button>Crear lead</button> <span class="small muted">Se crea automáticamente una tarea de primer contacto (SLA 4 h).</span>
+</form>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,23 @@
+# DECISION_LOG
+
+Formato: ID · fecha · decisión · alternativas · justificación · consecuencias.
+
+| ID | Fecha | Decisión | Alternativas consideradas | Justificación | Consecuencias |
+|---|---|---|---|---|---|
+| D-01 | 2026-09-21 | Plazo de trabajo: **lunes 21-sep-2026 12:00 (Monterrey)** | 22-sep 12:00 | El encargo menciona ambas fechas; se toma la más temprana para no incumplir | Si la fecha real es el 22, hay holgura para P1 |
+| D-02 | 2026-09-21 | Stack A: FastAPI + SQLAlchemy + SQLite (→ PostgreSQL) + Jinja | Supabase + Next.js/Vercel; CRM SaaS + Zapier | Ver `03_SELECTOR_DE_STACK.md` (83.6 % vs 76.4 % vs 54.5 %) | Un solo proceso; despliegue manual en P1 |
+| D-03 | 2026-09-21 | Monolito modular con capas (rutas → servicios → dominio) y paquetes aislados `classifier/` e `integrations/` | Microservicios | Volumen bajo; microservicios = sobreingeniería | Separable después porque el clasificador no depende de la BD |
+| D-04 | 2026-09-21 | Clasificador **híbrido**: reglas deterministas + puerto `LLMClient` (mock, desactivado) | Solo LLM; ML tradicional | Sin corpus real ni clave de API; explicabilidad y costo $0 | Recall limitado en textos atípicos → Needs Review absorbe la incertidumbre |
+| D-05 | 2026-09-21 | Umbral de auto-clasificación **0.60** y margen mínimo **0.15** entre 1ª y 2ª categoría; `CALIDAD_RECLAMACION` y `OTRO` **siempre** a revisión | Umbral único 0.5/0.7 | Una reclamación FSSC mal enrutada cuesta más que revisarla; margen evita empates | Más carga en Needs Review al inicio; se recalibra con correcciones (RF-40) |
+| D-06 | 2026-09-21 | "Cliente existente" **no es categoría**, es una dimensión de vínculo (`crm_link`) | Categoría propia (hipótesis inicial) | Un cliente existente puede enviar pedido, reclamación o factura: mezclar intención con identidad degrada ambas | Taxonomía de intención + vínculo ortogonal |
+| D-07 | 2026-09-21 | Etapas del pipeline como **configuración en código** (`pipeline.py`) con transiciones validadas | Tabla `PipelineStage` editable | Las reglas de transición son lógica, no datos; editable por UI no aporta al MVP | P1: mover a tabla si La Huerta pide personalizar |
+| D-08 | 2026-09-21 | "Cliente recurrente" = `Account.lifecycle`, no etapa del pipeline; recompra = oportunidad tipo `recompra` | Etapa final "Cliente recurrente" | Una oportunidad termina al ganarse; la recurrencia es propiedad de la cuenta | Métrica de recompra por cuenta |
+| D-09 | 2026-09-21 | Pedidos, inventario, lotes y facturas **no** se almacenan como maestros: solo `OrderReference` y `lot_reference` | Modelar pedidos completos | Evitar construir un ERP (regla 5) | Dependencia de integración futura; hoy adaptador ERP simulado |
+| D-10 | 2026-09-21 | Reclamaciones = `Case.type=reclamacion_calidad` (una entidad de servicio) | Entidad `Complaint` separada | Mismo ciclo de vida que otros casos; menos tablas | Regla específica: lote obligatorio para resolver |
+| D-11 | 2026-09-21 | Categoría adicional `DOCUMENTACION_CALIDAD` (fichas técnicas, certificados) | Incluirla en reclamación u otros | Evidencia E03/E25: frecuente en B2B alimentario y no es una queja | Enruta a Calidad sin severidad |
+| D-12 | 2026-09-21 | Ninguna acción automática sobre entidades desde el correo: solo **vincular** (reversible) y **sugerir**; crear lead/tarea/caso requiere clic humano | Auto-crear leads con alta confianza | Regla 11 y prioridad "clasificar → extraer → relacionar → sugerir" | Un paso manual extra; cero riesgo de acciones erróneas |
+| D-13 | 2026-09-21 | Deduplicación: email exacto = mismo lead (se registra actividad); teléfono normalizado o dominio corporativo = `possible_duplicate_of` (no fusiona) | Fusión automática difusa | Fusionar mal es irreversible en la práctica | Fusión manual P1 |
+| D-14 | 2026-09-21 | Dominios públicos (gmail, hotmail, outlook, yahoo, live, icloud, prodigy) no identifican cuenta | Vincular por dominio siempre | Muchos restaurantes usan correo gratuito | Vinculación solo por email exacto en esos casos |
+| D-15 | 2026-09-21 | Auth local (PBKDF2 + cookie firmada) y RBAC por rol en código | SSO / Supabase Auth | Sin dependencias externas para la demo | Migrar a OIDC en P1 |
+| D-16 | 2026-09-21 | Diagramas fuente en **Mermaid** versionado + copia en Lucid | Solo Lucid | Lucid disponible (probado), pero la fuente versionable evita lock-in | Mantener ambos sincronizados manualmente |
+| D-17 | 2026-09-21 | No usar el proyecto Supabase existente ni el Gmail de Erii | Reutilizarlos para la demo | Mezclaría datos de otros proyectos y no hay autorización sobre el buzón de La Huerta | Demo 100 % local con datos sintéticos |

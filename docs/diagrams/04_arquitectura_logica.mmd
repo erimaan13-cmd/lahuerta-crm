@@ -1,0 +1,40 @@
+flowchart TB
+  USERS[Clientes / prospectos / usuarios internos]
+  subgraph UI[Interfaz CRM]
+    HTML[Jinja HTML /ui]
+    API[API REST /api JSON]
+  end
+  subgraph SVC[Servicios de aplicación · app/services]
+    S1[crm.py: leads · cuentas · oportunidades<br/>cotizaciones · actividades · tareas · casos]
+    S2[email_pipeline.py]
+    S3[dashboard.py]
+  end
+  subgraph DOM[Dominio CRM]
+    M[models.py]
+    PL[pipeline.py reglas de etapa]
+  end
+  DB[(SQLAlchemy → SQLite hoy / PostgreSQL P1)]
+  subgraph WF[Workflow / automatización]
+    W1[Tarea primer contacto] ; W2[Tareas por etapa y caso] ; W3[Sugerencias de correo]
+  end
+  subgraph CLS[Clasificador desacoplado · app/classifier]
+    N[normalize] --> R[rules] --> E[engine] ; X[extract] --> E ; LLM[LLMClient puerto · off]
+  end
+  subgraph INT[Integration layer · app/integrations]
+    EP[EmailProvider: EML · Mock · Gmail P1]
+    ERPA[ErpAdapter: Mock · real P1]
+    OUT[(Outbox IntegrationEvent)]
+  end
+  EXT[(Correo · ERP · WMS · QMS · Facturación)]
+  USERS --> UI --> SVC --> DOM --> DB
+  SVC --> WF
+  S2 --> CLS
+  S2 --> EP
+  S1 --> OUT
+  ERPA --> S1
+  EP --- EXT
+  ERPA --- EXT
+  OUT -.-> EXT
+  subgraph X1[Transversal]
+    AUTH[Auth sesión firmada] ; RBAC[permissions.py] ; AUD[AuditEvent append-only] ; OBS[logs JSON · request-id · /health] ; CFG[config.py env] ; BK[scripts/backup_db.py]
+  end

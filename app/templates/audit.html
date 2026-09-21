@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Bitácora de auditoría <span class="small muted">(últimos 200 eventos, solo lectura)</span></h1>
+<table><tr><th>Fecha (UTC)</th><th>Actor</th><th>Acción</th><th>Entidad</th><th>Cambios</th><th>Request</th></tr>
+{% for ev in events %}<tr><td class="small">{{ ev.at.strftime('%d/%m %H:%M:%S') }}</td><td class="small">{{ users.get(ev.actor_id, 'sistema') }}</td>
+<td><span class="chip">{{ ev.action }}</span></td><td class="small">{{ ev.entity_type }}<br>{{ (ev.entity_id or '')[:8] }}</td>
+<td class="small">{% if ev.before and ev.after %}{% for k, v in ev.after.items() %}{% if ev.before.get(k) != v and k not in ['updated_at'] %}<b>{{ k }}</b>: {{ ev.before.get(k) }} → {{ v }}<br>{% endif %}{% endfor %}{% elif ev.after %}{{ (ev.after|string)[:160] }}{% endif %}</td>
+<td class="small muted">{{ ev.request_id or '' }}</td></tr>{% endfor %}</table>
+{% endblock %}

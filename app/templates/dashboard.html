@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Dashboard comercial</h1>
+<div class="grid">
+  <div class="card kpi"><div class="n">{{ m.leads_by_status.values()|sum }}</div><div class="l">Leads totales · {{ m.leads_by_status.get('nuevo',0) }} nuevos</div></div>
+  <div class="card kpi"><div class="n">{{ m.pipeline.values()|selectattr('count')|map(attribute='count')|sum }}</div><div class="l">Oportunidades · ${{ '{:,.0f}'.format(m.open_pipeline_mxn) }} MXN abiertos</div></div>
+  <div class="card kpi"><div class="n">{{ m.customers }}</div><div class="l">Clientes (activos + recurrentes)</div></div>
+  <div class="card kpi"><div class="n">{{ m.tasks_pending }}</div><div class="l">Tareas pendientes · <span class="{{ 'chip bad' if m.tasks_overdue else '' }}">{{ m.tasks_overdue }} vencidas</span></div></div>
+  <div class="card kpi"><div class="n"><a href="/emails/needs-review">{{ m.needs_review }}</a></div><div class="l">Correos en Needs Review</div></div>
+  <div class="card kpi"><div class="n">{{ m.cases_open }}</div><div class="l">Casos abiertos</div></div>
+</div>
+
+<div class="two" style="margin-top:12px">
+<div>
+  <h2>Pipeline por etapa</h2>
+  {% set maxc = (m.pipeline.values()|map(attribute='count')|max) or 1 %}
+  <table><tr><th>Etapa</th><th>#</th><th>kg estimados</th><th>Valor MXN</th><th></th></tr>
+  {% for code, p in m.pipeline.items() %}
+    <tr><td>{{ p.label }}</td><td>{{ p.count }}</td><td>{{ '{:,.0f}'.format(p.kg) }}</td><td>{{ '{:,.0f}'.format(p.mxn) }}</td>
+    <td style="width:30%"><div class="bar" style="width:{{ (p.count/maxc*100)|round }}%"></div></td></tr>
+  {% endfor %}</table>
+
+  <h2>Correos por categoría</h2>
+  <table><tr><th>Categoría</th><th>#</th></tr>
+  {% for k, v in m.emails_by_category.items()|sort(attribute=1, reverse=True) %}<tr><td>{{ k }}</td><td>{{ v }}</td></tr>{% endfor %}
+  </table>
+  <p class="small muted">Estado de revisión: {% for k, v in m.emails_by_review.items() %}<span class="chip">{{ k }}: {{ v }}</span> {% endfor %}</p>
+</div>
+<div>
+  <h2>Mis tareas (usuario o rol)</h2>
+  <div class="card">{% for t in my_tasks %}
+    <div style="margin-bottom:6px"><span class="chip {{ 'bad' if t.priority=='alta' else '' }}">{{ t.priority }}</span> {{ t.title }}<br>
+    <span class="small muted">vence {{ t.due_at.strftime('%d/%m %H:%M') if t.due_at else '—' }} UTC</span></div>
+  {% else %}<p class="muted">Sin tareas pendientes.</p>{% endfor %}</div>
+
+  <h2>Leads</h2>
+  <div class="card small">
+    {% for k, v in m.leads_by_status.items() %}<span class="chip">{{ k }}: {{ v }}</span> {% endfor %}
+    <p>Por origen: {% for k, v in m.leads_by_source.items() %}<span class="chip">{{ k }}: {{ v }}</span> {% endfor %}</p>
+    <p><span class="chip warn">Bajo mínimo 500 kg: {{ m.leads_below_minimum }}</span> <span class="chip warn">Posibles duplicados: {{ m.leads_possible_duplicates }}</span></p>
+  </div>
+  <h2>Cuentas y cotizaciones</h2>
+  <div class="card small">
+    {% for k, v in m.accounts_by_lifecycle.items() %}<span class="chip">{{ k }}: {{ v }}</span> {% endfor %}
+    <p>Cotizaciones: {% for k, v in m.quotes_by_status.items() %}<span class="chip">{{ k }}: {{ v }}</span> {% endfor %}</p>
+    <p>Casos: {% for k, v in m.cases_by_type.items() %}<span class="chip">{{ k }}: {{ v }}</span> {% endfor %}</p>
+  </div>
+</div>
+</div>
+{% endblock %}

@@ -1,0 +1,13 @@
+flowchart LR
+  CRM[[CRM]]
+  WEB[Formularios web] -- "POST /api/leads (P1: webhook con token)" --> CRM
+  MAIL[Proveedor de correo] -- "EmailProvider.fetch() solo lectura" --> CRM
+  WA[WhatsApp Business P1] -. lectura .-> CRM
+  CRM -- "IntegrationEvent out: opportunity.won" --> ERP[ERP / facturación]
+  ERP -- "ErpAdapter.fetch_orders(): OrderReference" --> CRM
+  ERP -. "P1: estado de crédito / saldo vencido" .-> CRM
+  WMS[WMS] -. "P2: disponibilidad / lote" .-> CRM
+  CRM -- "IntegrationEvent out: case.escalated" --> QMS[QMS FSSC 22000]
+  QMS -. "P2: estado de investigación" .-> CRM
+  ADS[Google Ads · Meta · LinkedIn] -. "UTM / campaign en Lead" .-> CRM
+  LLM[API LLM P1] -. "solo correos en duda" .-> CRM

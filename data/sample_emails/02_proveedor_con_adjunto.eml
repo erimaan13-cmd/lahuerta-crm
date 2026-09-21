@@ -1,0 +1,27 @@
+From: "Importadora Demo" <logistica@importadora-demo.example>
+To: administracion@demo.local
+Subject: Pedimento y documentos de =?utf-8?q?importaci=C3=B3n_-_ajonjol?=
+ =?utf-8?q?=C3=AD?=
+Date: Mon, 21 Sep 2026 07:30:00 -0600
+Message-ID: <eml-prov-002@importadora-demo.example>
+X-Demo-Data: true
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="===============0637765085850503715=="
+
+--===============0637765085850503715==
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+Buen d=C3=ADa, adjuntamos el pedimento y el bill of lading del contenedor de =
+ajonjol=C3=AD. El agente aduanal liberar=C3=A1 la mercanc=C3=ADa el mi=C3=A9r=
+coles.
+
+--===============0637765085850503715==
+Content-Type: application/pdf
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="pedimento_demo.pdf"
+MIME-Version: 1.0
+
+JVBERi0xLjQgZGVtbw==
+
+--===============0637765085850503715==--

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<p class="small"><a href="/cases">← Casos</a></p>
+<h1>{{ c.folio }} · {{ c.subject }} <span class="chip">{{ c.status }}</span></h1>
+<div class="two"><div>
+<table><tr><th>Tipo</th><td>{{ c.type }}</td><th>Severidad</th><td>{{ c.severity }}</td></tr>
+<tr><th>Lote</th><td>{{ c.lot_reference or '—' }}</td><th>Pedido</th><td>{{ c.order_ref or '—' }}</td></tr>
+<tr><th>Cuenta</th><td colspan="3">{% if c.account %}<a href="/accounts/{{ c.account_id }}">{{ c.account.name }}</a>{% elif c.lead_id %}<a href="/leads/{{ c.lead_id }}">lead</a>{% endif %}</td></tr>
+<tr><th>Descripción</th><td colspan="3">{{ c.description or '—' }}</td></tr></table>
+{% set rtype='case' %}{% set rid=c.id %}{% set next_url='/cases/' ~ c.id %}
+{% include "_timeline.html" %}
+</div><div>
+{% if next_status and has_permission(user.role,'case:write') %}
+<h2>Cambiar estado</h2>
+<form class="card" method="post" action="/cases/{{ c.id }}/status"><select name="status">{% for s in next_status %}<option>{{ s }}</option>{% endfor %}</select>
+<p><input name="lot_reference" placeholder="Lote (obligatorio para resolver reclamaciones)" value="{{ c.lot_reference or '' }}" style="width:100%"></p><button>Aplicar</button>
+<p class="small muted">"escalado_qms" genera un evento de integración hacia el QMS (simulado).</p></form>{% endif %}
+</div></div>
+{% endblock %}

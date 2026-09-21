@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<p class="small"><a href="/accounts">← Cuentas</a></p>
+<h1>{{ acc.name }} <span class="chip">{{ acc.lifecycle }}</span> {% if acc.is_key_account %}<span class="chip ok">cuenta clave</span>{% endif %}</h1>
+<p class="muted">Vista 360 · {{ acc.sector_code or 's/sector' }} · {{ acc.city or '' }} {{ acc.state or '' }} · dominio {{ acc.domain or '—' }} · ref. ERP {{ acc.erp_customer_ref or '—' }}</p>
+<div class="two"><div>
+  <h2>Oportunidades</h2>
+  <table><tr><th>Título</th><th>Tipo</th><th>Etapa</th><th>kg</th><th>MXN</th></tr>
+  {% for o in acc.opportunities %}<tr><td><a href="/opportunities/{{ o.id }}">{{ o.title }}</a></td><td>{{ o.type }}</td><td><span class="chip">{{ STAGE_LABELS[o.stage] }}</span></td>
+  <td>{{ '{:,.0f}'.format(o.est_volume_kg or 0) }}</td><td>{{ '{:,.0f}'.format(o.est_value_mxn or 0) }}</td></tr>{% else %}<tr><td colspan="5" class="muted">Sin oportunidades.</td></tr>{% endfor %}</table>
+
+  <h2>Pedidos <span class="small muted">(referencia de solo lectura desde ERP — el CRM no es maestro de pedidos)</span></h2>
+  <table><tr><th>Pedido ERP</th><th>Estado</th><th>Prometido</th><th>Entregado</th><th>kg</th></tr>
+  {% for r in acc.orders %}<tr><td>{{ r.erp_order_id }}</td><td><span class="chip">{{ r.status }}</span></td><td>{{ r.promised_date.strftime('%d/%m/%Y') if r.promised_date else '—' }}</td>
+  <td>{{ r.delivered_at.strftime('%d/%m/%Y') if r.delivered_at else '—' }}</td><td>{{ '{:,.0f}'.format(r.total_kg or 0) }}</td></tr>{% else %}<tr><td colspan="5" class="muted">Sin pedidos sincronizados.</td></tr>{% endfor %}</table>
+
+  <h2>Casos</h2>
+  <table><tr><th>Folio</th><th>Tipo</th><th>Severidad</th><th>Estado</th><th>Lote</th></tr>
+  {% for c in acc.cases %}<tr><td><a href="/cases/{{ c.id }}">{{ c.folio }}</a> {{ c.subject }}</td><td>{{ c.type }}</td><td>{{ c.severity }}</td><td><span class="chip">{{ c.status }}</span></td><td>{{ c.lot_reference or '—' }}</td></tr>{% else %}<tr><td colspan="5" class="muted">Sin casos.</td></tr>{% endfor %}</table>
+
+  <h2>Correos</h2>
+  <table><tr><th>Asunto</th><th>Categoría</th><th>Revisión</th></tr>
+  {% for m in emails %}<tr><td><a href="/emails/{{ m.id }}">{{ m.subject }}</a><br><span class="small muted">{{ m.from_email }}</span></td><td>{{ CATEGORIES[m.classification.final_category or m.classification.category].label }}</td><td>{{ m.classification.review_status }}</td></tr>{% else %}<tr><td colspan="3" class="muted">Sin correos.</td></tr>{% endfor %}</table>
+  {% set rtype='account' %}{% set rid=acc.id %}{% set next_url='/accounts/' ~ acc.id %}
+  {% include "_timeline.html" %}
+</div><div>
+  <h2>Contactos</h2>
+  <div class="card">{% for c in acc.contacts %}<p><b>{{ c.full_name }}</b> {% if c.is_primary %}<span class="chip ok">principal</span>{% endif %}<br><span class="small">{{ c.job_title or '' }}<br>{{ c.email or '' }} · {{ c.phone or '' }}</span></p>{% else %}<p class="muted">Sin contactos.</p>{% endfor %}
+  {% if has_permission(user.role, 'account:write') %}
+  <form method="post" action="/accounts/{{ acc.id }}/contacts"><p><input name="full_name" placeholder="Nombre*" required> <input name="email" placeholder="Correo"> <input name="phone" placeholder="Teléfono"> <input name="job_title" placeholder="Puesto"></p><button class="sec">Agregar contacto</button></form>{% endif %}</div>
+  {% if has_permission(user.role, 'opportunity:write') %}
+  <h2>Nueva oportunidad</h2>
+  <form class="card" method="post" action="/opportunities"><input type="hidden" name="account_id" value="{{ acc.id }}">
+    <p><input name="title" placeholder="Título*" required style="width:100%"></p>
+    <p><select name="type">{% for t in opp_types %}<option>{{ t }}</option>{% endfor %}</select> <input name="est_volume_kg" type="number" min="1" step="any" placeholder="kg estimados"></p>
+    <p><select name="product_ids" multiple size="5" style="width:100%">{% for p in products %}<option value="{{ p.id }}">{{ p.name }}</option>{% endfor %}</select></p>
+    <button>Crear oportunidad</button></form>{% endif %}
+</div></div>
+{% endblock %}

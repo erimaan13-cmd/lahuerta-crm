@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Pipeline comercial</h1>
+<p>{% for t in [''] + opp_types %}<a class="chip {{ 'ok' if (opp_type or '')==t }}" href="/opportunities{{ '?type=' ~ t if t }}">{{ t or 'todos los tipos' }}</a> {% endfor %}
+<span class="small muted">Las etapas de fórmula solo aplican a oportunidades tipo <i>formula_personalizada</i>.</span></p>
+<div class="kanban">
+{% for stage, items in cols.items() %}
+  <div class="col"><b>{{ STAGE_LABELS[stage] }}</b> <span class="chip">{{ items|length }}</span>
+  {% for o in items %}<div class="item"><a href="/opportunities/{{ o.id }}">{{ o.title }}</a><br>
+    <span class="small muted">{{ o.account.name }}</span><br>
+    <span class="chip small">{{ o.type }}</span> <span class="small">{{ '{:,.0f}'.format(o.est_volume_kg or 0) }} kg</span></div>{% endfor %}
+  </div>
+{% endfor %}
+</div>
+{% endblock %}

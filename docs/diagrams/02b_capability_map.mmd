@@ -1,0 +1,27 @@
+%% A = CRM maestro · B = referencia en CRM · C = sistema externo / solo enrutamiento
+flowchart TB
+  subgraph DEM[Generación de demanda]
+    d1["Marketing digital · A"]; d2["Captura de leads web · A"]; d3["Prospección saliente · A"]
+  end
+  subgraph COMERCIAL[Gestión comercial]
+    c1["Calificación ≥500 kg · A"]; c2["Cuentas y contactos · A"]; c3["Oportunidades / pipeline · A"]
+    c4["Cotizaciones · A"]; c5["Cuentas clave / recompra · A"]; c6["Negociación / aprobaciones · A (P1)"]
+  end
+  subgraph DESARROLLO[Desarrollo de producto]
+    f1["Seguimiento fórmula y muestra · A"]; f2["Receta / especificación técnica · C"]
+  end
+  subgraph CUMPLIMIENTO[Cumplimiento]
+    o1["Pedido de venta · B"]; o2["Inventario / stock seguridad · C"]; o3["Molienda / empaque · C"]; o4["Entrega <72 h · B"]
+  end
+  subgraph ABASTO[Abastecimiento]
+    s1["Compras / importación / proveedores · C (solo enrutar correo)"]
+  end
+  subgraph CALIDAD[Calidad e inocuidad]
+    q1["Reclamación con cliente · A"]; q2["Investigación / CAPA / lotes · C"]; q3["Documentación a clientes · A (solicitud)"]
+  end
+  subgraph FIN[Finanzas y administración]
+    a1["Facturación / cobranza · B (bandera)"]; a2["Buzón compartido · A (clasificador)"]; a3["Privacidad / ARCO · A (P1)"]
+  end
+  subgraph POST[Postventa]
+    p1["Seguimiento / satisfacción · A"]; p2["Recompra · A"]
+  end

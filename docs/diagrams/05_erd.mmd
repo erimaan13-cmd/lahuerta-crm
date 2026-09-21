@@ -1,0 +1,135 @@
+erDiagram
+  USERS ||--o{ ACCOUNTS : owns
+  USERS ||--o{ LEADS : owns
+  USERS ||--o{ OPPORTUNITIES : owns
+  SECTORS ||--o{ ACCOUNTS : classifies
+  SECTORS ||--o{ LEADS : classifies
+  ACCOUNTS ||--o{ CONTACTS : has
+  ACCOUNTS ||--o{ OPPORTUNITIES : has
+  ACCOUNTS ||--o{ ORDER_REFERENCES : "mirrors ERP"
+  ACCOUNTS ||--o{ CASES : has
+  LEADS |o--o| ACCOUNTS : "converted_to"
+  LEADS |o--o{ LEADS : "possible_duplicate_of"
+  OPPORTUNITIES ||--o{ PRODUCT_INTERESTS : includes
+  PRODUCTS ||--o{ PRODUCT_INTERESTS : ""
+  OPPORTUNITIES ||--o{ QUOTES : has
+  QUOTES ||--|{ QUOTE_ITEMS : contains
+  PRODUCTS ||--o{ QUOTE_ITEMS : ""
+  EMAIL_MESSAGES ||--|| EMAIL_CLASSIFICATIONS : "classified_as"
+  ACCOUNTS {
+    string id PK
+    string name
+    string domain UK
+    string sector_code FK
+    string lifecycle
+    bool is_key_account
+    string erp_customer_ref
+  }
+  CONTACTS {
+    string id PK
+    string account_id FK
+    string full_name
+    string email UK
+    string phone
+  }
+  LEADS {
+    string id PK
+    string full_name
+    string company_name
+    string email
+    string phone
+    string sector_code FK
+    string volume_band
+    float est_volume_kg
+    string source
+    string status
+    bool below_minimum
+    string possible_duplicate_of_id FK
+    string converted_account_id FK
+  }
+  OPPORTUNITIES {
+    string id PK
+    string account_id FK
+    string type
+    string stage
+    float est_volume_kg
+    float est_value_mxn
+    string lost_reason
+  }
+  QUOTES {
+    string id PK
+    string opportunity_id FK
+    string folio UK
+    string status
+  }
+  QUOTE_ITEMS {
+    string id PK
+    string quote_id FK
+    string product_id FK
+    float qty_kg
+    string packaging
+    float unit_price_mxn
+  }
+  ORDER_REFERENCES {
+    string id PK
+    string account_id FK
+    string erp_order_id
+    string status
+    datetime promised_date
+  }
+  CASES {
+    string id PK
+    string folio UK
+    string account_id FK
+    string type
+    string severity
+    string status
+    string lot_reference
+  }
+  EMAIL_MESSAGES {
+    string id PK
+    string provider
+    string provider_message_id
+    string from_email
+    string subject
+    string body_clean
+  }
+  EMAIL_CLASSIFICATIONS {
+    string id PK
+    string email_id FK
+    string category
+    float confidence
+    json extracted_entities
+    string suggested_action
+    string crm_link_type
+    string review_status
+  }
+  ACTIVITIES {
+    string id PK
+    string type
+    string related_type
+    string related_id
+  }
+  TASKS {
+    string id PK
+    string title
+    string assignee_role
+    string status
+    datetime due_at
+  }
+  AUDIT_EVENTS {
+    string id PK
+    string actor_id
+    string action
+    string entity_type
+    json before
+    json after
+  }
+  INTEGRATION_EVENTS {
+    string id PK
+    string direction
+    string system
+    string event_type
+    string status
+ 
+  }

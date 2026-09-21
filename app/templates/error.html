@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card" style="max-width:640px;margin:40px auto">
+  <h1>No se pudo completar la acción</h1>
+  <p class="chip bad">{{ message }}</p>
+  <p><a href="javascript:history.back()">← Volver</a> · <a href="/">Ir al dashboard</a></p>
+</div>
+{% endblock %}
