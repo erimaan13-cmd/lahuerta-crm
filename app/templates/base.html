@@ -1,66 +1,185 @@
+{# Iconos de línea propios (trazo con currentColor): un solo estilo en todo el menú,
+   sin emojis de colores que rompen la sobriedad y sin dependencias externas. #}
+{% macro ico(name) %}
+<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+{%- if name == 'tablero' %}<rect x="3" y="3" width="7" height="8" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="3" y="15" width="7" height="6" rx="1.5"/><rect x="14" y="11" width="7" height="10" rx="1.5"/>
+{%- elif name == 'leads' %}<path d="M12 3l1.9 4.6L19 9l-4 3.3.9 5.2L12 15l-3.9 2.5.9-5.2L5 9l5.1-1.4z"/>
+{%- elif name == 'cuentas' %}<rect x="4" y="4" width="10" height="16" rx="1.5"/><path d="M14 10h6v10h-6M7 8h4M7 12h4M7 16h4"/>
+{%- elif name == 'pipeline' %}<path d="M4 18l5-5 3.5 3.5L20 8"/><path d="M15 8h5v5"/>
+{%- elif name == 'pedidos' %}<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>
+{%- elif name == 'correos' %}<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 7l8.5 6 8.5-6"/>
+{%- elif name == 'casos' %}<path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17h.01"/>
+{%- elif name == 'inventario' %}<path d="M3 8l9-4 9 4-9 4z"/><path d="M3 8v8l9 4 9-4V8"/><path d="M12 12v8"/>
+{%- elif name == 'abastecimiento' %}<rect x="2" y="7" width="12" height="9" rx="1.5"/><path d="M14 10h4l3 3v3h-7z"/><circle cx="7" cy="18" r="1.8"/><circle cx="17" cy="18" r="1.8"/>
+{%- elif name == 'mantenimiento' %}<path d="M15 4a5 5 0 00-5 6.5L4 16.5V20h3.5l6-6A5 5 0 1015 4z"/>
+{%- elif name == 'tareas' %}<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/>
+{%- elif name == 'personal' %}<circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0114 0"/>
+{%- elif name == 'caja' %}<rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/>
+{%- elif name == 'documentos' %}<path d="M14 3v5h5"/><path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z"/><path d="M9 13h6M9 17h4"/>
+{%- elif name == 'avisos' %}<path d="M6 9a6 6 0 1112 0c0 5 2 6 2 6H4s2-1 2-6z"/><path d="M10 20a2 2 0 004 0"/>
+{%- elif name == 'historial' %}<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>
+{%- elif name == 'usuarios' %}<circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M21.5 12h-3M5.5 12h-3M18.7 5.3l-2 2M7.3 16.7l-2 2M18.7 18.7l-2-2M7.3 7.3l-2-2"/>
+{%- elif name == 'buscar' %}<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>
+{%- elif name == 'menu' %}<path d="M4 7h16M4 12h16M4 17h16"/>
+{%- endif %}</svg>
+{% endmacro %}
+
 <!doctype html>
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{% block title %}CRM La Huerta (MVP){% endblock %}</title>
-<style>
-:root{--bg:#f6f4ef;--card:#fff;--ink:#1f2328;--muted:#6b6f76;--line:#e3dfd6;--brand:#8a3b12;--brand2:#c0632a;--ok:#1f7a4d;--warn:#b7791f;--bad:#b42318;--chip:#f1ebe2}
-*{box-sizing:border-box}body{margin:0;font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
-a{color:var(--brand);text-decoration:none}a:hover{text-decoration:underline}
-header{background:var(--brand);color:#fff;padding:10px 16px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
-header a{color:#fff;opacity:.9;white-space:nowrap}header a:hover{opacity:1}header .brand{font-weight:700;margin-right:8px}
-header form.search{margin-left:auto}header input{padding:5px 8px;border-radius:6px;border:0;width:200px}
-.demo{background:#fff3cd;color:#664d03;padding:6px 16px;font-size:12px;border-bottom:1px solid #f0d78c}
-main{padding:16px;max-width:1280px;margin:0 auto}
-h1{font-size:20px;margin:4px 0 12px}h2{font-size:16px;margin:16px 0 8px}
-.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
-.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}
-.kpi .n{font-size:26px;font-weight:700}.kpi .l{color:var(--muted);font-size:12px}
-table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
-th,td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{background:#faf8f4;font-weight:600;font-size:12px;color:var(--muted)}
-.chip{display:inline-block;padding:1px 8px;border-radius:999px;background:var(--chip);font-size:12px;white-space:nowrap}
-.ok{background:#dcfce7;color:var(--ok)}.warn{background:#fef3c7;color:var(--warn)}.bad{background:#fee2e2;color:var(--bad)}
-.muted{color:var(--muted)}.small{font-size:12px}
-form.inline{display:inline}input,select,textarea{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:#fff;max-width:100%}
-textarea{width:100%}button,.btn{font:inherit;background:var(--brand);color:#fff;border:0;border-radius:6px;padding:6px 12px;cursor:pointer}
-button.sec{background:#fff;color:var(--brand);border:1px solid var(--brand)}
-.row{display:flex;gap:8px;flex-wrap:wrap;align-items:end}.row label{display:flex;flex-direction:column;font-size:12px;color:var(--muted)}
-.kanban{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(200px,1fr);gap:10px;overflow-x:auto}
-.kanban .col{background:#efebe3;border-radius:10px;padding:8px}.kanban .item{background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px;margin-top:8px}
-.two{display:grid;grid-template-columns:2fr 1fr;gap:12px}@media(max-width:900px){.two{grid-template-columns:1fr}}
-.timeline li{margin-bottom:8px}pre{white-space:pre-wrap;background:#faf8f4;padding:8px;border-radius:6px;border:1px solid var(--line)}
-.bar{height:8px;background:var(--brand2);border-radius:4px}
-</style>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#8a3b12">
+<title>{% block title %}Sistema interno · La Huerta{% endblock %}</title>
+<link rel="stylesheet" href="/static/app.css">
 </head>
-<body>
+<body class="{{ '' if user else 'anon' }}">
 {% if user %}
-<header>
-  <span class="brand">CRM La Huerta · MVP</span>
-  <a href="/">Dashboard</a><a href="/leads">Leads</a><a href="/accounts">Cuentas</a><a href="/opportunities">Pipeline</a>
-  <a href="/tasks">Tareas</a><a href="/cases">Casos</a><a href="/emails">Correos</a><a href="/emails/needs-review">Revisar</a>
-  {% if has_permission(user.role, 'sales:read') %}<a href="/ventas">Pedidos</a>{% endif %}
-  {% if has_permission(user.role, 'inventory:read') %}<a href="/inventario">Inventario</a>{% endif %}
-  {% if has_permission(user.role, 'procurement:read') %}<a href="/abastecimiento">Abastecimiento</a>{% endif %}
-  {% if has_permission(user.role, 'maintenance:read') %}<a href="/mantenimiento">Mantenimiento</a>{% endif %}
-  {% if has_permission(user.role, 'hr:read') %}<a href="/rrhh">Personal</a>{% endif %}
-  {% if has_permission(user.role, 'pettycash:read') %}<a href="/caja">Caja chica</a>{% endif %}
-  {% if has_permission(user.role, 'notification:read') %}<a href="/avisos">Avisos <span id="nav-avisos" class="chip" hidden></span></a>{% endif %}
-  {% if has_permission(user.role, 'audit:read') %}<a href="/audit">Historial</a>{% endif %}
-  {% if has_permission(user.role, 'users:manage') %}<a href="/admin/users">Usuarios</a>{% endif %}
-  <form class="search" action="/search"><input name="q" placeholder="Buscar nombre, empresa, correo, tel." value="{{ q or '' }}"></form>
-  <span class="small">{{ user.full_name }} · {{ ROLE_LABELS[user.role] }}</span>
-  <form class="inline" method="post" action="/logout"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}"><button class="sec">Salir</button></form>
+<a class="skip" href="#main">Saltar al contenido</a>
+<div id="progress" aria-hidden="true"></div>
+
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Abrir menú" aria-expanded="false" aria-controls="nav">{{ ico("menu") }}</button>
+  <a class="brand" href="/">La&nbsp;Huerta <small>sistema interno</small></a>
+  <form class="search" role="search" action="/search">
+    <label for="q" class="skip">Buscar</label>
+    <input id="q" name="q" type="search" placeholder="Buscar cliente, empresa, teléfono…" value="{{ q or '' }}">
+  </form>
+  {% if has_permission(user.role, 'notification:read') %}
+  <a class="icon-btn" href="/avisos" aria-label="Avisos">{{ ico("avisos") }}<span class="badge" id="nav-avisos" hidden></span></a>
+  {% endif %}
+  <span class="user-mini">{{ user.full_name }}</span>
 </header>
-<div class="demo">Entorno de demostración con <b>datos sintéticos</b>. Ninguna empresa, persona o pedido corresponde a clientes reales de Empacadora La Huerta.</div>
-{% endif %}
-<main>{% block content %}{% endblock %}</main>
+
+{# --- Navegación: la misma lista es barra lateral en computadora y menú deslizante en celular.
+       Se agrupa en cuatro bloques y cada quien ve solo lo de su área (ley de Hick). --- #}
+<nav class="nav" id="nav" data-open="false" aria-label="Menú principal">
+  <div class="nav-head">
+    <strong>Menú</strong>
+    <button class="icon-btn" id="menu-close" aria-label="Cerrar menú">✕</button>
+  </div>
+
+  {% macro link(url, icon, text, perm=None) %}
+    {% if perm is none or has_permission(user.role, perm) %}
+      <a href="{{ url }}" {% if request.url.path == url or (url != '/' and request.url.path.startswith(url ~ '/')) %}aria-current="page"{% endif %}>
+{{ ico(icon) }}{{ text }}
+      </a>
+    {% endif %}
+  {% endmacro %}
+
+  {{ link('/', 'tablero', 'Tablero', 'dashboard:read') }}
+
+  <h3>Comercial</h3>
+  {{ link('/leads', 'leads', 'Leads', 'lead:read') }}
+  {{ link('/accounts', 'cuentas', 'Cuentas', 'account:read') }}
+  {{ link('/opportunities', 'pipeline', 'Pipeline', 'opportunity:read') }}
+  {{ link('/ventas', 'pedidos', 'Pedidos', 'sales:read') }}
+  {{ link('/emails', 'correos', 'Correos', 'email:read') }}
+  {{ link('/cases', 'casos', 'Casos', 'case:read') }}
+
+  <h3>Operación</h3>
+  {{ link('/inventario', 'inventario', 'Inventario', 'inventory:read') }}
+  {{ link('/abastecimiento', 'abastecimiento', 'Abastecimiento', 'procurement:read') }}
+  {{ link('/mantenimiento', 'mantenimiento', 'Mantenimiento', 'maintenance:read') }}
+  {{ link('/tasks', 'tareas', 'Tareas', 'task:read') }}
+
+  <h3>Administración</h3>
+  {{ link('/rrhh', 'personal', 'Personal', 'hr:read') }}
+  {{ link('/caja', 'caja', 'Caja chica', 'pettycash:read') }}
+  {{ link('/documentos', 'documentos', 'Documentos', 'dashboard:read') }}
+  {{ link('/avisos', 'avisos', 'Avisos', 'notification:read') }}
+
+  {% if has_permission(user.role, 'audit:read') or has_permission(user.role, 'users:manage') %}
+  <h3>Sistema</h3>
+  {{ link('/audit', 'historial', 'Historial', 'audit:read') }}
+  {{ link('/admin/users', 'usuarios', 'Usuarios', 'users:manage') }}
+  {% endif %}
+
+  <div class="nav-foot">
+    <p class="small muted" style="margin:0 0 8px">{{ user.full_name }}<br>{{ ROLE_LABELS[user.role] }}</p>
+    <form method="post" action="/logout"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
+      <button class="sec">Cerrar sesión</button></form>
+  </div>
+</nav>
+<div class="overlay" id="overlay" hidden></div>
+
+
+<main id="main">
+  <p class="demo">Entorno de demostración con <b>datos sintéticos</b>. Ninguna empresa, persona o pedido corresponde a clientes reales de Empacadora La Huerta.</p>
+  {{ self.content() }}
+</main>
+
+<nav class="tabbar" aria-label="Accesos rápidos">
+  <a href="/" {% if request.url.path == '/' %}aria-current="page"{% endif %}>{{ ico("tablero") }}Tablero</a>
+  <a href="/avisos" {% if request.url.path == '/avisos' %}aria-current="page"{% endif %}>{{ ico("avisos") }}Avisos</a>
+  <a href="/search">{{ ico("buscar") }}Buscar</a>
+  <button type="button" id="menu-btn-2" aria-label="Abrir menú" aria-expanded="false" aria-controls="nav">{{ ico("menu") }}Menú</button>
+</nav>
+
 <script>
-// Insignia de avisos: una llamada ligera al cargar. Si falla, el menú sigue funcionando.
-fetch('/api/avisos/pendientes').then(r => r.ok ? r.json() : null).then(d => {
-  if (d && d.pendientes > 0) { const b = document.getElementById('nav-avisos');
-    if (b) { b.textContent = d.pendientes; b.hidden = false; b.classList.add('warn'); } }
-}).catch(() => {});
+// --- Menú deslizante (celular). Accesible: Esc cierra, el foco entra y regresa al botón.
+(function () {
+  var nav = document.getElementById('nav'), ov = document.getElementById('overlay');
+  var btns = [document.getElementById('menu-btn'), document.getElementById('menu-btn-2')].filter(Boolean);
+  var last = null;
+  function set(open) {
+    nav.dataset.open = open ? 'true' : 'false';
+    ov.hidden = !open;
+    btns.forEach(function (b) { b.setAttribute('aria-expanded', open ? 'true' : 'false'); });
+    document.body.style.overflow = open ? 'hidden' : '';
+    if (open) { last = document.activeElement; var a = nav.querySelector('a'); if (a) a.focus(); }
+    else if (last) { last.focus(); }
+  }
+  btns.forEach(function (b) { b.addEventListener('click', function () { set(nav.dataset.open !== 'true'); }); });
+  ov.addEventListener('click', function () { set(false); });
+  document.getElementById('menu-close').addEventListener('click', function () { set(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && nav.dataset.open === 'true') set(false); });
+})();
+
+// --- Tablas legibles en celular: copia el encabezado de cada columna a su celda.
+//     Así cada fila se lee como ficha ("Producto: Orégano") sin tocar las 30 plantillas.
+(function () {
+  document.querySelectorAll('table').forEach(function (t) {
+    var hrow = t.querySelector('tr');
+    var heads = hrow ? [].map.call(hrow.querySelectorAll('th'), function (th) { return th.textContent.trim(); }) : [];
+    if (!heads.length) return;
+    hrow.classList.add('hrow');          // se oculta en celular: su texto ya viaja en cada celda
+    t.classList.add('cards');
+    [].forEach.call(t.querySelectorAll('tr'), function (tr) {
+      [].forEach.call(tr.children, function (td, i) {
+        if (td.tagName === 'TD' && heads[i]) td.setAttribute('data-label', heads[i]);
+      });
+    });
+    if (!t.parentElement.classList.contains('table-wrap')) {
+      var w = document.createElement('div'); w.className = 'table-wrap';
+      t.parentNode.insertBefore(w, t); w.appendChild(t);
+    }
+  });
+})();
+
+// --- Señal de carga al navegar. La página llega completa desde el servidor, así que
+//     una barra de progreso informa mejor que un "skeleton" que no alcanzaría a verse.
+(function () {
+  var bar = document.getElementById('progress');
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest('a');
+    if (a && a.href && a.origin === location.origin && !a.target && !a.hasAttribute('download')) {
+      bar.style.width = '70%';
+    }
+  });
+  document.addEventListener('submit', function () { bar.style.width = '70%'; });
+  window.addEventListener('pageshow', function () { bar.style.width = '0'; });
+})();
+
+// --- Contador de avisos pendientes (una llamada ligera; si falla, el menú sigue igual).
+fetch('/api/avisos/pendientes').then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
+  if (d && d.pendientes > 0) { var b = document.getElementById('nav-avisos');
+    if (b) { b.textContent = d.pendientes; b.hidden = false; } }
+}).catch(function () {});
 </script>
+{% else %}
+<main id="main">{% block content %}{% endblock %}</main>
+{% endif %}
 </body>
 </html>

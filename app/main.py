@@ -14,6 +14,7 @@ from pathlib import Path
 
 from fastapi import Depends, FastAPI, File, Request, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
+from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
@@ -63,6 +64,8 @@ log = logging.getLogger("crm.http")
 app = FastAPI(title="Sistema interno La Huerta (CRM + operación)", version="0.2.0")
 for _r in routers.ALL:
     app.include_router(_r)
+# hoja de estilo del sistema visual (un solo archivo, cacheable)
+app.mount("/static", StaticFiles(directory=str(web.BASE / "static")), name="static")
 
 templates.env.globals["pending_notifications"] = None  # lo inyecta el middleware por solicitud
 
@@ -72,7 +75,7 @@ ENTITY_PARAMS = {"lead_id": "lead", "account_id": "account", "opp_id": "opportun
                  "employee_id": "employee", "fund_id": "petty_cash", "product_id": "product",
                  "lot_id": "lot", "warehouse_id": "warehouse", "wo_id": "work_order",
                  "notification_id": "notification", "attachment_id": "attachment"}
-SKIP_ACCESS_LOG = {"/health", "/login", "/logout", "/favicon.ico"}
+SKIP_ACCESS_LOG = {"/health", "/login", "/logout", "/favicon.ico", "/api/avisos/pendientes"}
 DENIED = {401, 403, 415, 429}
 
 

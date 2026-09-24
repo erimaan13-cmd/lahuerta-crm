@@ -92,6 +92,7 @@ app/
   main.py            rutas UI + API, auth, manejo de errores, logging
   models.py          modelo de dominio (SQLAlchemy)
   web.py             piezas compartidas por las rutas (plantillas, sesión, permisos, CSRF)
+  static/app.css     sistema visual (paleta de marca, barra lateral, menú deslizante, accesibilidad)
   routers/           un archivo por módulo de operación (inventario, abastecimiento, ventas, mantenimiento, rrhh, caja, avisos, documentos)
   services/          crm.py · pipeline.py · email_pipeline.py · dashboard.py · business_time.py · quote_pdf.py · automations.py
                      inventory.py · procurement.py · sales.py · maintenance.py · hr.py · pettycash.py · notifications.py · files.py
@@ -107,6 +108,7 @@ tests/               pytest
 
 ## Documentación
 
+- `docs/07_INTERFAZ.md` — navegación, sistema visual y accesibilidad (iteración 5)
 - `docs/06_OPERACION.md` — inventario, ventas, compras, personal, caja y mantenimiento (iteración 4)
 - `docs/ENTREGA_ABRAHAM.md` — entrega técnica para revisión y auditoría (empezar aquí si vas a revisar el código)
 - `docs/INFORME_FINAL.md` — informe A–Q

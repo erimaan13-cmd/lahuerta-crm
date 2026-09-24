@@ -21,12 +21,12 @@
   {% endif %}
   {% if has_permission(user.role, 'maintenance:read') %}
   <div class="card kpi"><div class="n"><a href="/mantenimiento">{{ op.mantenimiento.activos }}</a></div>
-    <div class="l">activos · {% if op.mantenimiento.vencidos %}<span class="chip bad">{{ op.mantenimiento.vencidos }} vencidos</span>{% endif %}
-      <span class="chip warn">{{ op.mantenimiento.proximos }} próximos</span></div></div>
+    <div class="l">activos · {% if op.mantenimiento.vencidos %}<span class="chip bad">{{ op.mantenimiento.vencidos }} vencido{{ "s" if op.mantenimiento.vencidos != 1 }}</span>{% endif %}
+      <span class="chip warn">{{ op.mantenimiento.proximos }} próximo{{ "s" if op.mantenimiento.proximos != 1 }}</span></div></div>
   {% endif %}
   {% if has_permission(user.role, 'hr:read') %}
   <div class="card kpi"><div class="n"><a href="/rrhh">{{ op.rrhh.activos }}</a></div>
-    <div class="l">empleados activos{% if op.rrhh.contratos_por_vencer %}<br><span class="chip warn">{{ op.rrhh.contratos_por_vencer }} contratos por vencer</span>{% endif %}</div></div>
+    <div class="l">empleados activos{% if op.rrhh.contratos_por_vencer %}<br><span class="chip warn">{{ op.rrhh.contratos_por_vencer }} contrato{{ "s" if op.rrhh.contratos_por_vencer != 1 }} por vencer</span>{% endif %}</div></div>
   {% endif %}
   {% if has_permission(user.role, 'pettycash:read') %}
   <div class="card kpi"><div class="n"><a href="/caja">{{ op.caja.saldo_total|money }}</a></div>
