@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}{{ f.name }} · Caja chica{% endblock %}
+{% block content %}
+<p class="small"><a href="/caja">← Caja chica</a></p>
+<h1>{{ f.name }} <span class="chip {{ 'ok' if saldo > 0 else 'bad' }}">saldo {{ saldo|money }}</span>
+  <span class="small muted">fondo {{ f.fund_amount_mxn|money }}</span></h1>
+
+<form class="row card" method="get">
+  <label>Desde<input type="date" name="desde" value="{{ filtro.desde or '' }}"></label>
+  <label>Hasta<input type="date" name="hasta" value="{{ filtro.hasta or '' }}"></label>
+  <button>Filtrar</button>
+  <a class="btn" href="/caja/{{ f.id }}.csv?desde={{ filtro.desde or '' }}&hasta={{ filtro.hasta or '' }}">Exportar CSV para el contador</a>
+</form>
+
+<div class="two" style="margin-top:12px">
+<div>
+  <h2>Movimientos</h2>
+  <table><tr><th>Fecha</th><th>Tipo</th><th>Categoría</th><th>Monto</th><th>Descripción</th><th>Comprobante</th></tr>
+  {% for e in movs %}<tr>
+    <td class="small">{{ e.at|local('%d/%m/%Y') }}</td>
+    <td><span class="chip {{ 'bad' if e.type == 'gasto' else 'ok' }}">{{ tipos.get(e.type, e.type) }}</span></td>
+    <td class="small">{{ categorias.get(e.category, '—') if e.category else '—' }}</td>
+    <td>{{ e.amount_mxn|money }}</td>
+    <td class="small">{{ e.description }}</td>
+    <td class="small">{% if e.receipt_id %}<a href="/documentos/{{ e.receipt_id }}">ver</a>{% else %}<span class="muted">—</span>{% endif %}</td>
+  </tr>{% else %}<tr><td colspan="6" class="muted">Sin movimientos en el periodo.</td></tr>{% endfor %}
+  </table>
+</div>
+
+<div>
+{% if has_permission(user.role, 'pettycash:write') and f.is_active %}
+  <h2>Registrar gasto</h2>
+  <form class="card" method="post" action="/caja/{{ f.id }}/gastos" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
+    <div class="row">
+      <label>Fecha<input type="date" name="at"></label>
+      <label>Monto*<input name="amount_mxn" type="number" min="0.01" step="0.01" required></label>
+      <label>Categoría<select name="category">{% for k, l in categorias.items() %}<option value="{{ k }}">{{ l }}</option>{% endfor %}</select></label>
+    </div>
+    <p><input name="description" placeholder="¿En qué se gastó?" required style="width:100%"></p>
+    <p><label class="small muted">Comprobante* (ticket o factura escaneada)<input type="file" name="file" required></label></p>
+    <button>Registrar gasto</button>
+    <p class="small muted">Sin comprobante el gasto no se guarda, y no puede dejar la caja en negativo.</p>
+  </form>
+
+  <h2>Registrar reposición</h2>
+  <form class="card" method="post" action="/caja/{{ f.id }}/reposiciones" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
+    <div class="row">
+      <label>Fecha<input type="date" name="at"></label>
+      <label>Monto*<input name="amount_mxn" type="number" min="0.01" step="0.01" required></label>
+    </div>
+    <p><input name="description" placeholder="Reposición del fondo" style="width:100%"></p>
+    <p><label class="small muted">Comprobante (opcional)<input type="file" name="file"></label></p>
+    <button class="sec">Registrar reposición</button>
+  </form>
+{% endif %}
+  <p class="small muted">Responsable de la caja:
+    {{ (usuarios | selectattr('id', 'equalto', f.responsible_user_id) | map(attribute='full_name') | first) or 'sin asignar' }}.</p>
+</div>
+</div>
+
+{% set entity_type='petty_cash' %}{% set entity_id=f.id %}{% set next='/caja/' ~ f.id %}
+{% include "_adjuntos.html" %}
+{% include "_history.html" %}
+{% endblock %}

@@ -1,6 +1,50 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Dashboard comercial</h1>
+<h1>Tablero general</h1>
+
+{# ---- operación interna: una tarjeta por módulo, cada una enlaza a su pestaña ---- #}
+<div class="grid">
+  {% if has_permission(user.role, 'inventory:read') %}
+  <div class="card kpi"><div class="n"><a href="/inventario">{{ '{:,.0f}'.format(op.inventario.kg_total) }}</a></div>
+    <div class="l">kg en existencia · {{ op.inventario.productos_con_existencia }} productos
+      {% if op.inventario.bajo_minimo %}<br><span class="chip warn">{{ op.inventario.bajo_minimo }} bajo mínimo</span>{% endif %}
+      {% if op.inventario.lotes_por_caducar %}<span class="chip bad">{{ op.inventario.lotes_por_caducar }} por caducar</span>{% endif %}</div></div>
+  {% endif %}
+  {% if has_permission(user.role, 'sales:read') %}
+  <div class="card kpi"><div class="n"><a href="/ventas">{{ '{:,.0f}'.format(op.ventas.kg_total) }}</a></div>
+    <div class="l">kg vendidos · {{ op.ventas.mxn_total|money }}<br>
+      <span class="chip">{{ op.ventas.pendientes_de_entrega }} por entregar</span></div></div>
+  {% endif %}
+  {% if has_permission(user.role, 'procurement:read') %}
+  <div class="card kpi"><div class="n"><a href="/abastecimiento">{{ op.abastecimiento.por_estado.get('por_autorizar', 0) }}</a></div>
+    <div class="l">órdenes por autorizar · {{ op.abastecimiento.por_estado.get('autorizada', 0) }} por recibir</div></div>
+  {% endif %}
+  {% if has_permission(user.role, 'maintenance:read') %}
+  <div class="card kpi"><div class="n"><a href="/mantenimiento">{{ op.mantenimiento.activos }}</a></div>
+    <div class="l">activos · {% if op.mantenimiento.vencidos %}<span class="chip bad">{{ op.mantenimiento.vencidos }} vencidos</span>{% endif %}
+      <span class="chip warn">{{ op.mantenimiento.proximos }} próximos</span></div></div>
+  {% endif %}
+  {% if has_permission(user.role, 'hr:read') %}
+  <div class="card kpi"><div class="n"><a href="/rrhh">{{ op.rrhh.activos }}</a></div>
+    <div class="l">empleados activos{% if op.rrhh.contratos_por_vencer %}<br><span class="chip warn">{{ op.rrhh.contratos_por_vencer }} contratos por vencer</span>{% endif %}</div></div>
+  {% endif %}
+  {% if has_permission(user.role, 'pettycash:read') %}
+  <div class="card kpi"><div class="n"><a href="/caja">{{ op.caja.saldo_total|money }}</a></div>
+    <div class="l">saldo en caja chica · {{ op.caja.gasto_mes_mxn|money }} gastados este mes</div></div>
+  {% endif %}
+</div>
+
+{% if avisos %}
+<h2>Avisos pendientes</h2>
+<div class="card small">
+  {% for a in avisos %}<p><span class="chip {{ a.severity }}">{{ a.kind.replace('_', ' ') }}</span>
+    {% if a.link %}<a href="{{ a.link }}">{{ a.title }}</a>{% else %}{{ a.title }}{% endif %}
+    <span class="muted">· {{ a.created_at|local('%d/%m %H:%M') }}</span></p>{% endfor %}
+  <p><a href="/avisos">Ver todos los avisos</a></p>
+</div>
+{% endif %}
+
+<h2>Comercial</h2>
 <div class="grid">
   <div class="card kpi"><div class="n">{{ m.leads_by_status.values()|sum }}</div><div class="l">Leads totales · {{ m.leads_by_status.get('nuevo',0) }} nuevos</div></div>
   <div class="card kpi"><div class="n">{{ m.pipeline.values()|selectattr('count')|map(attribute='count')|sum }}</div><div class="l">Oportunidades · ${{ '{:,.0f}'.format(m.open_pipeline_mxn) }} MXN abiertos</div></div>

@@ -18,8 +18,8 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
-from app import config, db as dbmod
-from app.audit import ip_var, record, request_id_var, snapshot, verify_chain
+from app import config, db as dbmod, routers, web
+from app.audit import ip_var, record, request_id_var, verify_chain
 from app.classifier.taxonomy import CATEGORIES
 from app.integrations.email_providers import (EmlDirectoryProvider, MockMailboxProvider, RawEmail,
                                               parse_eml_bytes)
@@ -35,9 +35,13 @@ from app.services.business_time import TZ as BTZ, to_local, to_utc_naive
 from app.services.common import DomainError, get_or_404
 from app.services.quote_pdf import render_quote_pdf
 
-BASE = Path(__file__).resolve().parent
-CSRF_COOKIE = "crm_csrf"
+CSRF_COOKIE = web.CSRF_COOKIE
 _login_fails: dict[tuple, deque] = defaultdict(deque)  # (ip, email) → instantes de fallos (memoria de proceso)
+
+templates = web.templates
+render, back, form_dict, ser = web.render, web.back, web.form_dict, web.ser
+csrf_protect, current_user, require, entity_history = web.csrf_protect, web.current_user, web.require, web.entity_history
+NotAuthenticated, Forbidden, CsrfError = web.NotAuthenticated, web.Forbidden, web.CsrfError
 
 
 class JsonFormatter(logging.Formatter):
@@ -56,29 +60,18 @@ logging.getLogger("crm").handlers = [_h]
 logging.getLogger("crm").setLevel(logging.INFO)
 log = logging.getLogger("crm.http")
 
-app = FastAPI(title="CRM provisional — La Huerta (MVP)", version="0.1.0")
-templates = Jinja2Templates(directory=str(BASE / "templates"))
-def _local(dt, fmt="%d/%m/%Y %H:%M"):
-    return to_local(dt).strftime(fmt) if dt else "—"
+app = FastAPI(title="Sistema interno La Huerta (CRM + operación)", version="0.2.0")
+for _r in routers.ALL:
+    app.include_router(_r)
 
-
-templates.env.filters["local"] = _local
-templates.env.globals.update(STAGE_LABELS=pipeline.STAGE_LABELS, CATEGORIES=CATEGORIES,
-                             ROLE_LABELS=ROLE_LABELS, has_permission=has_permission,
-                             QUOTE_TRANSITIONS=crm.QUOTE_TRANSITIONS)
-
-
-class NotAuthenticated(Exception):
-    pass
-
-
-class Forbidden(Exception):
-    def __init__(self, perm):
-        self.perm = perm
-
+templates.env.globals["pending_notifications"] = None  # lo inyecta el middleware por solicitud
 
 ENTITY_PARAMS = {"lead_id": "lead", "account_id": "account", "opp_id": "opportunity", "case_id": "case",
-                 "email_id": "email", "quote_id": "quote", "task_id": "task", "user_id": "user"}
+                 "email_id": "email", "quote_id": "quote", "task_id": "task", "user_id": "user",
+                 "order_id": "sales_order", "po_id": "purchase_order", "asset_id": "asset",
+                 "employee_id": "employee", "fund_id": "petty_cash", "product_id": "product",
+                 "lot_id": "lot", "warehouse_id": "warehouse", "wo_id": "work_order",
+                 "notification_id": "notification", "attachment_id": "attachment"}
 SKIP_ACCESS_LOG = {"/health", "/login", "/logout", "/favicon.ico"}
 DENIED = {401, 403, 415, 429}
 
@@ -146,18 +139,6 @@ async def request_context(request: Request, call_next):
     return response
 
 
-async def csrf_protect(request: Request):
-    """Doble envío: el token del formulario debe coincidir con la cookie (RNF-01)."""
-    form = await request.form()
-    sent, cookie = form.get("csrf_token"), request.cookies.get(CSRF_COOKIE)
-    if not sent or not cookie or not hmac.compare_digest(str(sent), cookie):
-        raise CsrfError()
-
-
-class CsrfError(Exception):
-    pass
-
-
 def _is_api(request: Request) -> bool:
     return request.url.path.startswith("/api")
 
@@ -189,49 +170,6 @@ async def forbidden_handler(request: Request, exc: Forbidden):
     if _is_api(request):
         return JSONResponse({"detail": msg}, status_code=403)
     return templates.TemplateResponse(request, "error.html", {"message": msg, "user": None}, status_code=403)
-
-
-def current_user(request: Request, db: Session = Depends(dbmod.get_db)) -> User:
-    uid = read_session_token(request.cookies.get(config.SESSION_COOKIE))
-    user = db.get(User, uid) if uid else None
-    if not user or not user.is_active:
-        raise NotAuthenticated()
-    return user
-
-
-def require(perm: str):
-    def dep(user: User = Depends(current_user)) -> User:
-        if not has_permission(user.role, perm):
-            raise Forbidden(perm)
-        return user
-    return dep
-
-
-def entity_history(db: Session, user: User, entity_id: str) -> dict:
-    """Historial del registro (solo si el usuario puede ver la bitácora)."""
-    if not has_permission(user.role, "audit:read"):
-        return {}
-    evs = list(db.scalars(select(AuditEvent).where(AuditEvent.entity_id == entity_id)
-                          .order_by(AuditEvent.seq.desc()).limit(200)))
-    return {"history": evs, "history_id": entity_id}
-
-
-def render(request, name, user, **ctx):
-    return templates.TemplateResponse(request, name, {"user": user, **ctx})
-
-
-def back(url: str):
-    return RedirectResponse(url, status_code=303)
-
-
-async def form_dict(request: Request) -> dict:
-    return {k: v for k, v in (await request.form()).items()}
-
-
-def ser(obj):
-    if isinstance(obj, list):
-        return [ser(o) for o in obj]
-    return snapshot(obj)
 
 
 # ======================================================================= salud y sesión
@@ -297,8 +235,10 @@ def ui_dashboard(request: Request, db: Session = Depends(dbmod.get_db), user: Us
     my_tasks = list(db.scalars(select(Task).where(Task.status == "pendiente",
                                                   (Task.assignee_id == user.id) | (Task.assignee_role == user.role))
                                .order_by(Task.due_at).limit(10)))
+    from app.services import notifications as notif_svc
     return render(request, "dashboard.html", user, m=dashboard.metrics(db), my_tasks=my_tasks,
-                  reorder=reorder_candidates(db))
+                  reorder=reorder_candidates(db), op=dashboard.operations(db),
+                  avisos=notif_svc.listing(db, user)[:8])
 
 
 @app.get("/leads", response_class=HTMLResponse)

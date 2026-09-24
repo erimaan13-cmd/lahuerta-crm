@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Avisos · La Huerta{% endblock %}
+{% block content %}
+<h1>Avisos <span class="small muted">({{ m.pendientes }} pendientes · {{ m.silenciados }} silenciados)</span></h1>
+
+{% if not correo_activo %}
+<p class="card small" style="border-left:4px solid var(--warn)">
+  <b>Envío por correo: todavía no.</b> El adaptador de correo no está configurado, así que los avisos
+  quedan en cola con estado <span class="chip warn">sin_adaptador</span> y solo se ven en esta pantalla.
+  Cuando se configure el envío, los mismos avisos saldrán por correo sin cambiar nada más.
+</p>
+{% endif %}
+
+<form class="row card" method="get">
+  <label>Estado<select name="status">
+    <option value="pendiente" {{ 'selected' if f.status == 'pendiente' }}>Pendientes</option>
+    <option value="leida" {{ 'selected' if f.status == 'leida' }}>Leídos</option>
+    <option value="" {{ 'selected' if not f.status }}>Todos</option>
+  </select></label>
+  <label>Tipo<select name="kind"><option value="">(todos)</option>
+    {% for k, l in kinds.items() %}<option value="{{ k }}" {{ 'selected' if f.kind == k }}>{{ l }}</option>{% endfor %}
+  </select></label>
+  <button>Filtrar</button> <a href="/avisos">limpiar</a>
+</form>
+{% if has_permission(user.role, 'integration:run') %}
+<form class="inline" method="post" action="/avisos/generar" style="margin-top:8px">
+  <input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
+  <button class="sec">Revisar ahora</button>
+  <span class="small muted">Recorre contratos, documentos, lotes, existencias, mantenimientos y tareas. Correrlo dos veces no duplica avisos.</span>
+</form>
+{% endif %}
+
+<table style="margin-top:10px"><tr><th>Aviso</th><th>Tipo</th><th>Vence</th><th>Correo</th><th>Acciones</th></tr>
+{% for a in avisos %}<tr>
+  <td><span class="chip {{ a.severity if a.severity in ['ok','warn','bad'] else '' }}">{{ a.severity }}</span>
+    {% if a.link %}<a href="{{ a.link }}">{{ a.title }}</a>{% else %}{{ a.title }}{% endif %}
+    {% if a.body %}<br><span class="small muted">{{ a.body }}</span>{% endif %}
+    <br><span class="small muted">{{ a.created_at|local('%d/%m/%Y %H:%M') }}{% if a.status == 'leida' %} · leído{% endif %}</span></td>
+  <td class="small">{{ kinds.get(a.kind, a.kind) }}</td>
+  <td class="small">{% if a.due_on %}<span class="chip {{ a.due_on|expiry }}">{{ a.due_on|local('%d/%m/%Y') }}</span>{% else %}—{% endif %}</td>
+  <td class="small muted">{{ a.email_status }}</td>
+  <td>
+    {% if a.status == 'pendiente' %}
+    <form class="inline" method="post" action="/avisos/{{ a.id }}/leido"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
+      <button class="sec small">Marcar leído</button></form>
+    {% endif %}
+    <form class="inline" method="post" action="/avisos/silenciar"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
+      <input type="hidden" name="mute_key" value="{{ a.mute_key }}">
+      <select name="days"><option value="30">30 días</option><option value="">sin fecha</option></select>
+      <input name="reason" placeholder="Motivo" size="12">
+      <button class="sec small">Silenciar</button></form>
+  </td>
+</tr>{% else %}<tr><td colspan="5" class="muted">No hay avisos con este filtro.</td></tr>{% endfor %}
+</table>
+
+<div class="two" style="margin-top:12px">
+<div>
+  <h2>Pendientes por tipo</h2>
+  <table><tr><th>Tipo</th><th>#</th></tr>
+  {% for k, v in m.por_tipo.items() %}<tr><td>{{ k }}</td><td>{{ v }}</td></tr>
+  {% else %}<tr><td colspan="2" class="muted">Nada pendiente.</td></tr>{% endfor %}
+  </table>
+</div>
+<div>
+  <h2>Reactivar un aviso silenciado</h2>
+  <form class="card row" method="post" action="/avisos/reactivar"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
+    <label>Clave del aviso<input name="mute_key" placeholder="contrato:&lt;id&gt;" required></label>
+    <button class="sec">Reactivar</button>
+  </form>
+  <p class="small muted">Silenciar un aviso lo oculta y evita que vuelva a generarse; reactivarlo lo devuelve
+  a la siguiente revisión.</p>
+</div>
+</div>
+{% endblock %}

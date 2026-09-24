@@ -39,3 +39,15 @@ def metrics(db: Session) -> dict:
         "cases_open": db.scalar(select(func.count()).where(Case.status.not_in(["resuelto", "cerrado"]))),
         "cases_by_type": _group(db, Case.type),
     }
+
+
+def operations(db: Session) -> dict:
+    """Resumen de los módulos de operación para el tablero principal.
+
+    Cada módulo calcula lo suyo; aquí solo se juntan las cifras que el dueño quiere ver de un vistazo.
+    """
+    from app.services import inventory, maintenance, notifications, procurement, sales
+    from app.services import hr, pettycash
+    return {"inventario": inventory.metrics(db), "ventas": sales.metrics(db),
+            "abastecimiento": procurement.metrics(db), "mantenimiento": maintenance.metrics(db),
+            "rrhh": hr.metrics(db), "caja": pettycash.metrics(db), "avisos": notifications.metrics(db)}

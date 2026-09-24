@@ -47,3 +47,22 @@ REORDER_TOLERANCE = float(os.getenv("CRM_REORDER_TOLERANCE", "0.2"))
 LOGIN_MAX_FAILS = 5
 LOGIN_LOCK_MINUTES = 15
 COMPANY_NAME = os.getenv("CRM_COMPANY_NAME", "EMPACADORA LA HUERTA")
+
+# ---------------------------------------------------------------- operación interna (2026-09)
+# Archivos subidos (escaneos). Solo se almacenan: sin OCR (E-11).
+UPLOAD_DIR = Path(os.getenv("CRM_UPLOAD_DIR", str(BASE_DIR / "data" / "uploads")))
+UPLOAD_MAX_MB = float(os.getenv("CRM_UPLOAD_MAX_MB", "15"))
+UPLOAD_ALLOWED_EXT = {".pdf", ".jpg", ".jpeg", ".png", ".webp", ".heic", ".xml", ".txt", ".csv"}
+
+# Abastecimiento: una orden arriba de este monto requiere autorización (PENDIENTE de confirmar con La Huerta)
+PO_AUTH_THRESHOLD_MXN = float(os.getenv("CRM_PO_AUTH_THRESHOLD_MXN", "20000"))
+
+# Avisos (E-12). Contratos: semanal desde 2 meses antes del vencimiento.
+CONTRACT_ALERT_DAYS = int(os.getenv("CRM_CONTRACT_ALERT_DAYS", "60"))
+DOC_EXPIRY_ALERT_DAYS = int(os.getenv("CRM_DOC_EXPIRY_ALERT_DAYS", "30"))
+LOT_EXPIRY_ALERT_DAYS = int(os.getenv("CRM_LOT_EXPIRY_ALERT_DAYS", "30"))
+MAINT_ALERT_DAYS = int(os.getenv("CRM_MAINT_ALERT_DAYS", "15"))
+MAINT_ALERT_KM = float(os.getenv("CRM_MAINT_ALERT_KM", "500"))
+MAINT_ALERT_HOURS = float(os.getenv("CRM_MAINT_ALERT_HOURS", "50"))
+# Adaptador de envío de correo: no configurado en esta versión (los avisos quedan en cola, regla 3).
+NOTIFY_EMAIL_ENABLED = os.getenv("CRM_NOTIFY_EMAIL_ENABLED", "false").lower() == "true"

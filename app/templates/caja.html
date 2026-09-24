@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Caja chica · La Huerta{% endblock %}
+{% block content %}
+<h1>Caja chica <span class="small muted">(fondo fijo: se repone al comprobar)</span></h1>
+<p class="small"><a href="/avisos">Avisos</a> · <a href="/">Dashboard</a></p>
+
+<div class="grid">
+  <div class="card kpi"><div class="n">{{ m.cajas_activas }}</div><div class="l">Cajas activas</div></div>
+  <div class="card kpi"><div class="n">{{ m.saldo_total|money }}</div><div class="l">Saldo total en efectivo</div></div>
+  <div class="card kpi"><div class="n">{{ m.gasto_mes_mxn|money }}</div><div class="l">Gasto del mes en curso</div></div>
+  <div class="card kpi"><div class="n">{{ m.gasto_total_mxn|money }}</div><div class="l">Gasto acumulado</div></div>
+</div>
+
+<div class="two" style="margin-top:12px">
+<div>
+  <h2>Cajas</h2>
+  <table><tr><th>Caja</th><th>Responsable</th><th>Fondo</th><th>Saldo</th><th>Estado</th><th></th></tr>
+  {% for c in cajas %}<tr>
+    <td><a href="/caja/{{ c.f.id }}">{{ c.f.name }}</a></td>
+    <td class="small">{{ c.responsable.full_name if c.responsable else '—' }}</td>
+    <td>{{ c.f.fund_amount_mxn|money }}</td>
+    <td><span class="chip {{ 'bad' if c.saldo <= 0 else ('warn' if c.saldo < c.f.fund_amount_mxn * 0.25 else 'ok') }}">{{ c.saldo|money }}</span></td>
+    <td><span class="chip {{ 'ok' if c.f.is_active else 'bad' }}">{{ 'activa' if c.f.is_active else 'cerrada' }}</span></td>
+    <td class="small"><a href="/caja/{{ c.f.id }}.csv">CSV</a></td>
+  </tr>{% else %}<tr><td colspan="6" class="muted">Todavía no hay cajas.</td></tr>{% endfor %}
+  </table>
+</div>
+<div>
+  <h2>Gasto del mes por categoría</h2>
+  <table><tr><th>Categoría</th><th>Monto</th></tr>
+  {% for k, v in m.gasto_mes_por_categoria.items() %}<tr><td>{{ k }}</td><td>{{ v|money }}</td></tr>
+  {% else %}<tr><td colspan="2" class="muted">Sin gastos este mes.</td></tr>{% endfor %}
+  </table>
+  <p class="small muted" style="margin-top:8px">Cada gasto necesita su comprobante escaneado; el archivo se
+  guarda tal cual, sin leer su contenido.</p>
+</div>
+</div>
+
+{% if has_permission(user.role, 'pettycash:write') %}
+<h2>Nueva caja</h2>
+<form class="card row" method="post" action="/caja"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
+  <label>Nombre*<input name="name" required placeholder="Caja chica oficina (DEMO)"></label>
+  <label>Monto del fondo*<input name="fund_amount_mxn" type="number" min="1" step="0.01" required></label>
+  <label>Responsable<select name="responsible_user_id"><option value="">(sin asignar)</option>{% for u in usuarios %}<option value="{{ u.id }}">{{ u.full_name }} · {{ ROLE_LABELS[u.role] }}</option>{% endfor %}</select></label>
+  <button>Crear caja</button>
+</form>
+<p class="small muted">El administrador asigna quién maneja cada caja; ese usuario es el responsable del efectivo.</p>
+{% endif %}
+{% endblock %}

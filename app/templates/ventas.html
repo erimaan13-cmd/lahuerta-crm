@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Pedidos · CRM La Huerta{% endblock %}
+{% block content %}
+<h1>Ventas · Pedidos</h1>
+
+<div class="grid">
+  <div class="card kpi"><div class="n">{{ m.kg_total|round(0)|int }}</div><div class="l">kg vendidos (sin cancelados)</div></div>
+  <div class="card kpi"><div class="n">{{ m.mxn_total|money }}</div><div class="l">Importe acumulado</div></div>
+  <div class="card kpi"><div class="n">{{ m.pendientes_de_entrega }}</div><div class="l">Confirmados por entregar</div></div>
+  <div class="card kpi"><div class="n">{{ m.por_estado.get('entregado', 0) }}</div><div class="l">Pedidos entregados</div></div>
+</div>
+
+<div class="two" style="margin-top:12px">
+<div class="card">
+  <h2>Últimos 6 meses</h2>
+  <table><tr><th>Mes</th><th>Pedidos</th><th>Kilos</th><th>Importe</th></tr>
+  {% for r in m.por_mes %}<tr><td>{{ r.mes }}</td><td>{{ r.pedidos }}</td><td>{{ r.kg|kg }}</td><td>{{ r.mxn|money }}</td></tr>{% endfor %}
+  </table>
+</div>
+<div class="card">
+  <h2>Top clientes (kg)</h2>
+  <table><tr><th>Cliente</th><th>Kilos</th></tr>
+  {% for r in m.top_clientes %}<tr><td>{{ r.nombre }}</td><td>{{ r.kg|kg }}</td></tr>
+  {% else %}<tr><td colspan="2" class="muted">Sin pedidos todavía.</td></tr>{% endfor %}</table>
+  <h2>Top productos (kg)</h2>
+  <table><tr><th>Producto</th><th>Kilos</th></tr>
+  {% for r in m.top_productos %}<tr><td>{{ r.nombre }}</td><td>{{ r.kg|kg }}</td></tr>
+  {% else %}<tr><td colspan="2" class="muted">Sin renglones todavía.</td></tr>{% endfor %}</table>
+</div>
+</div>
+
+<h2>Pedidos</h2>
+<form class="row card" method="get">
+  <label>Estado<select name="status"><option value="">(todos)</option>
+    {% for k, l in STATUS_LABELS.items() %}<option value="{{ k }}" {{ 'selected' if status == k }}>{{ l }}</option>{% endfor %}
+  </select></label>
+  <button>Filtrar</button> <a href="/ventas">limpiar</a>
+</form>
+<table style="margin-top:10px"><tr><th>Folio</th><th>Cliente</th><th>Bodega</th><th>Prometido</th><th>Kilos</th><th>Importe</th><th>Estado</th><th>Factura</th></tr>
+{% for o in orders %}<tr>
+  <td><a href="/ventas/{{ o.id }}">{{ o.folio }}</a><br><span class="small muted">{{ o.created_at|local('%d/%m/%Y') }}</span></td>
+  <td>{{ o.account.name }}</td>
+  <td>{{ o.warehouse.code if o.warehouse else '—' }}</td>
+  <td class="small">{{ o.promised_date|local('%d/%m/%Y') }}</td>
+  <td>{{ o.total_kg|kg }}</td><td>{{ o.total_mxn|money }}</td>
+  <td><span class="chip {{ 'ok' if o.status == 'entregado' else ('bad' if o.status == 'cancelado' else 'warn') }}">{{ STATUS_LABELS[o.status] }}</span></td>
+  <td class="small">{{ o.invoice_folio or '—' }}</td>
+</tr>{% else %}<tr><td colspan="8" class="muted">Sin pedidos.</td></tr>{% endfor %}
+</table>
+
+{% if has_permission(user.role, 'sales:write') %}
+<h2>Nuevo pedido</h2>
+<form class="card" method="post" action="/ventas"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
+  <div class="row">
+    <label>Cliente*<select name="account_id" required><option value="">—</option>
+      {% for a in accounts %}<option value="{{ a.id }}">{{ a.name }}</option>{% endfor %}</select></label>
+    <label>Bodega que surte*<select name="warehouse_id" required>
+      {% for w in warehouses %}<option value="{{ w.id }}">{{ w.code }} · {{ w.name }}</option>{% endfor %}</select></label>
+    <label>Fecha prometida*<input type="date" name="promised_date" required></label>
+  </div>
+  <p class="small muted">Captura hasta {{ n_items|length }} renglones. Si dejas el lote en blanco, al entregar se surte
+  primero el lote que caduca antes (PEPS por caducidad).</p>
+  {% for i in n_items %}
+  <div class="row" style="margin-top:6px">
+    <label>Producto<select name="product_id_{{ i }}"><option value="">—</option>
+      {% for p in products %}<option value="{{ p.id }}">{{ p.sku }} · {{ p.name }}</option>{% endfor %}</select></label>
+    <label>Cantidad<input name="qty_{{ i }}" type="number" min="0" step="any"></label>
+    <label>Unidad<select name="unit_{{ i }}">{% for k, l in units %}<option value="{{ k }}" {{ 'selected' if k == 'kg' }}>{{ l }}</option>{% endfor %}</select></label>
+    <label>Precio por kg<input name="unit_price_mxn_{{ i }}" type="number" min="0" step="any"></label>
+    <label>Lote (opcional)<select name="lot_id_{{ i }}"><option value="">(PEPS por caducidad)</option>
+      {% for l in lots %}<option value="{{ l.id }}">{{ l.product.name }} · {{ l.code }}{% if l.expires_on %} · caduca {{ l.expires_on|local('%d/%m/%Y') }}{% endif %}</option>{% endfor %}</select></label>
+  </div>
+  {% endfor %}
+  <p><label class="small muted">Notas<textarea name="notes" rows="2"></textarea></label></p>
+  <button>Crear pedido (borrador)</button>
+  <span class="small muted">El pedido nace en borrador; confirmarlo revisa existencia y entregarlo la descuenta.</span>
+</form>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}{{ e.full_name }} · Recursos Humanos{% endblock %}
+{% block content %}
+<p class="small"><a href="/rrhh">← Recursos Humanos</a></p>
+<h1>{{ e.full_name }} <span class="chip {{ 'ok' if e.status == 'activo' else 'bad' }}">{{ e.status }}</span>
+  <span class="small muted">{{ e.employee_no }}</span></h1>
+
+<p class="card small" style="border-left:4px solid var(--brand)">
+  <b>Aviso de privacidad.</b> Este expediente contiene datos personales: solo lo consultan Recursos Humanos
+  y los administradores del sistema. Cada consulta y cada cambio quedan registrados con tu usuario, fecha y hora.
+  Úsalo únicamente para la relación laboral.
+</p>
+
+<div class="two">
+<div>
+  <table>
+    <tr><th>Área</th><td>{{ e.area or '—' }}</td><th>Puesto</th><td>{{ e.position_text or '—' }}</td></tr>
+    <tr><th>Ingreso</th><td>{{ e.hired_on|local('%d/%m/%Y') }}</td><th>Usuario del sistema</th><td>{{ e.user_id or '—' }}</td></tr>
+    <tr><th>Teléfono</th><td>{{ e.phone or '—' }}</td><th>Correo</th><td>{{ e.email or '—' }}</td></tr>
+    <tr><th>Notas</th><td colspan="3">{{ e.notes or '—' }}</td></tr>
+  </table>
+
+  {% if e.job_profile %}
+  <h2>Descripción del puesto: {{ e.job_profile.title }}</h2>
+  <div class="card">
+    <b>Funciones</b>
+    <ul>{% for d in bullets(e.job_profile.duties) %}<li>{{ d }}</li>{% else %}<li class="muted">Sin funciones capturadas.</li>{% endfor %}</ul>
+    {% if bullets(e.job_profile.requirements) %}<b>Requisitos</b>
+    <ul>{% for r in bullets(e.job_profile.requirements) %}<li>{{ r }}</li>{% endfor %}</ul>{% endif %}
+  </div>
+  {% endif %}
+
+  <h2>Contratos</h2>
+  <table><tr><th>Tipo</th><th>Inicio</th><th>Fin</th><th>Estado</th><th>Notas</th></tr>
+  {% for c in contratos %}<tr>
+    <td>{{ tipos.get(c.type, c.type) }}</td>
+    <td class="small">{{ c.start_on|local('%d/%m/%Y') }}</td>
+    <td>{% if c.end_on %}<span class="chip {{ c.end_on|expiry if c.status == 'vigente' else '' }}">{{ c.end_on|local('%d/%m/%Y') }}</span>{% else %}<span class="muted">sin fecha</span>{% endif %}</td>
+    <td><span class="chip {{ 'ok' if c.status == 'vigente' else '' }}">{{ estados_contrato.get(c.status, c.status) }}</span></td>
+    <td class="small muted">{{ c.notes or '' }}</td>
+  </tr>{% else %}<tr><td colspan="5" class="muted">Sin contratos registrados.</td></tr>{% endfor %}
+  </table>
+
+  {% set entity_type='employee' %}{% set entity_id=e.id %}{% set next='/rrhh/empleados/' ~ e.id %}
+  {% include "_adjuntos.html" %}
+</div>
+
+<div>
+{% if has_permission(user.role, 'hr:write') and e.status == 'activo' %}
+  {% if vigente %}
+  <h2>Renovar contrato</h2>
+  <form class="card" method="post" action="/rrhh/contratos/{{ vigente.id }}/renovar"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
+    <p class="small muted">El contrato actual queda marcado como «renovado» y se crea el nuevo.</p>
+    <div class="row">
+      <label>Tipo<select name="type">{% for k, l in tipos.items() %}<option value="{{ k }}" {{ 'selected' if k == vigente.type }}>{{ l }}</option>{% endfor %}</select></label>
+      <label>Inicio<input type="date" name="start_on"></label>
+      <label>Fin<input type="date" name="end_on"></label>
+    </div>
+    <p><input name="notes" placeholder="Notas" style="width:100%"></p>
+    <button>Renovar</button>
+  </form>
+  <form class="card" method="post" action="/rrhh/contratos/{{ vigente.id }}/terminar" style="margin-top:8px"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
+    <div class="row"><label>Termina el<input type="date" name="end_on"></label>
+    <label>Motivo<input name="reason" placeholder="Fin de temporada"></label>
+    <button class="sec">Terminar contrato</button></div>
+  </form>
+  {% else %}
+  <h2>Registrar contrato</h2>
+  <form class="card" method="post" action="/rrhh/empleados/{{ e.id }}/contratos"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
+    <div class="row">
+      <label>Tipo<select name="type">{% for k, l in tipos.items() %}<option value="{{ k }}">{{ l }}</option>{% endfor %}</select></label>
+      <label>Inicio*<input type="date" name="start_on" required></label>
+      <label>Fin<input type="date" name="end_on"></label>
+    </div>
+    <p class="small muted">El contrato temporal necesita fecha de término; el indeterminado puede quedar sin ella.</p>
+    <button>Registrar contrato</button>
+  </form>
+  {% endif %}
+
+  <h2>Actualizar expediente</h2>
+  <form class="card" method="post" action="/rrhh/empleados/{{ e.id }}/actualizar"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
+    <div class="row">
+      <label>Área<input name="area" value="{{ e.area or '' }}"></label>
+      <label>Puesto<select name="job_profile_id"><option value="">(sin cambiar)</option>{% for p in puestos %}<option value="{{ p.id }}" {{ 'selected' if p.id == e.job_profile_id }}>{{ p.title }}</option>{% endfor %}</select></label>
+      <label>Teléfono<input name="phone" value="{{ e.phone or '' }}"></label>
+      <label>Correo<input name="email" type="email" value="{{ e.email or '' }}"></label>
+      <button class="sec">Guardar</button>
+    </div>
+  </form>
+
+  <h2>Dar de baja</h2>
+  <form class="card" method="post" action="/rrhh/empleados/{{ e.id }}/baja"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
+    <p class="small muted">El expediente no se borra: se conserva completo con estado «baja».</p>
+    <div class="row">
+      <label>Fecha<input type="date" name="fecha"></label>
+      <label>Motivo*<input name="motivo" required placeholder="Renuncia voluntaria"></label>
+      <button class="sec">Dar de baja</button>
+    </div>
+  </form>
+{% endif %}
+</div>
+</div>
+{% include "_history.html" %}
+{% endblock %}

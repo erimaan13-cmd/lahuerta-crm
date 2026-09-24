@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Productos · La Huerta{% endblock %}
+{% block content %}
+<p class="small"><a href="/inventario">← Inventario</a></p>
+<h1>Catálogo de productos</h1>
+<p class="small muted">La unidad de manejo y sus kilos por unidad definen la conversión de toda captura; el negocio siempre reporta en kilos.</p>
+
+<div style="overflow-x:auto">
+<table><tr><th>Producto</th><th>Unidad</th><th>kg por unidad</th><th>Empaque</th><th>Mínimo</th><th>Vida útil</th><th>Existencia</th>
+{% if has_permission(user.role, 'inventory:write') %}<th>Editar</th>{% endif %}</tr>
+{% for r in totales %}<tr>
+  <td>{{ r.product.name }}<br><span class="small muted">{{ r.product.sku }} · {{ r.product.category }}</span></td>
+  <td>{{ units.get(r.product.unit, r.product.unit) }}</td>
+  <td>{{ r.product.kg_per_unit|round(3) }}</td>
+  <td class="small">{{ packaging.get(r.product.packaging, '—') }}</td>
+  <td>{{ r.min_kg|kg if r.min_kg is not none else '—' }}</td>
+  <td class="small">{{ (r.product.shelf_life_days ~ ' días') if r.product.shelf_life_days else '—' }}</td>
+  <td>{% if r.below %}<span class="chip bad">{{ r.kg|kg }}</span>{% else %}{{ r.kg|kg }}{% endif %}</td>
+  {% if has_permission(user.role, 'inventory:write') %}
+  <td><form class="row" method="post" action="/inventario/productos/{{ r.product.id }}">
+    <input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
+    <select name="unit">{% for k, l in units.items() %}<option value="{{ k }}" {{ 'selected' if r.product.unit == k }}>{{ l }}</option>{% endfor %}</select>
+    <input name="kg_per_unit" type="number" step="any" min="0.001" value="{{ r.product.kg_per_unit }}" style="width:90px" title="kg por unidad">
+    <select name="packaging"><option value="">(sin empaque)</option>
+      {% for k, l in packaging.items() %}<option value="{{ k }}" {{ 'selected' if r.product.packaging == k }}>{{ l }}</option>{% endfor %}</select>
+    <input name="min_stock_kg" type="number" step="any" min="0" value="{{ r.product.min_stock_kg if r.product.min_stock_kg is not none else '' }}" style="width:90px" title="mínimo en kg">
+    <input name="shelf_life_days" type="number" min="1" value="{{ r.product.shelf_life_days or '' }}" style="width:80px" title="vida útil en días">
+    <button class="sec">Guardar</button>
+  </form></td>{% endif %}
+</tr>{% else %}<tr><td colspan="8" class="muted">Sin productos.</td></tr>{% endfor %}
+</table>
+</div>
+
+{% if has_permission(user.role, 'inventory:write') %}
+<h2>Nuevo producto</h2>
+<form class="card" method="post" action="/inventario/productos">
+  <input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
+  <div class="row">
+    <label>Clave (SKU)*<input name="sku" required placeholder="ESP-010"></label>
+    <label>Nombre*<input name="name" required></label>
+    <label>Categoría<select name="category">
+      {% for c in ['especia','grano','semilla','chile_seco','condimento','otro'] %}<option>{{ c }}</option>{% endfor %}</select></label>
+    <label>Unidad<select name="unit">{% for k, l in units.items() %}<option value="{{ k }}">{{ l }}</option>{% endfor %}</select></label>
+    <label>kg por unidad<input name="kg_per_unit" type="number" step="any" min="0.001" placeholder="25"></label>
+  </div>
+  <div class="row" style="margin-top:8px">
+    <label>Empaque<select name="packaging"><option value="">(sin empaque)</option>
+      {% for k, l in packaging.items() %}<option value="{{ k }}">{{ l }}</option>{% endfor %}</select></label>
+    <label>Mínimo (kg)<input name="min_stock_kg" type="number" step="any" min="0" placeholder="100"></label>
+    <label>Vida útil (días)<input name="shelf_life_days" type="number" min="1" placeholder="365"></label>
+    <label style="flex:1">Sinónimos<input name="keywords" placeholder="comino, cumin" style="width:100%"></label>
+    <button>Crear producto</button>
+  </div>
+</form>
+{% endif %}
+{% endblock %}

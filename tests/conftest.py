@@ -5,10 +5,11 @@ from sqlalchemy.orm import sessionmaker
 from app import db as dbmod
 from app.db import Base, make_engine
 from app.main import app
-from app.models import Product, Sector, User
+from app.models import Product, Sector, Supplier, User, Warehouse
 from app.security import hash_password
 
-ROLES = ["admin", "ventas", "atencion", "calidad", "administracion", "lectura"]
+ROLES = ["admin", "ventas", "atencion", "calidad", "administracion", "almacen",
+         "abastecimiento", "rrhh", "mantenimiento", "lectura"]
 PW = "test-pass"
 
 
@@ -27,7 +28,12 @@ def db(tmp_path):
                                ("CHI-001", "Chile guajillo", "chile_seco", "guajillo"),
                                ("GRA-001", "Arroz", "grano", "arroz"),
                                ("CON-001", "Sazonador para carnes", "condimento", "sazonador")]:
-        s.add(Product(id=sku, sku=sku, name=name, category=cat, keywords=kw))
+        s.add(Product(id=sku, sku=sku, name=name, category=cat, keywords=kw, unit="saco",
+                      kg_per_unit=25.0, packaging="saco_pp", min_stock_kg=100.0))
+    # bodegas y proveedor de prueba para los módulos de operación
+    s.add(Warehouse(id="w-mty", code="MTY", name="Bodega Guadalupe"))
+    s.add(Warehouse(id="w-tmp", code="TMP", name="Bodega temporal"))
+    s.add(Supplier(id="sup-1", name="Especias de Origen (DEMO)", origin="nacional"))
     s.commit()
     app.dependency_overrides[dbmod.get_db] = lambda: (yield from _gen(Session))
     yield s

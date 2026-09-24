@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Recursos Humanos · La Huerta{% endblock %}
+{% block content %}
+<h1>Recursos Humanos <span class="small muted">(expedientes visibles solo para RRHH y administradores)</span></h1>
+<p class="small"><a href="/rrhh/puestos">Descripciones de puesto →</a> · <a href="/avisos">Avisos</a></p>
+
+<div class="grid">
+  <div class="card kpi"><div class="n">{{ m.activos }}</div><div class="l">Empleados activos · {{ m.bajas }} bajas</div></div>
+  <div class="card kpi"><div class="n">{{ m.altas_30d }}</div><div class="l">Altas en los últimos 30 días</div></div>
+  <div class="card kpi"><div class="n"><span class="{{ 'chip warn' if m.contratos_por_vencer else '' }}">{{ m.contratos_por_vencer }}</span></div><div class="l">Contratos por vencer</div></div>
+  <div class="card kpi"><div class="n"><span class="{{ 'chip bad' if m.sin_contrato_vigente else '' }}">{{ m.sin_contrato_vigente }}</span></div><div class="l">Activos sin contrato vigente</div></div>
+  <div class="card kpi"><div class="n">{{ m.puestos }}</div><div class="l">Puestos descritos</div></div>
+</div>
+
+<div class="two" style="margin-top:12px">
+<div>
+  <h2>Plantilla</h2>
+  <form class="row card" method="get">
+    <label>Área<select name="area"><option value="">(todas)</option>{% for a in areas %}<option {{ 'selected' if f.area==a }}>{{ a }}</option>{% endfor %}</select></label>
+    <label>Estado<select name="status"><option value="">(todos)</option>{% for k, l in estados.items() %}<option value="{{ k }}" {{ 'selected' if f.status==k }}>{{ l }}</option>{% endfor %}</select></label>
+    <button>Filtrar</button> <a href="/rrhh">limpiar</a>
+  </form>
+  <table style="margin-top:10px"><tr><th>Empleado</th><th>Área</th><th>Puesto</th><th>Ingreso</th><th>Estado</th></tr>
+  {% for e in empleados %}<tr>
+    <td><a href="/rrhh/empleados/{{ e.id }}">{{ e.full_name }}</a><br><span class="small muted">{{ e.employee_no }}</span></td>
+    <td>{{ e.area or '—' }}</td><td>{{ e.position_text or '—' }}</td>
+    <td class="small">{{ e.hired_on|local('%d/%m/%Y') }}</td>
+    <td><span class="chip {{ 'ok' if e.status == 'activo' else 'bad' }}">{{ estados.get(e.status, e.status) }}</span></td>
+  </tr>{% else %}<tr><td colspan="5" class="muted">Sin empleados registrados.</td></tr>{% endfor %}
+  </table>
+
+  <h2>Contratos por vencer <span class="small muted">(próximos {{ alerta_dias }} días)</span></h2>
+  <table><tr><th>Empleado</th><th>Tipo</th><th>Vence</th><th></th></tr>
+  {% for c in vencen %}<tr>
+    <td><a href="/rrhh/empleados/{{ c.employee_id }}">{{ c.employee.full_name }}</a></td>
+    <td>{{ c.type }}</td>
+    <td><span class="chip {{ c.end_on|expiry }}">{{ c.end_on|local('%d/%m/%Y') }}</span></td>
+    <td class="small"><a href="/rrhh/empleados/{{ c.employee_id }}">renovar →</a></td>
+  </tr>{% else %}<tr><td colspan="4" class="muted">Ningún contrato vence pronto.</td></tr>{% endfor %}
+  </table>
+</div>
+<div>
+  <h2>Plantilla por área</h2>
+  <table><tr><th>Área</th><th>Personas</th></tr>
+  {% for a, n in m.por_area.items() %}<tr><td>{{ a }}</td><td>{{ n }}</td></tr>
+  {% else %}<tr><td colspan="2" class="muted">Sin datos.</td></tr>{% endfor %}
+  </table>
+  <p class="small muted" style="margin-top:8px">Privacidad: el expediente de cada persona solo lo ven
+  Recursos Humanos y los administradores, y toda consulta queda registrada en el historial.</p>
+</div>
+</div>
+
+{% if has_permission(user.role, 'hr:write') %}
+<h2>Alta de empleado</h2>
+<form class="card" method="post" action="/rrhh/empleados"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
+  <div class="row">
+    <label>Número*<input name="employee_no" required placeholder="EMP-001"></label>
+    <label>Nombre completo*<input name="full_name" required></label>
+    <label>Área<input name="area" list="areas-lista" placeholder="Producción"></label>
+    <datalist id="areas-lista">{% for a in areas %}<option value="{{ a }}">{% endfor %}</datalist>
+    <label>Puesto<select name="job_profile_id"><option value="">(sin descripción de puesto)</option>{% for p in puestos %}<option value="{{ p.id }}">{{ p.title }}</option>{% endfor %}</select></label>
+  </div>
+  <div class="row" style="margin-top:8px">
+    <label>Puesto (texto libre)<input name="position_text" placeholder="Auxiliar de empaque"></label>
+    <label>Fecha de ingreso<input type="date" name="hired_on"></label>
+    <label>Teléfono<input name="phone" placeholder="8112345678"></label>
+    <label>Correo<input name="email" type="email"></label>
+    <button>Registrar empleado</button>
+  </div>
+  <p class="small muted">Los datos personales se guardan solo para la relación laboral. No captures información
+  de salud, religión ni ninguna otra categoría sensible.</p>
+</form>
+{% endif %}
+{% endblock %}

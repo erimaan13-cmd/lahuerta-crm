@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Lotes · La Huerta{% endblock %}
+{% block content %}
+<p class="small"><a href="/inventario">← Inventario</a></p>
+<h1>Lotes</h1>
+<p class="small muted">El código de lote y la caducidad se capturan a mano: son los que trae la mercancía del proveedor.</p>
+
+{% if has_permission(user.role, 'inventory:write') %}
+<form class="card" method="post" action="/inventario/lotes">
+  <input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
+  <div class="row">
+    <label>Producto*<select name="product_id" required>
+      {% for p in products %}<option value="{{ p.id }}">{{ p.sku }} — {{ p.name }}</option>{% endfor %}</select></label>
+    <label>Código de lote*<input name="code" required placeholder="L-2026-014"></label>
+    <label>Caduca<input type="date" name="expires_on"></label>
+    <label>Recibido<input type="date" name="received_on"></label>
+    <label style="flex:1">Notas<input name="notes" style="width:100%"></label>
+    <button>Dar de alta el lote</button>
+  </div>
+  <p class="small muted">Si no capturas caducidad y el producto tiene vida útil configurada, se calcula sola.</p>
+</form>
+{% endif %}
+
+<div style="overflow-x:auto;margin-top:10px">
+<table><tr><th>Lote</th><th>Producto</th><th>Saldo</th><th>Caduca</th><th>Recibido</th><th>Proveedor</th><th>Notas</th></tr>
+{% for r in lots %}<tr>
+  <td>{{ r.lot.code }}</td>
+  <td>{{ r.lot.product.name }}<br><span class="small muted">{{ r.lot.product.sku }}</span></td>
+  <td>{% if r.kg > 0 %}{{ r.kg|kg }}{% else %}<span class="small muted">agotado</span>{% endif %}</td>
+  <td>{% if r.lot.expires_on %}<span class="chip {{ r.lot.expires_on|expiry }}">{{ r.lot.expires_on|local('%d/%m/%Y') }}</span>{% else %}—{% endif %}</td>
+  <td class="small">{{ r.lot.received_on|local('%d/%m/%Y') }}</td>
+  <td class="small">{{ r.lot.supplier.name if r.lot.supplier else '—' }}</td>
+  <td class="small muted">{{ r.lot.notes or '' }}</td>
+</tr>{% else %}<tr><td colspan="7" class="muted">Sin lotes registrados.</td></tr>{% endfor %}
+</table>
+</div>
+
+<h2>Por caducar</h2>
+<table><tr><th>Lote</th><th>Producto</th><th>Saldo</th><th>Caduca</th></tr>
+{% for r in expiring %}<tr><td>{{ r.lot.code }}</td><td>{{ r.lot.product.name }}</td><td>{{ r.kg|kg }}</td>
+  <td><span class="chip {{ r.expires_on|expiry }}">{{ r.expires_on|local('%d/%m/%Y') }}</span></td></tr>
+{% else %}<tr><td colspan="4" class="muted">Ningún lote con saldo está por caducar.</td></tr>{% endfor %}
+</table>
+{% endblock %}

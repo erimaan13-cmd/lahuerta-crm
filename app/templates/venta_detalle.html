@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}{{ o.folio }} · Pedido{% endblock %}
+{% block content %}
+<p class="small"><a href="/ventas">← Pedidos</a></p>
+<h1>{{ o.folio }}
+  <span class="chip {{ 'ok' if o.status == 'entregado' else ('bad' if o.status == 'cancelado' else 'warn') }}">{{ STATUS_LABELS[o.status] }}</span>
+  {% if o.invoice_folio %}<span class="chip">Factura {{ o.invoice_folio }}</span>{% endif %}
+</h1>
+
+<div class="two">
+<div>
+  <table>
+    <tr><th>Cliente</th><td><a href="/accounts/{{ o.account_id }}">{{ o.account.name }}</a></td>
+        <th>Bodega</th><td>{{ o.warehouse.code if o.warehouse else '—' }} {{ o.warehouse.name if o.warehouse else '' }}</td></tr>
+    <tr><th>Fecha prometida</th><td>{{ o.promised_date|local('%d/%m/%Y') }}</td>
+        <th>Entregado</th><td>{{ o.delivered_at|local('%d/%m/%Y %H:%M') }}</td></tr>
+    <tr><th>Kilos</th><td>{{ o.total_kg|kg }}</td><th>Importe</th><td>{{ o.total_mxn|money }}</td></tr>
+    {% if o.notes %}<tr><th>Notas</th><td colspan="3">{{ o.notes }}</td></tr>{% endif %}
+  </table>
+
+  <h2>Renglones</h2>
+  <table><tr><th>Producto</th><th>Kilos</th><th>Lote</th><th>Precio/kg</th><th>Importe</th></tr>
+  {% for it in o.items %}<tr>
+    <td>{{ it.product.sku }} · {{ it.product.name }}</td><td>{{ it.qty_kg|kg }}</td>
+    <td>{% if it.lot %}{{ it.lot.code }}{% if it.lot.expires_on %} <span class="chip {{ it.lot.expires_on|expiry }}">{{ it.lot.expires_on|local('%d/%m/%Y') }}</span>{% endif %}
+        {% else %}<span class="small muted">PEPS por caducidad</span>{% endif %}</td>
+    <td>{{ it.unit_price_mxn|money }}</td><td>{{ (it.qty_kg * (it.unit_price_mxn or 0))|money }}</td>
+  </tr>{% endfor %}</table>
+
+  <h2>Salidas de inventario de este pedido</h2>
+  <table><tr><th>Fecha</th><th>Producto</th><th>Lote</th><th>Bodega</th><th>Kilos</th></tr>
+  {% for mv in movimientos %}<tr>
+    <td class="small">{{ mv.at|local }}</td><td>{{ mv.product.name }}</td>
+    <td>{{ mv.lot.code if mv.lot else '—' }}</td><td>{{ mv.warehouse.code }}</td>
+    <td>{{ mv.qty_kg|kg }}</td></tr>
+  {% else %}<tr><td colspan="5" class="muted">Todavía no se descuenta inventario: ocurre al entregar.</td></tr>{% endfor %}</table>
+
+  {% include "_adjuntos.html" %}
+</div>
+
+<div>
+  {% if has_permission(user.role, 'sales:write') %}
+  {% if o.status == 'borrador' %}
+  <h2>Confirmar</h2>
+  <form class="card" method="post" action="/ventas/{{ o.id }}/confirmar"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
+    <p class="small muted">Revisa que la bodega tenga existencia suficiente. No descuenta nada todavía.</p>
+    <button>Confirmar pedido</button>
+  </form>{% endif %}
+
+  {% if o.status == 'confirmado' %}
+  <h2>Entregar</h2>
+  <form class="card" method="post" action="/ventas/{{ o.id }}/entregar"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
+    <p class="small muted">Descuenta {{ o.total_kg|kg }} de {{ o.warehouse.code if o.warehouse else '—' }} y deja cada salida ligada a este pedido.</p>
+    <button>Registrar entrega</button>
+  </form>{% endif %}
+
+  {% if o.status in ['borrador', 'confirmado'] %}
+  <h2>Cancelar</h2>
+  <form class="card" method="post" action="/ventas/{{ o.id }}/cancelar"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
+    <p><input name="motivo" placeholder="Motivo (obligatorio)" style="width:100%" required></p>
+    <button class="sec">Cancelar pedido</button>
+  </form>{% endif %}
+
+  {% if o.status in ['confirmado', 'entregado'] %}
+  <h2>Factura</h2>
+  <form class="card" method="post" action="/ventas/{{ o.id }}/factura"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
+    <p class="small muted">La factura se emite por fuera (CONTPAQi). Aquí solo se captura su folio.</p>
+    <p><input name="invoice_folio" placeholder="Folio de la factura" value="{{ o.invoice_folio or '' }}" style="width:100%" required></p>
+    <button>Guardar folio</button>
+  </form>{% endif %}
+  {% endif %}
+</div>
+</div>
+{% include "_history.html" %}
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Movimientos de inventario · La Huerta{% endblock %}
+{% block content %}
+<p class="small"><a href="/inventario">← Inventario</a></p>
+<h1>Movimientos</h1>
+
+{% if has_permission(user.role, 'inventory:write') %}
+<div class="two">
+<div>
+  <h2>Registrar movimiento</h2>
+  <form class="card" method="post" action="/inventario/movimientos">
+    <input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
+    <div class="row">
+      <label>Tipo<select name="type">
+        <option value="entrada">Entrada</option><option value="salida">Salida</option><option value="ajuste">Ajuste</option>
+      </select></label>
+      <label>Producto*<select name="product_id" required>
+        {% for p in products %}<option value="{{ p.id }}">{{ p.sku }} — {{ p.name }}</option>{% endfor %}</select></label>
+      <label>Bodega*<select name="warehouse_id" required>
+        {% for w in warehouses %}<option value="{{ w.id }}">{{ w.code }} — {{ w.name }}</option>{% endfor %}</select></label>
+      <label>Lote<select name="lot_id"><option value="">(sin lote)</option>
+        {% for l in lots %}<option value="{{ l.id }}">{{ l.code }} — {{ l.product.name }}</option>{% endfor %}</select></label>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <label>Cantidad*<input name="qty" type="number" step="any" min="0.001" required></label>
+      <label>Unidad<select name="unit">{% for k, l in units.items() %}<option value="{{ k }}">{{ l }}</option>{% endfor %}</select></label>
+      <label style="flex:1">Motivo<input name="reason" placeholder="Obligatorio en los ajustes" style="width:100%"></label>
+      <button>Registrar</button>
+    </div>
+    <p class="small muted">Captura en la unidad que manejas (saco, caja, tarima) y el sistema convierte a kilos con los
+      kilos por unidad del producto. Una salida nunca puede dejar la existencia en negativo.</p>
+  </form>
+
+  <h2>Traspaso entre bodegas</h2>
+  <form class="card" method="post" action="/inventario/traspasos">
+    <input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
+    <div class="row">
+      <label>Producto*<select name="product_id" required>
+        {% for p in products %}<option value="{{ p.id }}">{{ p.sku }} — {{ p.name }}</option>{% endfor %}</select></label>
+      <label>Lote<select name="lot_id"><option value="">(sin lote)</option>
+        {% for l in lots %}<option value="{{ l.id }}">{{ l.code }} — {{ l.product.name }}</option>{% endfor %}</select></label>
+      <label>De*<select name="from_warehouse_id" required>
+        {% for w in warehouses %}<option value="{{ w.id }}">{{ w.code }}</option>{% endfor %}</select></label>
+      <label>A*<select name="to_warehouse_id" required>
+        {% for w in warehouses %}<option value="{{ w.id }}">{{ w.code }}</option>{% endfor %}</select></label>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <label>Cantidad*<input name="qty" type="number" step="any" min="0.001" required></label>
+      <label>Unidad<select name="unit">{% for k, l in units.items() %}<option value="{{ k }}">{{ l }}</option>{% endfor %}</select></label>
+      <label style="flex:1">Motivo<input name="reason" placeholder="Ej. acomodo de bodega" style="width:100%"></label>
+      <button>Traspasar</button>
+    </div>
+    <p class="small muted">El traspaso deja dos renglones (salida y entrada) con la misma referencia: el total en kilos no cambia.</p>
+  </form>
+</div>
+<div>
+{% endif %}
+  <h2>Historial</h2>
+  <form class="row card" method="get">
+    <label>Producto<select name="product_id"><option value="">(todos)</option>
+      {% for p in products %}<option value="{{ p.id }}" {{ 'selected' if f.product_id == p.id }}>{{ p.sku }}</option>{% endfor %}</select></label>
+    <label>Bodega<select name="warehouse_id"><option value="">(todas)</option>
+      {% for w in warehouses %}<option value="{{ w.id }}" {{ 'selected' if f.warehouse_id == w.id }}>{{ w.code }}</option>{% endfor %}</select></label>
+    <button>Filtrar</button> <a href="/inventario/movimientos">limpiar</a>
+  </form>
+  <div style="overflow-x:auto;margin-top:10px">
+  <table><tr><th>Fecha</th><th>Tipo</th><th>Producto</th><th>Lote</th><th>Bodega</th><th>Kilos</th><th>Motivo / referencia</th></tr>
+  {% for mv in movements %}<tr>
+    <td class="small">{{ mv.at|local('%d/%m/%Y %H:%M') }}</td>
+    <td><span class="chip {{ 'ok' if mv.qty_kg > 0 else 'warn' }}">{{ mv.type }}</span></td>
+    <td>{{ mv.product.name }}</td><td>{{ mv.lot.code if mv.lot else '—' }}</td>
+    <td>{{ mv.warehouse.code }}</td>
+    <td>{{ mv.qty_kg|kg }}</td>
+    <td class="small muted">{{ mv.reason or '—' }}{% if mv.ref_type %}<br>{{ mv.ref_type }}{% endif %}</td>
+  </tr>{% else %}<tr><td colspan="7" class="muted">Sin movimientos.</td></tr>{% endfor %}
+  </table>
+  </div>
+{% if has_permission(user.role, 'inventory:write') %}
+</div>
+</div>
+{% endif %}
+{% endblock %}

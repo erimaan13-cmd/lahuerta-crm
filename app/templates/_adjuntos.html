@@ -1,0 +1,25 @@
+{# Bloque reutilizable de documentos escaneados. Espera: docs (lista), entity_type, entity_id, next. #}
+<h2>Documentos</h2>
+<table><tr><th>Documento</th><th>Tipo</th><th>Vence</th><th>Archivo</th></tr>
+{% for d in docs %}<tr>
+  <td><a href="/documentos/{{ d.id }}">{{ d.title }}</a></td>
+  <td>{{ d.kind }}</td>
+  <td>{% if d.expires_on %}<span class="chip {{ d.expires_on|expiry }}">{{ d.expires_on|local('%d/%m/%Y') }}</span>{% else %}—{% endif %}</td>
+  <td class="small muted">{{ d.filename }} · {{ (d.size_bytes / 1024)|round|int }} KB · {{ d.uploaded_at|local('%d/%m/%Y') }}</td>
+</tr>{% else %}<tr><td colspan="4" class="muted">Sin documentos.</td></tr>{% endfor %}
+</table>
+{% if has_permission(user.role, 'attachment:write') %}
+<form class="card" style="margin-top:8px" method="post" action="/documentos" enctype="multipart/form-data">
+  <input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
+  <input type="hidden" name="entity_type" value="{{ entity_type }}"><input type="hidden" name="entity_id" value="{{ entity_id }}">
+  <input type="hidden" name="next" value="{{ next }}">
+  <div class="row">
+    <label>Archivo<input type="file" name="file" required></label>
+    <label>Título<input name="title" placeholder="Póliza de garantía 2026"></label>
+    <label>Tipo<select name="kind">{% for k, l in KINDS.items() %}<option value="{{ k }}">{{ l }}</option>{% endfor %}</select></label>
+    <label>Vence<input type="date" name="expires_on"></label>
+    <button>Subir documento</button>
+  </div>
+  <p class="small muted">Se guarda el archivo tal cual; no se lee su contenido. Si pones fecha de vencimiento, el sistema avisará antes.</p>
+</form>
+{% endif %}

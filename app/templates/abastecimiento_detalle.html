@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}{{ po.folio }} · Abastecimiento{% endblock %}
+{% block content %}
+<p class="small"><a href="/abastecimiento">← Órdenes de compra</a></p>
+<h1>{{ po.folio }}
+  <span class="chip {{ 'ok' if po.status == 'recibida' else ('warn' if po.status == 'por_autorizar' else ('bad' if po.status == 'cancelada' else '')) }}">{{ statuses[po.status] }}</span>
+</h1>
+
+<div class="two">
+<div>
+  <table>
+    <tr><th>Proveedor</th><td>{{ po.supplier.name }}</td><th>Origen</th><td>{{ po.supplier.origin }}</td></tr>
+    <tr><th>Bodega</th><td>{{ (po.warehouse.code ~ ' — ' ~ po.warehouse.name) if po.warehouse else '—' }}</td>
+        <th>Fecha esperada</th><td>{{ po.expected_date|local('%d/%m/%Y') if po.expected_date else '—' }}</td></tr>
+    <tr><th>Total</th><td>{{ po.total_mxn|money }} · {{ po.total_kg|kg }}</td>
+        <th>Pendiente</th><td>{{ pendiente_kg|kg }}</td></tr>
+    <tr><th>Autorizada</th><td>{{ po.authorized_at|local if po.authorized_at else '—' }}</td>
+        <th>Recibida</th><td>{{ po.received_at|local if po.received_at else '—' }}</td></tr>
+    <tr><th>Factura del proveedor</th><td>{{ po.supplier_invoice or '—' }}</td>
+        <th>Alta</th><td>{{ po.created_at|local }}</td></tr>
+    {% if po.notes %}<tr><th>Notas</th><td colspan="3">{{ po.notes }}</td></tr>{% endif %}
+  </table>
+
+  <h2>Renglones</h2>
+  <div style="overflow-x:auto">
+  <table><tr><th>Producto</th><th>Pedido</th><th>Costo por kilo</th><th>Importe</th><th>Recibido</th><th>Lote</th></tr>
+  {% for it in po.items %}<tr>
+    <td>{{ it.product.name }}<br><span class="small muted">{{ it.product.sku }}</span></td>
+    <td>{{ it.qty_kg|kg }}</td><td>{{ it.unit_cost_mxn|money }}</td>
+    <td>{{ (it.qty_kg * (it.unit_cost_mxn or 0))|money }}</td>
+    <td>{% if it.received_kg >= it.qty_kg %}<span class="chip ok">{{ it.received_kg|kg }}</span>
+        {% elif it.received_kg %}<span class="chip warn">{{ it.received_kg|kg }}</span>{% else %}—{% endif %}</td>
+    <td>{{ it.lot.code if it.lot else '—' }}</td>
+  </tr>{% endfor %}
+  </table>
+  </div>
+
+  <h2>Precios anteriores</h2>
+  {% for p in precios %}
+  <div class="card" style="margin-top:8px"><b>{{ p.producto }}</b> <span class="small muted">{{ p.sku }}</span>
+    <table style="margin-top:6px"><tr><th>Proveedor</th><th>Último costo</th><th>Promedio por kilo</th><th>Compras</th><th>Última</th></tr>
+    {% for a in p.por_proveedor %}<tr><td>{{ a.proveedor }}</td><td>{{ a.ultimo_costo_mxn|money }}</td>
+      <td>{{ a.costo_promedio_mxn|money }}</td><td>{{ a.compras }}</td>
+      <td class="small">{{ a.ultima_fecha|local('%d/%m/%Y') }}</td></tr>
+    {% else %}<tr><td colspan="5" class="muted">Sin compras anteriores de este producto.</td></tr>{% endfor %}
+    </table>
+  </div>
+  {% endfor %}
+</div>
+
+<div>
+  {% if has_permission(user.role, 'procurement:write') and po.status == 'borrador' %}
+  <h2>Enviar</h2>
+  <form class="card" method="post" action="/abastecimiento/{{ po.id }}/enviar">
+    <input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
+    <p class="small muted">Si el total supera el umbral configurado, la orden queda por autorizar; si no, se autoriza sola.</p>
+    <button>Enviar orden</button>
+  </form>
+  {% endif %}
+
+  {% if has_permission(user.role, 'procurement:authorize') and po.status == 'por_autorizar' %}
+  <h2>Autorizar</h2>
+  <form class="card" method="post" action="/abastecimiento/{{ po.id }}/autorizar">
+    <input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
+    <p class="small">Monto a autorizar: <b>{{ po.total_mxn|money }}</b></p>
+    <button>Autorizar orden</button>
+  </form>
+  {% endif %}
+
+  {% if has_permission(user.role, 'procurement:write') and po.status == 'autorizada' %}
+  <h2>Recibir mercancía</h2>
+  <form class="card" method="post" action="/abastecimiento/{{ po.id }}/recibir">
+    <input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
+    <div class="row">
+      <label>Bodega*<select name="warehouse_id" required>
+        {% for w in warehouses %}<option value="{{ w.id }}" {{ 'selected' if po.warehouse_id == w.id }}>{{ w.code }} — {{ w.name }}</option>{% endfor %}</select></label>
+      <label style="flex:1">Factura del proveedor<input name="supplier_invoice" style="width:100%"></label>
+    </div>
+    {% for it in po.items %}
+    {% set pendiente = (it.qty_kg - it.received_kg)|round(3) %}
+    <div class="row" style="margin-top:8px;border-top:1px solid var(--line);padding-top:8px">
+      <input type="hidden" name="item_id_{{ loop.index0 }}" value="{{ it.id }}">
+      <label style="flex:1">{{ it.product.name }}<span class="small muted">faltan {{ pendiente|kg }}</span></label>
+      <label>Kilos recibidos<input name="qty_kg_{{ loop.index0 }}" type="number" step="any" min="0" max="{{ pendiente }}" value="{{ pendiente if pendiente > 0 else '' }}" style="width:120px"></label>
+      <label>Código de lote<input name="lot_code_{{ loop.index0 }}" placeholder="L-2026-014"></label>
+      <label>Caduca<input type="date" name="expires_on_{{ loop.index0 }}"></label>
+    </div>
+    {% endfor %}
+    <p style="margin-top:8px"><button>Registrar recepción</button>
+      <span class="small muted">Deja en blanco los kilos de lo que no llegó: la recepción parcial es válida y la orden sigue abierta.</span></p>
+  </form>
+  {% endif %}
+
+  {% if has_permission(user.role, 'procurement:write') and po.status in ['borrador', 'por_autorizar', 'autorizada'] %}
+  <h2>Cancelar</h2>
+  <form class="card" method="post" action="/abastecimiento/{{ po.id }}/cancelar">
+    <input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
+    <p><input name="motivo" placeholder="Motivo (obligatorio)" style="width:100%" required></p>
+    <button class="sec">Cancelar orden</button>
+  </form>
+  {% endif %}
+</div>
+</div>
+
+{% include "_adjuntos.html" %}
+{% include "_history.html" %}
+{% endblock %}

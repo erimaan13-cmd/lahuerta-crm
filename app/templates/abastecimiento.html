@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Abastecimiento · La Huerta{% endblock %}
+{% block content %}
+<h1>Abastecimiento</h1>
+<p class="small"><a href="/abastecimiento/proveedores">Proveedores</a> · <a href="/inventario">Inventario</a></p>
+
+<div class="grid">
+  <div class="card kpi"><div class="n">{{ m.gasto_total_mxn|money }}</div><div class="l">Gasto en órdenes vigentes</div></div>
+  <div class="card kpi"><div class="n {{ 'warn' if m.pendientes_autorizar else '' }}">{{ m.pendientes_autorizar }}</div><div class="l">Pendientes de autorizar</div></div>
+  <div class="card kpi"><div class="n">{{ m.pendientes_recibir }}</div><div class="l">Pendientes de recibir</div></div>
+  <div class="card kpi"><div class="n">{{ m.por_estado.recibida }}</div><div class="l">Recibidas</div></div>
+</div>
+
+{% if m.gasto_por_proveedor %}
+<div class="card" style="margin-top:12px"><b class="small muted">Gasto por proveedor</b>
+  {% for nombre, importe in m.gasto_por_proveedor.items() %}<span class="chip">{{ nombre }}: {{ importe|money }}</span> {% endfor %}
+</div>
+{% endif %}
+{% if m.costo_promedio_kg %}
+<div class="card" style="margin-top:8px"><b class="small muted">Costo promedio por kilo</b>
+  {% for nombre, costo in m.costo_promedio_kg.items() %}<span class="chip">{{ nombre }}: {{ costo|money }}</span> {% endfor %}
+</div>
+{% endif %}
+
+<h2>Órdenes de compra</h2>
+<form class="row card" method="get">
+  <label>Estado<select name="status"><option value="">(todos)</option>
+    {% for k, l in statuses.items() %}<option value="{{ k }}" {{ 'selected' if status == k }}>{{ l }}</option>{% endfor %}</select></label>
+  <button>Filtrar</button> <a href="/abastecimiento">limpiar</a>
+</form>
+<div style="overflow-x:auto;margin-top:10px">
+<table><tr><th>Folio</th><th>Proveedor</th><th>Estado</th><th>Kilos</th><th>Total</th><th>Esperada</th><th>Alta</th></tr>
+{% for po in orders %}<tr>
+  <td><a href="/abastecimiento/{{ po.id }}">{{ po.folio }}</a></td>
+  <td>{{ po.supplier.name }}</td>
+  <td><span class="chip {{ 'ok' if po.status == 'recibida' else ('warn' if po.status == 'por_autorizar' else ('bad' if po.status == 'cancelada' else '')) }}">{{ statuses[po.status] }}</span></td>
+  <td>{{ po.total_kg|kg }}</td><td>{{ po.total_mxn|money }}</td>
+  <td class="small">{{ po.expected_date|local('%d/%m/%Y') if po.expected_date else '—' }}</td>
+  <td class="small">{{ po.created_at|local('%d/%m %H:%M') }}</td>
+</tr>{% else %}<tr><td colspan="7" class="muted">Sin órdenes de compra.</td></tr>{% endfor %}
+</table>
+</div>
+
+{% if has_permission(user.role, 'procurement:write') %}
+<h2>Nueva orden de compra</h2>
+<form class="card" method="post" action="/abastecimiento">
+  <input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
+  <div class="row">
+    <label>Proveedor*<select name="supplier_id" required>
+      {% for s in suppliers %}<option value="{{ s.id }}">{{ s.name }}</option>{% endfor %}</select></label>
+    <label>Bodega de destino<select name="warehouse_id"><option value="">(se indica al recibir)</option>
+      {% for w in warehouses %}<option value="{{ w.id }}">{{ w.code }} — {{ w.name }}</option>{% endfor %}</select></label>
+    <label>Fecha esperada<input type="date" name="expected_date"></label>
+    <label style="flex:1">Notas<input name="notes" style="width:100%"></label>
+  </div>
+  <div style="overflow-x:auto;margin-top:8px">
+  <table><tr><th>Producto</th><th>Kilos</th><th>Costo por kilo</th></tr>
+  {% for i in range(max_items) %}<tr>
+    <td><select name="product_id_{{ i }}"><option value="">—</option>
+      {% for p in products %}<option value="{{ p.id }}">{{ p.sku }} — {{ p.name }}</option>{% endfor %}</select></td>
+    <td><input name="qty_kg_{{ i }}" type="number" step="any" min="0.001" style="width:120px"></td>
+    <td><input name="unit_cost_mxn_{{ i }}" type="number" step="any" min="0" style="width:120px"></td>
+  </tr>{% endfor %}
+  </table>
+  </div>
+  <p><button>Crear orden en borrador</button>
+    <span class="small muted">La cantidad y el costo van en kilos. Al enviarla, solo pide autorización si supera el umbral configurado.</span></p>
+</form>
+{% endif %}
+{% endblock %}

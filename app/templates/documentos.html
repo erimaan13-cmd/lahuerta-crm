@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Documentos con vencimiento</h1>
+<p class="small muted">Pólizas de garantía, seguros, verificaciones y contratos escaneados. El sistema guarda el archivo
+tal cual y avisa antes de que venza; no lee su contenido.</p>
+
+<h2>Próximos a vencer o vencidos</h2>
+<table><tr><th>Documento</th><th>Tipo</th><th>Pertenece a</th><th>Vence</th><th>Archivo</th></tr>
+{% for d in soon %}<tr>
+  <td><a href="/documentos/{{ d.id }}">{{ d.title }}</a></td>
+  <td>{{ KINDS.get(d.kind, d.kind) }}</td>
+  <td class="small">{{ entities.get(d.entity_type, d.entity_type) }}</td>
+  <td><span class="chip {{ d.expires_on|expiry }}">{{ d.expires_on|local('%d/%m/%Y') }}</span></td>
+  <td class="small muted">{{ d.filename }}</td></tr>
+{% else %}<tr><td colspan="5" class="muted">Nada por vencer.</td></tr>{% endfor %}
+</table>
+
+<h2>Todos los documentos con fecha de vencimiento</h2>
+<table><tr><th>Documento</th><th>Tipo</th><th>Pertenece a</th><th>Vence</th><th>Subido</th></tr>
+{% for d in docs %}<tr>
+  <td><a href="/documentos/{{ d.id }}">{{ d.title }}</a></td>
+  <td>{{ KINDS.get(d.kind, d.kind) }}</td>
+  <td class="small">{{ entities.get(d.entity_type, d.entity_type) }}</td>
+  <td><span class="chip {{ d.expires_on|expiry }}">{{ d.expires_on|local('%d/%m/%Y') }}</span></td>
+  <td class="small muted">{{ d.uploaded_at|local('%d/%m/%Y') }}</td></tr>
+{% else %}<tr><td colspan="5" class="muted">Sin documentos con vencimiento.</td></tr>{% endfor %}
+</table>
+{% endblock %}

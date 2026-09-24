@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Inventario · La Huerta{% endblock %}
+{% block content %}
+<h1>Inventario</h1>
+<p class="small"><a href="/inventario/movimientos">Movimientos</a> · <a href="/inventario/lotes">Lotes</a>
+  · <a href="/inventario/productos">Productos</a> · <a href="/inventario/bodegas">Bodegas</a></p>
+
+<div class="grid">
+  <div class="card kpi"><div class="n">{{ m.kg_total|kg }}</div><div class="l">Existencia total</div></div>
+  <div class="card kpi"><div class="n">{{ m.productos_con_existencia }}</div><div class="l">Productos con existencia</div></div>
+  <div class="card kpi"><div class="n {{ 'bad' if m.bajo_minimo else '' }}">{{ m.bajo_minimo }}</div><div class="l">Bajo mínimo</div></div>
+  <div class="card kpi"><div class="n {{ 'warn' if m.lotes_por_caducar else '' }}">{{ m.lotes_por_caducar }}</div><div class="l">Lotes por caducar</div></div>
+</div>
+
+{% if m.kg_por_bodega %}
+<div class="card" style="margin-top:12px"><b class="small muted">Kilos por bodega</b>
+  {% for nombre, kg in m.kg_por_bodega.items() %}<span class="chip">{{ nombre }}: {{ kg|kg }}</span> {% endfor %}
+</div>
+{% endif %}
+
+<h2>Existencias por producto, lote y bodega</h2>
+<form class="row card" method="get">
+  <label>Producto<select name="product_id"><option value="">(todos)</option>
+    {% for p in products %}<option value="{{ p.id }}" {{ 'selected' if f.product_id == p.id }}>{{ p.sku }} — {{ p.name }}</option>{% endfor %}</select></label>
+  <label>Bodega<select name="warehouse_id"><option value="">(todas)</option>
+    {% for w in warehouses %}<option value="{{ w.id }}" {{ 'selected' if f.warehouse_id == w.id }}>{{ w.code }} — {{ w.name }}</option>{% endfor %}</select></label>
+  <button>Filtrar</button> <a href="/inventario">limpiar</a>
+</form>
+<div style="overflow-x:auto;margin-top:10px">
+<table><tr><th>Producto</th><th>Lote</th><th>Bodega</th><th>Existencia</th><th>Caduca</th></tr>
+{% for r in rows %}<tr>
+  <td>{{ r.product.name }}<br><span class="small muted">{{ r.product.sku }}</span></td>
+  <td>{{ r.lot.code if r.lot else '—' }}</td>
+  <td>{{ r.warehouse.code }} <span class="small muted">{{ r.warehouse.name }}</span></td>
+  <td>{{ r.kg|kg }}{% if r.product.unit != 'kg' %}<br><span class="small muted">≈ {{ (r.kg / (r.product.kg_per_unit or 1))|round(2) }} {{ units[r.product.unit] }}</span>{% endif %}</td>
+  <td>{% if r.expires_on %}<span class="chip {{ r.expires_on|expiry }}">{{ r.expires_on|local('%d/%m/%Y') }}</span>{% else %}—{% endif %}</td>
+</tr>{% else %}<tr><td colspan="5" class="muted">Sin existencias registradas con ese filtro.</td></tr>{% endfor %}
+</table>
+</div>
+
+<div class="two" style="margin-top:12px">
+<div>
+  <h2>Alerta: bajo mínimo</h2>
+  <table><tr><th>Producto</th><th>Existencia</th><th>Mínimo</th><th>Faltante</th></tr>
+  {% for r in low %}<tr>
+    <td>{{ r.product.name }} <span class="small muted">{{ r.product.sku }}</span></td>
+    <td><span class="chip bad">{{ r.kg|kg }}</span></td><td>{{ r.min_kg|kg }}</td>
+    <td>{{ (r.min_kg - r.kg)|round(2)|kg }}</td>
+  </tr>{% else %}<tr><td colspan="4" class="muted">Ningún producto está bajo su mínimo.</td></tr>{% endfor %}
+  </table>
+</div>
+<div>
+  <h2>Alerta: lotes por caducar</h2>
+  <table><tr><th>Lote</th><th>Saldo</th><th>Caduca</th></tr>
+  {% for r in expiring %}<tr>
+    <td>{{ r.lot.code }}<br><span class="small muted">{{ r.lot.product.name }}</span></td>
+    <td>{{ r.kg|kg }}</td>
+    <td><span class="chip {{ r.expires_on|expiry }}">{{ r.expires_on|local('%d/%m/%Y') }}</span></td>
+  </tr>{% else %}<tr><td colspan="3" class="muted">Ningún lote con saldo está por caducar.</td></tr>{% endfor %}
+  </table>
+</div>
+</div>
+{% endblock %}

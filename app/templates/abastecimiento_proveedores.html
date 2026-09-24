@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Proveedores · La Huerta{% endblock %}
+{% block content %}
+<p class="small"><a href="/abastecimiento">← Abastecimiento</a></p>
+<h1>Proveedores</h1>
+
+<div style="overflow-x:auto">
+<table><tr><th>Nombre</th><th>Origen</th><th>Contacto</th><th>Correo</th><th>Teléfono</th><th>Estado</th>
+{% if has_permission(user.role, 'procurement:write') %}<th>Editar</th>{% endif %}</tr>
+{% for s in suppliers %}<tr>
+  <td>{{ s.name }}{% if s.notes %}<br><span class="small muted">{{ s.notes }}</span>{% endif %}</td>
+  <td>{{ origins.get(s.origin, s.origin) }}</td>
+  <td class="small">{{ s.contact_name or '—' }}</td>
+  <td class="small">{{ s.email or '—' }}</td>
+  <td class="small">{{ s.phone or '—' }}</td>
+  <td><span class="chip {{ 'ok' if s.is_active else 'warn' }}">{{ 'activo' if s.is_active else 'inactivo' }}</span></td>
+  {% if has_permission(user.role, 'procurement:write') %}
+  <td><form class="row" method="post" action="/abastecimiento/proveedores/{{ s.id }}">
+    <input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
+    <input name="contact_name" value="{{ s.contact_name or '' }}" placeholder="Contacto" style="width:130px">
+    <input name="email" value="{{ s.email or '' }}" placeholder="Correo" style="width:150px">
+    <input name="phone" value="{{ s.phone or '' }}" placeholder="Teléfono" style="width:110px">
+    <label class="small"><input type="checkbox" name="is_active" value="1" {{ 'checked' if s.is_active }}> activo</label>
+    <button class="sec">Guardar</button>
+  </form></td>{% endif %}
+</tr>{% else %}<tr><td colspan="7" class="muted">Sin proveedores.</td></tr>{% endfor %}
+</table>
+</div>
+
+{% if has_permission(user.role, 'procurement:write') %}
+<h2>Nuevo proveedor</h2>
+<form class="card" method="post" action="/abastecimiento/proveedores">
+  <input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
+  <div class="row">
+    <label>Nombre*<input name="name" required placeholder="Especias de Origen (DEMO)"></label>
+    <label>Origen<select name="origin">{% for k, l in origins.items() %}<option value="{{ k }}">{{ l }}</option>{% endfor %}</select></label>
+    <label>Contacto<input name="contact_name"></label>
+    <label>Correo<input name="email" type="email"></label>
+    <label>Teléfono<input name="phone"></label>
+    <button>Crear proveedor</button>
+  </div>
+  <p><label class="small muted">Notas<input name="notes" style="width:100%" placeholder="Condiciones de pago, tiempos de entrega…"></label></p>
+</form>
+{% endif %}
+{% endblock %}

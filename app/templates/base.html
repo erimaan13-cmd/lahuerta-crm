@@ -9,7 +9,7 @@
 *{box-sizing:border-box}body{margin:0;font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
 a{color:var(--brand);text-decoration:none}a:hover{text-decoration:underline}
 header{background:var(--brand);color:#fff;padding:10px 16px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
-header a{color:#fff;opacity:.9}header a:hover{opacity:1}header .brand{font-weight:700;margin-right:8px}
+header a{color:#fff;opacity:.9;white-space:nowrap}header a:hover{opacity:1}header .brand{font-weight:700;margin-right:8px}
 header form.search{margin-left:auto}header input{padding:5px 8px;border-radius:6px;border:0;width:200px}
 .demo{background:#fff3cd;color:#664d03;padding:6px 16px;font-size:12px;border-bottom:1px solid #f0d78c}
 main{padding:16px;max-width:1280px;margin:0 auto}
@@ -38,7 +38,14 @@ button.sec{background:#fff;color:var(--brand);border:1px solid var(--brand)}
 <header>
   <span class="brand">CRM La Huerta · MVP</span>
   <a href="/">Dashboard</a><a href="/leads">Leads</a><a href="/accounts">Cuentas</a><a href="/opportunities">Pipeline</a>
-  <a href="/tasks">Tareas</a><a href="/cases">Casos</a><a href="/emails">Correos</a><a href="/emails/needs-review">Needs Review</a>
+  <a href="/tasks">Tareas</a><a href="/cases">Casos</a><a href="/emails">Correos</a><a href="/emails/needs-review">Revisar</a>
+  {% if has_permission(user.role, 'sales:read') %}<a href="/ventas">Pedidos</a>{% endif %}
+  {% if has_permission(user.role, 'inventory:read') %}<a href="/inventario">Inventario</a>{% endif %}
+  {% if has_permission(user.role, 'procurement:read') %}<a href="/abastecimiento">Abastecimiento</a>{% endif %}
+  {% if has_permission(user.role, 'maintenance:read') %}<a href="/mantenimiento">Mantenimiento</a>{% endif %}
+  {% if has_permission(user.role, 'hr:read') %}<a href="/rrhh">Personal</a>{% endif %}
+  {% if has_permission(user.role, 'pettycash:read') %}<a href="/caja">Caja chica</a>{% endif %}
+  {% if has_permission(user.role, 'notification:read') %}<a href="/avisos">Avisos <span id="nav-avisos" class="chip" hidden></span></a>{% endif %}
   {% if has_permission(user.role, 'audit:read') %}<a href="/audit">Historial</a>{% endif %}
   {% if has_permission(user.role, 'users:manage') %}<a href="/admin/users">Usuarios</a>{% endif %}
   <form class="search" action="/search"><input name="q" placeholder="Buscar nombre, empresa, correo, tel." value="{{ q or '' }}"></form>
@@ -48,5 +55,12 @@ button.sec{background:#fff;color:var(--brand);border:1px solid var(--brand)}
 <div class="demo">Entorno de demostración con <b>datos sintéticos</b>. Ninguna empresa, persona o pedido corresponde a clientes reales de Empacadora La Huerta.</div>
 {% endif %}
 <main>{% block content %}{% endblock %}</main>
+<script>
+// Insignia de avisos: una llamada ligera al cargar. Si falla, el menú sigue funcionando.
+fetch('/api/avisos/pendientes').then(r => r.ok ? r.json() : null).then(d => {
+  if (d && d.pendientes > 0) { const b = document.getElementById('nav-avisos');
+    if (b) { b.textContent = d.pendientes; b.hidden = false; b.classList.add('warn'); } }
+}).catch(() => {});
+</script>
 </body>
 </html>

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Órdenes de mantenimiento{% endblock %}
+{% block content %}
+<p class="small"><a href="/mantenimiento">← Activos</a></p>
+<h1>Órdenes de mantenimiento</h1>
+
+<form class="row card" method="get">
+  <label>Estado<select name="status"><option value="">(todos)</option>
+    {% for k, l in WO_STATUSES.items() %}<option value="{{ k }}" {{ 'selected' if status == k }}>{{ l }}</option>{% endfor %}</select></label>
+  <button>Filtrar</button> <a href="/mantenimiento/ordenes">limpiar</a>
+</form>
+
+<table style="margin-top:10px"><tr><th>Folio</th><th>Activo</th><th>Tipo</th><th>Descripción</th><th>Proveedor</th><th>Costo</th><th>Estado</th></tr>
+{% for w in orders %}<tr>
+  <td>{{ w.folio }}<br><span class="small muted">{{ w.created_at|local('%d/%m/%Y') }}</span></td>
+  <td><a href="/mantenimiento/activos/{{ w.asset_id }}">{{ w.asset.code }}</a><br><span class="small muted">{{ w.asset.name }}</span></td>
+  <td class="small">{{ WO_KINDS.get(w.kind, w.kind) }}</td>
+  <td class="small">{{ w.description }}</td>
+  <td class="small">{{ PROVIDERS.get(w.provider, w.provider) }}{% if w.provider_name %}<br>{{ w.provider_name }}{% endif %}</td>
+  <td>{{ w.cost_mxn|money }}{% if w.done_on %}<br><span class="small muted">{{ w.done_on|local('%d/%m/%Y') }}</span>{% endif %}</td>
+  <td><span class="chip {{ 'ok' if w.status == 'cerrada' else ('bad' if w.status == 'cancelada' else 'warn') }}">{{ WO_STATUSES.get(w.status, w.status) }}</span>
+    {% if w.status in ['abierta', 'en_proceso'] and has_permission(user.role, 'maintenance:write') %}
+    <form method="post" action="/mantenimiento/ordenes/{{ w.id }}/cerrar" style="margin-top:6px">
+      <input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
+      <input type="hidden" name="next" value="/mantenimiento/ordenes">
+      <div class="row">
+        <label>Costo<input name="cost_mxn" type="number" min="0" step="any"></label>
+        <label>Fecha<input type="date" name="done_on"></label>
+        <label>Km<input name="odometer_km" type="number" min="0" step="any"></label>
+        <label>Horas<input name="hours_used" type="number" min="0" step="any"></label>
+        <button class="sec">Cerrar</button>
+      </div>
+    </form>{% endif %}</td>
+</tr>{% else %}<tr><td colspan="7" class="muted">Sin órdenes.</td></tr>{% endfor %}</table>
+
+{% if has_permission(user.role, 'maintenance:write') %}
+<h2>Nueva orden</h2>
+<form class="card" method="post" action="/mantenimiento/ordenes"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
+  <input type="hidden" name="next" value="/mantenimiento/ordenes">
+  <div class="row">
+    <label>Activo*<select name="asset_id" required><option value="">—</option>
+      {% for a in assets %}<option value="{{ a.id }}">{{ a.code }} · {{ a.name }}</option>{% endfor %}</select></label>
+    <label>Tipo<select name="kind">{% for k, l in WO_KINDS.items() %}<option value="{{ k }}">{{ l }}</option>{% endfor %}</select></label>
+    <label>Proveedor<select name="provider">{% for k, l in PROVIDERS.items() %}<option value="{{ k }}">{{ l }}</option>{% endfor %}</select></label>
+    <label>Nombre del proveedor<input name="provider_name"></label>
+    <label>Responsable<select name="assignee_user_id"><option value="">—</option>
+      {% for u in users %}<option value="{{ u.id }}">{{ u.full_name }}</option>{% endfor %}</select></label>
+  </div>
+  <p><input name="description" placeholder="Trabajo a realizar" style="width:100%" required></p>
+  <button>Crear orden</button>
+</form>
+{% endif %}
+{% endblock %}

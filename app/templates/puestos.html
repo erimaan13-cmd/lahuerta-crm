@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Descripciones de puesto · La Huerta{% endblock %}
+{% block content %}
+<p class="small"><a href="/rrhh">← Recursos Humanos</a></p>
+<h1>Descripciones de puesto <span class="small muted">(funciones y requisitos por puntos)</span></h1>
+
+<div class="grid">
+{% for p in puestos %}
+  <div class="card">
+    <b>{{ p.title }}</b> <span class="chip">{{ p.area or 'sin área' }}</span>
+    <p class="small muted" style="margin:6px 0 2px">Funciones</p>
+    <ul>{% for d in bullets(p.duties) %}<li>{{ d }}</li>{% else %}<li class="muted">Sin funciones capturadas.</li>{% endfor %}</ul>
+    {% if bullets(p.requirements) %}
+    <p class="small muted" style="margin:6px 0 2px">Requisitos</p>
+    <ul>{% for r in bullets(p.requirements) %}<li>{{ r }}</li>{% endfor %}</ul>
+    {% endif %}
+  </div>
+{% else %}
+  <p class="muted">Todavía no hay puestos descritos.</p>
+{% endfor %}
+</div>
+
+{% if has_permission(user.role, 'hr:write') %}
+<h2>Nuevo puesto</h2>
+<form class="card" method="post" action="/rrhh/puestos"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
+  <div class="row">
+    <label>Nombre del puesto*<input name="title" required placeholder="Auxiliar de empaque"></label>
+    <label>Área<input name="area" placeholder="Producción"></label>
+  </div>
+  <p><label class="small muted">Funciones* — <b>una por renglón</b>, así se muestran como viñetas
+    <textarea name="duties" rows="5" required placeholder="Pesar y envasar producto terminado&#10;Registrar el lote en la bitácora de producción&#10;Mantener limpia su estación de trabajo"></textarea></label></p>
+  <p><label class="small muted">Requisitos — uno por renglón
+    <textarea name="requirements" rows="3" placeholder="Secundaria terminada&#10;Curso vigente de buenas prácticas de manufactura"></textarea></label></p>
+  <button>Guardar puesto</button>
+</form>
+{% endif %}
+{% endblock %}

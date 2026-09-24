@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Bodegas · La Huerta{% endblock %}
+{% block content %}
+<p class="small"><a href="/inventario">← Inventario</a></p>
+<h1>Bodegas</h1>
+<table><tr><th>Clave</th><th>Nombre</th><th>Dirección</th><th>Existencia</th><th>Estado</th></tr>
+{% for r in rows %}<tr>
+  <td><b>{{ r.warehouse.code }}</b></td><td>{{ r.warehouse.name }}</td>
+  <td class="small muted">{{ r.warehouse.address or '—' }}</td>
+  <td>{{ r.kg|kg }}</td>
+  <td><span class="chip {{ 'ok' if r.warehouse.is_active else 'warn' }}">{{ 'activa' if r.warehouse.is_active else 'inactiva' }}</span></td>
+</tr>{% else %}<tr><td colspan="5" class="muted">Sin bodegas.</td></tr>{% endfor %}
+</table>
+
+{% if has_permission(user.role, 'inventory:write') %}
+<h2>Nueva bodega</h2>
+<form class="card" method="post" action="/inventario/bodegas">
+  <input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
+  <div class="row">
+    <label>Clave*<input name="code" required placeholder="MTY" style="width:110px"></label>
+    <label>Nombre*<input name="name" required placeholder="Bodega Guadalupe"></label>
+    <label style="flex:1">Dirección<input name="address" style="width:100%"></label>
+    <button>Crear bodega</button>
+  </div>
+  <p class="small muted">La clave es corta porque aparece en cada renglón de movimientos y recepciones.</p>
+</form>
+{% endif %}
+{% endblock %}

@@ -51,6 +51,12 @@ class Product(Base):
     keywords: Mapped[str] = mapped_column(Text, default="")  # sinónimos separados por coma
     is_custom: Mapped[bool] = mapped_column(Boolean, default=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    # unidad de manejo y su equivalencia en kilos (E-02): el negocio reporta en kilos
+    unit: Mapped[str] = mapped_column(String(20), default="kg")  # kg|saco|caja|tarima
+    kg_per_unit: Mapped[float] = mapped_column(Float, default=1.0)
+    packaging: Mapped[str | None] = mapped_column(String(30))  # saco_pp|saco_kraft|caja_corrugado
+    min_stock_kg: Mapped[float | None] = mapped_column(Float)
+    shelf_life_days: Mapped[int | None] = mapped_column(Integer)
 
 
 class Account(Base, TimestampMixin):
@@ -325,3 +331,341 @@ class AuditEvent(Base):
     request_id: Mapped[str | None] = mapped_column(String(40))
     prev_hash: Mapped[str | None] = mapped_column(String(64))
     hash: Mapped[str | None] = mapped_column(String(64))
+
+
+# ======================================================================================
+# Ampliación 2026-09: operación interna (inventario, ventas, abastecimiento, RRHH,
+# caja chica, mantenimiento, adjuntos y notificaciones). Ver docs/06_OPERACION.md.
+# Sustituye parcialmente la regla D-09: el pedido pasa a ser entidad real (D-33).
+# ======================================================================================
+
+class Warehouse(Base, TimestampMixin):
+    """Bodega o ubicación de almacenamiento."""
+    __tablename__ = "warehouses"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    code: Mapped[str] = mapped_column(String(20), unique=True)
+    name: Mapped[str] = mapped_column(String(120))
+    address: Mapped[str | None] = mapped_column(String(200))
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    is_demo: Mapped[bool] = mapped_column(Boolean, default=False)
+
+
+class Supplier(Base, TimestampMixin):
+    __tablename__ = "suppliers"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    name: Mapped[str] = mapped_column(String(200), index=True)
+    origin: Mapped[str] = mapped_column(String(20), default="nacional")  # nacional|importado
+    email: Mapped[str | None] = mapped_column(String(200))
+    phone: Mapped[str | None] = mapped_column(String(30))
+    contact_name: Mapped[str | None] = mapped_column(String(200))
+    notes: Mapped[str | None] = mapped_column(Text)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    is_demo: Mapped[bool] = mapped_column(Boolean, default=False)
+
+
+class Lot(Base, TimestampMixin):
+    """Lote de producto con caducidad (captura manual, E-04). Necesario para rastreo FSSC 22000."""
+    __tablename__ = "lots"
+    __table_args__ = (UniqueConstraint("product_id", "code"),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    product_id: Mapped[str] = mapped_column(ForeignKey("products.id"), index=True)
+    code: Mapped[str] = mapped_column(String(40), index=True)
+    expires_on: Mapped[datetime | None] = mapped_column(DateTime, index=True)
+    received_on: Mapped[datetime | None] = mapped_column(DateTime)
+    supplier_id: Mapped[str | None] = mapped_column(ForeignKey("suppliers.id"))
+    notes: Mapped[str | None] = mapped_column(String(300))
+    is_demo: Mapped[bool] = mapped_column(Boolean, default=False)
+    product: Mapped[Product] = relationship()
+    supplier: Mapped["Supplier | None"] = relationship()
+
+
+class StockMovement(Base):
+    """Movimiento de inventario. La existencia es la suma de movimientos (auditable y sin estado oculto)."""
+    __tablename__ = "stock_movements"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)
+    type: Mapped[str] = mapped_column(String(20), index=True)  # entrada|salida|ajuste|traspaso
+    product_id: Mapped[str] = mapped_column(ForeignKey("products.id"), index=True)
+    lot_id: Mapped[str | None] = mapped_column(ForeignKey("lots.id"), index=True)
+    warehouse_id: Mapped[str] = mapped_column(ForeignKey("warehouses.id"), index=True)
+    qty_kg: Mapped[float] = mapped_column(Float)  # + entrada, − salida
+    reason: Mapped[str | None] = mapped_column(String(200))
+    ref_type: Mapped[str | None] = mapped_column(String(30))  # pedido|orden_compra|ajuste|traspaso
+    ref_id: Mapped[str | None] = mapped_column(String(36), index=True)
+    actor_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"))
+    product: Mapped[Product] = relationship()
+    lot: Mapped["Lot | None"] = relationship()
+    warehouse: Mapped["Warehouse"] = relationship()
+
+
+class SalesOrder(Base, TimestampMixin):
+    """Pedido de venta. Al entregarse descuenta inventario (E-06)."""
+    __tablename__ = "sales_orders"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    folio: Mapped[str] = mapped_column(String(20), unique=True)
+    account_id: Mapped[str] = mapped_column(ForeignKey("accounts.id"), index=True)
+    contact_id: Mapped[str | None] = mapped_column(ForeignKey("contacts.id"))
+    opportunity_id: Mapped[str | None] = mapped_column(ForeignKey("opportunities.id"))
+    warehouse_id: Mapped[str | None] = mapped_column(ForeignKey("warehouses.id"))
+    status: Mapped[str] = mapped_column(String(20), default="borrador", index=True)  # borrador|confirmado|entregado|cancelado
+    promised_date: Mapped[datetime | None] = mapped_column(DateTime)
+    delivered_at: Mapped[datetime | None] = mapped_column(DateTime)
+    invoice_folio: Mapped[str | None] = mapped_column(String(40))  # folio de la factura emitida en CONTPAQi
+    notes: Mapped[str | None] = mapped_column(Text)
+    owner_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"))
+    is_demo: Mapped[bool] = mapped_column(Boolean, default=False)
+    account: Mapped[Account] = relationship()
+    warehouse: Mapped["Warehouse | None"] = relationship()
+    items: Mapped[list["SalesOrderItem"]] = relationship(back_populates="order", cascade="all, delete-orphan")
+
+    @property
+    def total_kg(self) -> float:
+        return round(sum(i.qty_kg for i in self.items), 2)
+
+    @property
+    def total_mxn(self) -> float:
+        return round(sum(i.qty_kg * (i.unit_price_mxn or 0) for i in self.items), 2)
+
+
+class SalesOrderItem(Base):
+    __tablename__ = "sales_order_items"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    order_id: Mapped[str] = mapped_column(ForeignKey("sales_orders.id"), index=True)
+    product_id: Mapped[str] = mapped_column(ForeignKey("products.id"))
+    lot_id: Mapped[str | None] = mapped_column(ForeignKey("lots.id"))
+    qty_kg: Mapped[float] = mapped_column(Float)
+    unit_price_mxn: Mapped[float | None] = mapped_column(Float)
+    packaging: Mapped[str | None] = mapped_column(String(30))
+    order: Mapped[SalesOrder] = relationship(back_populates="items")
+    product: Mapped[Product] = relationship()
+    lot: Mapped["Lot | None"] = relationship()
+
+
+class PurchaseOrder(Base, TimestampMixin):
+    """Orden de compra a proveedor. Autorización solo arriba del monto configurado."""
+    __tablename__ = "purchase_orders"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    folio: Mapped[str] = mapped_column(String(20), unique=True)
+    supplier_id: Mapped[str] = mapped_column(ForeignKey("suppliers.id"), index=True)
+    warehouse_id: Mapped[str | None] = mapped_column(ForeignKey("warehouses.id"))
+    status: Mapped[str] = mapped_column(String(20), default="borrador", index=True)  # borrador|por_autorizar|autorizada|recibida|cancelada
+    expected_date: Mapped[datetime | None] = mapped_column(DateTime)
+    authorized_by: Mapped[str | None] = mapped_column(ForeignKey("users.id"))
+    authorized_at: Mapped[datetime | None] = mapped_column(DateTime)
+    received_at: Mapped[datetime | None] = mapped_column(DateTime)
+    supplier_invoice: Mapped[str | None] = mapped_column(String(40))
+    notes: Mapped[str | None] = mapped_column(Text)
+    owner_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"))
+    is_demo: Mapped[bool] = mapped_column(Boolean, default=False)
+    supplier: Mapped[Supplier] = relationship()
+    warehouse: Mapped["Warehouse | None"] = relationship()
+    items: Mapped[list["PurchaseOrderItem"]] = relationship(back_populates="order", cascade="all, delete-orphan")
+
+    @property
+    def total_mxn(self) -> float:
+        return round(sum(i.qty_kg * (i.unit_cost_mxn or 0) for i in self.items), 2)
+
+    @property
+    def total_kg(self) -> float:
+        return round(sum(i.qty_kg for i in self.items), 2)
+
+
+class PurchaseOrderItem(Base):
+    __tablename__ = "purchase_order_items"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    order_id: Mapped[str] = mapped_column(ForeignKey("purchase_orders.id"), index=True)
+    product_id: Mapped[str] = mapped_column(ForeignKey("products.id"), index=True)
+    qty_kg: Mapped[float] = mapped_column(Float)
+    unit_cost_mxn: Mapped[float | None] = mapped_column(Float)
+    received_kg: Mapped[float] = mapped_column(Float, default=0.0)
+    lot_id: Mapped[str | None] = mapped_column(ForeignKey("lots.id"))
+    order: Mapped[PurchaseOrder] = relationship(back_populates="items")
+    product: Mapped[Product] = relationship()
+    lot: Mapped["Lot | None"] = relationship()
+
+
+class JobProfile(Base, TimestampMixin):
+    """Descripción de puesto por puntos (funciones en viñetas). Requisito FSSC 22000."""
+    __tablename__ = "job_profiles"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    title: Mapped[str] = mapped_column(String(160), unique=True)
+    area: Mapped[str | None] = mapped_column(String(60))
+    duties: Mapped[str] = mapped_column(Text, default="")        # una función por línea
+    requirements: Mapped[str] = mapped_column(Text, default="")  # un requisito por línea
+    is_demo: Mapped[bool] = mapped_column(Boolean, default=False)
+
+
+class Employee(Base, TimestampMixin):
+    """Expediente de personal. Solo lo ven RRHH y administradores (E-08)."""
+    __tablename__ = "employees"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    employee_no: Mapped[str] = mapped_column(String(20), unique=True)
+    full_name: Mapped[str] = mapped_column(String(200), index=True)
+    area: Mapped[str | None] = mapped_column(String(60), index=True)
+    job_profile_id: Mapped[str | None] = mapped_column(ForeignKey("job_profiles.id"))
+    position_text: Mapped[str | None] = mapped_column(String(160))
+    hired_on: Mapped[datetime | None] = mapped_column(DateTime)
+    status: Mapped[str] = mapped_column(String(20), default="activo", index=True)  # activo|baja
+    phone: Mapped[str | None] = mapped_column(String(30))
+    email: Mapped[str | None] = mapped_column(String(200))
+    user_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"))
+    notes: Mapped[str | None] = mapped_column(Text)
+    is_demo: Mapped[bool] = mapped_column(Boolean, default=False)
+    job_profile: Mapped["JobProfile | None"] = relationship()
+    contracts: Mapped[list["EmploymentContract"]] = relationship(back_populates="employee",
+                                                                 cascade="all, delete-orphan")
+
+
+class EmploymentContract(Base, TimestampMixin):
+    __tablename__ = "employment_contracts"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    employee_id: Mapped[str] = mapped_column(ForeignKey("employees.id"), index=True)
+    type: Mapped[str] = mapped_column(String(30), default="temporal")  # temporal|indeterminado
+    start_on: Mapped[datetime] = mapped_column(DateTime)
+    end_on: Mapped[datetime | None] = mapped_column(DateTime, index=True)
+    status: Mapped[str] = mapped_column(String(20), default="vigente", index=True)  # vigente|renovado|terminado
+    notes: Mapped[str | None] = mapped_column(String(300))
+    employee: Mapped[Employee] = relationship(back_populates="contracts")
+
+
+class PettyCashFund(Base, TimestampMixin):
+    """Caja chica de fondo fijo: se repone manualmente al comprobar (E-09)."""
+    __tablename__ = "petty_cash_funds"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    name: Mapped[str] = mapped_column(String(120), unique=True)
+    fund_amount_mxn: Mapped[float] = mapped_column(Float, default=0.0)
+    responsible_user_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"))
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    is_demo: Mapped[bool] = mapped_column(Boolean, default=False)
+    entries: Mapped[list["PettyCashEntry"]] = relationship(back_populates="fund", cascade="all, delete-orphan")
+
+
+class PettyCashEntry(Base):
+    __tablename__ = "petty_cash_entries"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    fund_id: Mapped[str] = mapped_column(ForeignKey("petty_cash_funds.id"), index=True)
+    at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)
+    type: Mapped[str] = mapped_column(String(20), index=True)  # gasto|reposicion
+    category: Mapped[str | None] = mapped_column(String(40), index=True)
+    amount_mxn: Mapped[float] = mapped_column(Float)
+    description: Mapped[str] = mapped_column(String(300))
+    receipt_id: Mapped[str | None] = mapped_column(ForeignKey("attachments.id"))
+    actor_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"))
+    fund: Mapped[PettyCashFund] = relationship(back_populates="entries")
+
+
+class Asset(Base, TimestampMixin):
+    """Activo: camión, clima, equipo. 'Asignar objeto' del requerimiento (E-10)."""
+    __tablename__ = "assets"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    code: Mapped[str] = mapped_column(String(30), unique=True)
+    name: Mapped[str] = mapped_column(String(160), index=True)
+    type: Mapped[str] = mapped_column(String(30), default="equipo", index=True)  # camion|clima|equipo|otro
+    brand: Mapped[str | None] = mapped_column(String(80))
+    model: Mapped[str | None] = mapped_column(String(80))
+    identifier: Mapped[str | None] = mapped_column(String(60))  # placas / número de serie
+    location: Mapped[str | None] = mapped_column(String(120))
+    status: Mapped[str] = mapped_column(String(20), default="activo", index=True)  # activo|reparacion|baja
+    assigned_user_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"))
+    assigned_employee_id: Mapped[str | None] = mapped_column(ForeignKey("employees.id"))
+    purchased_on: Mapped[datetime | None] = mapped_column(DateTime)
+    odometer_km: Mapped[float | None] = mapped_column(Float)
+    hours_used: Mapped[float | None] = mapped_column(Float)
+    notes: Mapped[str | None] = mapped_column(Text)
+    is_demo: Mapped[bool] = mapped_column(Boolean, default=False)
+    plans: Mapped[list["MaintenancePlan"]] = relationship(back_populates="asset", cascade="all, delete-orphan")
+    work_orders: Mapped[list["WorkOrder"]] = relationship(back_populates="asset", cascade="all, delete-orphan")
+
+
+class MaintenancePlan(Base, TimestampMixin):
+    """Frecuencia configurable: por días, por kilómetros o por horas; vence lo que ocurra primero."""
+    __tablename__ = "maintenance_plans"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    asset_id: Mapped[str] = mapped_column(ForeignKey("assets.id"), index=True)
+    name: Mapped[str] = mapped_column(String(160))
+    kind: Mapped[str] = mapped_column(String(30), default="preventivo")  # preventivo|verificacion|otro
+    freq_days: Mapped[int | None] = mapped_column(Integer)
+    freq_km: Mapped[float | None] = mapped_column(Float)
+    freq_hours: Mapped[float | None] = mapped_column(Float)
+    last_done_on: Mapped[datetime | None] = mapped_column(DateTime)
+    last_done_km: Mapped[float | None] = mapped_column(Float)
+    last_done_hours: Mapped[float | None] = mapped_column(Float)
+    next_due_on: Mapped[datetime | None] = mapped_column(DateTime, index=True)
+    next_due_km: Mapped[float | None] = mapped_column(Float)
+    next_due_hours: Mapped[float | None] = mapped_column(Float)
+    assignee_user_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"))
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    asset: Mapped[Asset] = relationship(back_populates="plans")
+
+
+class WorkOrder(Base, TimestampMixin):
+    __tablename__ = "work_orders"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    folio: Mapped[str] = mapped_column(String(20), unique=True)
+    asset_id: Mapped[str] = mapped_column(ForeignKey("assets.id"), index=True)
+    plan_id: Mapped[str | None] = mapped_column(ForeignKey("maintenance_plans.id"))
+    kind: Mapped[str] = mapped_column(String(20), default="preventivo")  # preventivo|correctivo
+    status: Mapped[str] = mapped_column(String(20), default="abierta", index=True)  # abierta|en_proceso|cerrada|cancelada
+    description: Mapped[str] = mapped_column(String(300))
+    assignee_user_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"))
+    provider: Mapped[str] = mapped_column(String(20), default="interno")  # interno|externo
+    provider_name: Mapped[str | None] = mapped_column(String(160))
+    cost_mxn: Mapped[float | None] = mapped_column(Float)
+    done_on: Mapped[datetime | None] = mapped_column(DateTime)
+    odometer_km: Mapped[float | None] = mapped_column(Float)
+    hours_used: Mapped[float | None] = mapped_column(Float)
+    notes: Mapped[str | None] = mapped_column(Text)
+    is_demo: Mapped[bool] = mapped_column(Boolean, default=False)
+    asset: Mapped[Asset] = relationship(back_populates="work_orders")
+    plan: Mapped["MaintenancePlan | None"] = relationship()
+
+
+class Attachment(Base):
+    """Archivo escaneado o subido (E-11: solo se guarda, sin OCR). Vence → genera notificación."""
+    __tablename__ = "attachments"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    entity_type: Mapped[str] = mapped_column(String(30), index=True)  # asset|employee|petty_cash|purchase_order|sales_order|lot
+    entity_id: Mapped[str] = mapped_column(String(36), index=True)
+    kind: Mapped[str] = mapped_column(String(40), default="otro", index=True)
+    title: Mapped[str] = mapped_column(String(200))
+    filename: Mapped[str] = mapped_column(String(255))
+    stored_name: Mapped[str] = mapped_column(String(255))
+    content_type: Mapped[str | None] = mapped_column(String(120))
+    size_bytes: Mapped[int] = mapped_column(Integer, default=0)
+    expires_on: Mapped[datetime | None] = mapped_column(DateTime, index=True)
+    uploaded_by: Mapped[str | None] = mapped_column(ForeignKey("users.id"))
+    uploaded_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    is_demo: Mapped[bool] = mapped_column(Boolean, default=False)
+
+
+class Notification(Base):
+    """Aviso interno (E-12). `dedupe_key` evita repetir el mismo aviso en el mismo periodo."""
+    __tablename__ = "notifications"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)
+    kind: Mapped[str] = mapped_column(String(40), index=True)
+    severity: Mapped[str] = mapped_column(String(10), default="info")  # info|warn|bad
+    title: Mapped[str] = mapped_column(String(200))
+    body: Mapped[str | None] = mapped_column(Text)
+    entity_type: Mapped[str | None] = mapped_column(String(30))
+    entity_id: Mapped[str | None] = mapped_column(String(36), index=True)
+    link: Mapped[str | None] = mapped_column(String(200))
+    target_role: Mapped[str | None] = mapped_column(String(30), index=True)
+    target_user_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"), index=True)
+    due_on: Mapped[datetime | None] = mapped_column(DateTime)
+    status: Mapped[str] = mapped_column(String(20), default="pendiente", index=True)  # pendiente|leida
+    dedupe_key: Mapped[str] = mapped_column(String(200), unique=True)
+    mute_key: Mapped[str] = mapped_column(String(160), index=True)
+    read_at: Mapped[datetime | None] = mapped_column(DateTime)
+    read_by: Mapped[str | None] = mapped_column(ForeignKey("users.id"))
+    email_status: Mapped[str] = mapped_column(String(20), default="pendiente")  # pendiente|enviado|sin_adaptador
+
+
+class NotificationMute(Base):
+    """Silenciar un aviso recurrente (el cliente pidió poder cancelarlo o silenciarlo)."""
+    __tablename__ = "notification_mutes"
+    mute_key: Mapped[str] = mapped_column(String(160), primary_key=True)
+    until: Mapped[datetime | None] = mapped_column(DateTime)
+    muted_by: Mapped[str | None] = mapped_column(ForeignKey("users.id"))
+    at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    reason: Mapped[str | None] = mapped_column(String(200))
