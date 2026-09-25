@@ -2,7 +2,7 @@
 
 Sistema modular para una distribuidora B2B de especias, granos y condimentos. Dos mitades:
 
-- **Comercial (CRM):** leads → cuentas/contactos → oportunidades (con subflujo de fórmula personalizada) → cotizaciones → actividades y tareas, más un **clasificador de correos** con bandeja **Needs Review**.
+- **Comercial (CRM):** prospectos → cuentas/contactos → oportunidades (con subflujo de fórmula personalizada) → cotizaciones → actividades y tareas, más un **clasificador de correos** con bandeja **Needs Review**.
 - **Operación interna:** inventario con lotes y bodegas, pedidos que descuentan existencia, abastecimiento, mantenimiento de activos, expedientes de personal, caja chica, avisos y documentos escaneados. Ver `docs/06_OPERACION.md`.
 
 > **Datos 100 % sintéticos.** Ninguna empresa, persona, correo o pedido del repositorio corresponde a clientes reales de Empacadora La Huerta. No hay credenciales reales.
@@ -37,15 +37,15 @@ Usuarios de demostración (contraseña `demo1234` para todos, solo demo):
 
 ## Guion de demo (10 minutos)
 
-1. **Dashboard** (`/`): leads, pipeline por etapa, tareas, correos por categoría, Needs Review.
-2. **Vertical slice 1** — Leads → "Nuevo lead" con los campos del formulario público → se crea la tarea de primer contacto → registrar una llamada (pasa a *contactado*) → *calificado* → **Convertir** (cuenta + contacto + oportunidad) → crear cotización → mover a *Cotización* → *Ganada* (genera tarea para Administración y evento ERP).
-3. **Pipeline** (`/opportunities`): kanban; abrir "Sazonador chipotle-limón" para ver el subflujo de fórmula.
+1. **Tablero** (`/`): prospectos, oportunidades por etapa, tareas, correos por categoría, Needs Review.
+2. **Vertical slice 1** — Prospectos → "Nuevo prospecto" con los campos del formulario público → se crea la tarea de primer contacto → registrar una llamada (pasa a *contactado*) → *calificado* → **Convertir** (cuenta + contacto + oportunidad) → crear cotización → mover a *Cotización* → *Ganada* (genera tarea para Administración y evento ERP).
+3. **Oportunidades** (`/opportunities`): kanban; abrir "Sazonador chipotle-limón" para ver el subflujo de fórmula.
 4. **Vertical slice 2** — Correos → abrir "Solicitud de cotización para 3 hoteles" (entidades extraídas, evidencia de reglas) → *Aplicar* `crear_lead`. Luego **Needs Review** → "Reclamación orégano…" → confirmar → *Aplicar* `abrir_caso` (lote incluido). Subir un `.eml` propio desde `/emails`.
 5. **Cuenta 360** — "Restaurantes Sabor Norteño": oportunidades, pedidos (referencia ERP simulado), casos, correos e interacciones.
 6. **Auditoría** (`/audit`, como admin): quién cambió qué, con antes/después.
 7. **Historial total** (como `director@demo.local`): menú **Historial** → filtra por usuario o área; cada clic, cambio, descarga, inicio de sesión y acceso denegado aparece con fecha, usuario, área e IP. **Exportar CSV**. En cualquier lead/cuenta/oportunidad, al final: "Historial de este registro". Menú **Usuarios**: altas, bajas, cambio de área y contraseña (también registrados).
 8. **Operación** — **Inventario**: existencias por lote y bodega, alerta de bajo mínimo (ajonjolí) y de lote por caducar (orégano). **Pedidos**: abrir el entregado y ver los movimientos que descontó; en el confirmado, "Entregar" descuenta solo. **Abastecimiento**: una orden por autorizar y otra por recibir (recibir da de alta el lote y la entrada). **Mantenimiento**: ficha del camión con su plan por kilometraje, documentos y "Asignado a". **Personal**: expediente con el puesto por puntos y el contrato que vence en 45 días. **Caja chica**: gasto con comprobante y reposición. **Avisos**: todo lo anterior junto, con botón de silenciar.
-9. **Iteración 2** — en el dashboard, "Recompra pendiente" (Alimentos Procesados del Bajío). En Leads, abrir "Roberto Vela" → **Fusionar en el original**. En la oportunidad "Resurtido trimestral…" → **PDF** de la cotización y **Marcar enviada** (crea la tarea de seguimiento). Las fechas de vencimiento respetan L–V 8–17, hora de Monterrey.
+9. **Iteración 2** — en el tablero, "Recompra pendiente" (Alimentos Procesados del Bajío). En Prospectos, abrir "Roberto Vela" → **Fusionar en el original**. En la oportunidad "Resurtido trimestral…" → **PDF** de la cotización y **Marcar enviada** (crea la tarea de seguimiento). Las fechas de vencimiento respetan L–V 8–17, hora de Monterrey.
 
 ## Pruebas
 

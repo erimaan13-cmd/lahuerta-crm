@@ -57,7 +57,7 @@ Erick revisó el sistema en su iPhone a través del túnel y envió capturas se�
 | 18 chips de filtro en Correos, y filtros de Tareas sin prioridad | Desplegables que se aplican al elegir (D-51) | Correos, Tareas |
 | "Ingerir buzón", "Subir .eml" sin significado | Renombrados y con nota de una línea; el detalle va a la documentación (D-53) | Correos |
 | Historial: selectores sin relación entre sí, IP y detalle ilegibles | Área reduce la lista de usuarios (D-52), técnico a "Búsqueda avanzada", IP solo en monitor (D-54) | Historial |
-| Pipeline muy largo | Sección plegable con filtro por etapa | Tablero |
+| Lista de oportunidades muy larga | Sección plegable con filtro por etapa | Tablero |
 | "Sin tareas." con el rótulo TAREA al lado | Las celdas que abarcan la fila ya no reciben rótulo | Todas las tablas |
 
 Verificación: sin desbordamiento horizontal en las ocho pantallas revisadas, a 390 px y a 1280 px,

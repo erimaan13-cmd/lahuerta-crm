@@ -1,7 +1,7 @@
 # 06 · Operación interna (inventario, ventas, abastecimiento, RRHH, caja chica, mantenimiento)
 
 Septiembre 2026. Esta iteración convierte el CRM en el **sistema interno** que pidió La Huerta.
-El CRM comercial (leads, cuentas, pipeline, correos) sigue igual y pasa a ser un módulo más.
+El CRM comercial (prospectos, cuentas, oportunidades, correos) sigue igual y pasa a ser un módulo más.
 
 Fuente de las decisiones: `claude/AT-15` del proyecto Administración Tecnológica, con las respuestas
 de Erick del 23-sep-2026. Lo marcado PENDIENTE sigue esperando respuesta del cliente.

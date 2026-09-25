@@ -18,14 +18,14 @@ INFERIDO = razonamiento que puede estar equivocado · PENDIENTE = falta confirma
 
 ---
 
-## 1. Pipeline por etapa: qué significa cada una y si aplica
+## 1. Oportunidades por etapa: qué significa cada una y si aplica
 
-La pestaña **Pipeline** sigue una oportunidad de venta desde que el cliente pregunta hasta que se
+La pestaña **Oportunidades** sigue una oportunidad de venta desde que el cliente pregunta hasta que se
 gana o se pierde. Las ocho etapas están programadas en `app/services/pipeline.py` (VERIFICADO).
 
 | Etapa | Qué significa en el negocio | ¿Aplica a La Huerta? |
 |---|---|---|
-| **Requerimiento** | El cliente dijo qué necesita: producto, kilos aproximados, para cuándo. Todavía no hay número. | Sí, siempre. Es el punto de entrada de todo lead calificado. |
+| **Requerimiento** | El cliente dijo qué necesita: producto, kilos aproximados, para cuándo. Todavía no hay número. | Sí, siempre. Es el punto de entrada de todo prospecto calificado. |
 | **Desarrollo de fórmula** | El cliente pide una mezcla o especificación propia (sazonador para una marca, granulometría especial) y hay que formularla. | Solo en pedidos especiales. INFERIDO: en venta de producto de catálogo esta etapa se salta. |
 | **Muestra enviada** | Se mandó producto físico para que lo prueben. | Sí, en cliente nuevo o producto nuevo. Se salta en recompra. |
 | **Muestra aprobada** | El cliente confirmó que la muestra sirve. Sin esto no tiene sentido cotizar volumen. | Sí, cuando hubo muestra. |
@@ -65,7 +65,7 @@ Tres filtros que parecen lo mismo y no lo son:
 
 - **Tipo de evento** — la naturaleza de lo ocurrido: *Cambios de datos*, *Consultas y envíos*,
   *Seguridad*, *Sistema*.
-- **Sobre qué registro** (búsqueda avanzada) — en qué vive el evento: un lead, una cuenta, un
+- **Sobre qué registro** (búsqueda avanzada) — en qué vive el evento: un prospecto, una cuenta, un
   pedido, una pantalla visitada.
 - **El nombre técnico del evento contiene** (búsqueda avanzada) — texto libre sobre el identificador
   interno (`lead.stage`, `auth.login`). Es para quien audita el código, no para el uso diario; por
@@ -95,7 +95,7 @@ generarse durante los días indicados.
 |---|---|---|
 | Almacén | Inventario, lotes, movimientos | Personal, caja chica |
 | Abastecimiento | Órdenes de compra, proveedores, inventario | Personal, caja chica |
-| Ventas | Leads, cuentas, pipeline, pedidos, correos | Personal, caja chica |
+| Ventas | Prospectos, cuentas, oportunidades, pedidos, correos | Personal, caja chica |
 | RRHH | Expedientes, contratos, puestos | Caja chica |
 | Administración | Caja chica, facturas, todo lo operativo de lectura | — |
 | Mantenimiento | Activos, planes, órdenes de trabajo | Personal, caja chica |
@@ -113,8 +113,8 @@ reales.
 
 1. **Entrar y orientarse.** Acceso, tablero, qué dice cada tarjeta, dónde está el menú en
    computadora y en celular.
-2. **Un lead se vuelve pedido.** Alta de lead → tarea de primer contacto → oportunidad → etapas del
-   pipeline (aquí se explica la sección 1) → cotización → pedido.
+2. **Un prospecto se vuelve pedido.** Alta de prospecto → tarea de primer contacto → oportunidad → etapas del
+   Oportunidades (aquí se explica la sección 1) → cotización → pedido.
 3. **El pedido descuenta inventario.** Pedido con renglones → entrega → movimiento de salida → la
    existencia baja → por qué no puede quedar negativa.
 4. **Comprar para reponer.** Orden de compra en borrador → autorización por monto → recepción →
@@ -157,7 +157,7 @@ de correo, no toca la base de datos), `app/integrations/` (correo de solo lectur
 
 ## 6. Lo que la documentación debe dejar claro y hoy no se dice en pantalla
 
-- El significado de cada etapa del pipeline y que saltárselas es normal (sección 1).
+- El significado de cada etapa de Oportunidades y que saltárselas es normal (sección 1).
 - Que "Cargar correos de ejemplo" es de demostración y no toca ningún buzón real.
 - Qué es un archivo `.eml` y de dónde sale.
 - La diferencia entre *Tipo de evento*, *Sobre qué registro* y el texto libre del historial.
