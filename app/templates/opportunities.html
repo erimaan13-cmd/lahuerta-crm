@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Pipeline comercial</h1>
+<h1>Oportunidades de venta</h1>
 <p>{% for t in [''] + opp_types %}<a class="chip {{ 'ok' if (opp_type or '')==t }}" href="/opportunities{{ '?type=' ~ t if t }}">{{ t or 'todos los tipos' }}</a> {% endfor %}
 <span class="small muted">Las etapas de fórmula solo aplican a oportunidades tipo <i>formula_personalizada</i>.</span></p>
 <div class="kanban">

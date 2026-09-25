@@ -5,6 +5,6 @@
 <table><tr><th>Folio</th><th>Asunto</th><th>Tipo</th><th>Severidad</th><th>Estado</th><th>Lote</th><th>Cuenta</th></tr>
 {% for c in cases %}<tr><td><a href="/cases/{{ c.id }}">{{ c.folio }}</a></td><td>{{ c.subject }}</td><td>{{ c.type }}</td>
 <td><span class="chip {{ 'bad' if c.severity in ['alta','critica'] }}">{{ c.severity }}</span></td><td><span class="chip">{{ c.status }}</span></td>
-<td>{{ c.lot_reference or '—' }}</td><td>{% if c.account %}<a href="/accounts/{{ c.account_id }}">{{ c.account.name }}</a>{% else %}lead{% endif %}</td></tr>
+<td>{{ c.lot_reference or '—' }}</td><td>{% if c.account %}<a href="/accounts/{{ c.account_id }}">{{ c.account.name }}</a>{% else %}Prospecto{% endif %}</td></tr>
 {% else %}<tr><td colspan="7" class="muted">Sin casos.</td></tr>{% endfor %}</table>
 {% endblock %}

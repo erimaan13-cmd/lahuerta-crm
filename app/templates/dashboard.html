@@ -48,7 +48,7 @@
 
 <h2>Comercial</h2>
 <div class="grid">
-  <div class="card kpi"><div class="n">{{ m.leads_by_status.values()|sum }}</div><div class="l">Leads totales · {{ m.leads_by_status.get('nuevo',0) }} nuevos</div></div>
+  <div class="card kpi"><div class="n">{{ m.leads_by_status.values()|sum }}</div><div class="l">Prospectos · {{ m.leads_by_status.get('nuevo',0) }} nuevos</div></div>
   <div class="card kpi"><div class="n">{{ m.pipeline.values()|selectattr('count')|map(attribute='count')|sum }}</div><div class="l">Oportunidades · ${{ '{:,.0f}'.format(m.open_pipeline_mxn) }} MXN abiertos</div></div>
   <div class="card kpi"><div class="n">{{ m.customers }}</div><div class="l">Clientes (activos + recurrentes)</div></div>
   <div class="card kpi"><div class="n">{{ m.tasks_pending }}</div><div class="l">Tareas pendientes · <span class="{{ 'chip bad' if m.tasks_overdue else '' }}">{{ m.tasks_overdue }} vencidas</span></div></div>
@@ -62,7 +62,7 @@
   {% set maxc = (m.pipeline.values()|map(attribute='count')|max) or 1 %}
   {% set total_op = m.pipeline.values()|map(attribute='count')|sum %}
   <details class="plegable" open>
-    <summary>Pipeline por etapa · {{ total_op }} oportunidad{{ 'es' if total_op != 1 else '' }}</summary>
+    <summary>Oportunidades por etapa · {{ total_op }} oportunidad{{ 'es' if total_op != 1 else '' }}</summary>
     <div class="cuerpo">
       <label style="max-width:320px">Ver etapa
         <select data-filtra-tabla="#tabla-pipeline">
@@ -108,7 +108,7 @@
     </div>
   {% endmacro %}
 
-  <h2>Leads</h2>
+  <h2>Prospectos</h2>
   <div class="card small">
     {{ grupo('Por estado', m.leads_by_status) }}
     {{ grupo('Por origen', m.leads_by_source) }}

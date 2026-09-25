@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Leads</h1>
+<h1>Prospectos</h1>
 <form class="row card" method="get">
   <label>Estado<select name="status"><option value="">(todos)</option>{% for s in ['nuevo','contactado','calificado','convertido','descartado'] %}<option {{ 'selected' if f.status==s }}>{{ s }}</option>{% endfor %}</select></label>
   <label>Sector<select name="sector"><option value="">(todos)</option>{% for s in sectors %}<option value="{{ s.code }}" {{ 'selected' if f.sector==s.code }}>{{ s.name }}</option>{% endfor %}</select></label>
@@ -19,7 +19,7 @@
 </table>
 
 {% if has_permission(user.role, 'lead:write') %}
-<h2>Nuevo lead (campos de los formularios públicos)</h2>
+<h2>Nuevo prospecto <span class="small muted">(los mismos campos del formulario del sitio web)</span></h2>
 <form class="card" method="post" action="/leads"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
   <div class="row">
     <label>Nombre*<input name="full_name" required></label><label>Empresa<input name="company_name"></label>
@@ -33,7 +33,7 @@
     <label>Campaña<input name="campaign"></label>
   </div>
   <p><label class="small muted">¿En qué podemos ayudarte?<textarea name="message" rows="2"></textarea></label></p>
-  <button>Crear lead</button>
+  <button>Crear prospecto</button>
   <span class="hint">Se crea automáticamente una tarea de primer contacto (SLA 4 h).</span>
 </form>
 {% endif %}

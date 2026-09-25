@@ -33,7 +33,7 @@
     <summary>Búsqueda avanzada</summary>
     <div class="cuerpo row">
       <label>Sobre qué registro<select name="entity_type"><option value="">Cualquiera</option>
-        {% for e, lbl in [('lead','Leads'),('account','Cuentas'),('contact','Contactos'),('opportunity','Oportunidades'),('quote','Cotizaciones'),('case','Casos'),('task','Tareas'),('activity','Actividades'),('email','Correos'),('email_classification','Clasificación de correos'),('user','Usuarios'),('integration','Integraciones'),('automation','Automatizaciones'),('ruta','Pantallas visitadas')] %}
+        {% for e, lbl in [('lead','Prospectos'),('account','Cuentas'),('contact','Contactos'),('opportunity','Oportunidades'),('quote','Cotizaciones'),('case','Casos'),('task','Tareas'),('activity','Actividades'),('email','Correos'),('email_classification','Clasificación de correos'),('user','Usuarios'),('integration','Integraciones'),('automation','Automatizaciones'),('ruta','Pantallas visitadas')] %}
         <option value="{{ e }}" {{ 'selected' if f.entity_type==e }}>{{ lbl }}</option>{% endfor %}</select></label>
       <label>El nombre técnico del evento contiene<input name="action" value="{{ f.action or '' }}" placeholder="p. ej. stage, login"></label>
     </div>

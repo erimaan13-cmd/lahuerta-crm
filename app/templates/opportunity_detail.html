@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-<p class="small"><a href="/opportunities">← Pipeline</a> · <a href="/accounts/{{ opp.account_id }}">{{ opp.account.name }}</a></p>
+<p class="small"><a href="/opportunities">← Oportunidades</a> · <a href="/accounts/{{ opp.account_id }}">{{ opp.account.name }}</a></p>
 <h1>{{ opp.title }} <span class="chip">{{ STAGE_LABELS[opp.stage] }}</span> <span class="chip">{{ opp.type }}</span></h1>
 <p>{% for s in stages %}<span class="chip {{ 'ok' if s==opp.stage }}">{{ STAGE_LABELS[s] }}</span>{% if not loop.last %} → {% endif %}{% endfor %}</p>
 <div class="two"><div>

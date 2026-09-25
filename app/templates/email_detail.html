@@ -29,7 +29,7 @@
     {% if cls.final_category %}<br><b>final_category:</b> {{ CATEGORIES[cls.final_category].label }}{% endif %}</p>
     <p><b>suggested_owner:</b> {{ cls.suggested_owner_role or '—' }}<br><b>suggested_action:</b> {{ cls.suggested_action_label }}</p>
     <p><b>crm_entity_link:</b> {% if cls.crm_link_type %}{{ cls.crm_link_type }}{% else %}sin vínculo{% endif %}<br>
-    {% for k, v in (cls.crm_links or {}).items() %}{% if k in ['lead','account','opportunity','case'] %}<a class="chip" href="/{{ {'lead':'leads','account':'accounts','opportunity':'opportunities','case':'cases'}[k] }}/{{ v }}">{{ k }}</a> {% else %}<span class="chip">{{ k }}</span> {% endif %}{% endfor %}</p>
+    {% for k, v in (cls.crm_links or {}).items() %}{% if k in ['lead','account','opportunity','case'] %}<a class="chip" href="/{{ {'lead':'leads','account':'accounts','opportunity':'opportunities','case':'cases'}[k] }}/{{ v }}">{{ k|rotulo }}</a> {% else %}<span class="chip">{{ k }}</span> {% endif %}{% endfor %}</p>
     {% if cls.applied_entity_type %}<p class="chip ok">Aplicado → {{ cls.applied_entity_type }}</p>{% endif %}
   </div>
   {% if has_permission(user.role,'email:review') and cls.review_status != 'aplicado' %}
@@ -40,7 +40,7 @@
   {% if cls.review_status != 'needs_review' %}
   <h2>2 · Aplicar sugerencia</h2>
   <form class="card" method="post" action="/emails/{{ msg.id }}/apply"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
-    <select name="action">{% for a in ['crear_lead','crear_tarea','abrir_caso','registrar_actividad','reenviar_fuera_crm','ignorar','revisar'] %}<option {{ 'selected' if a==cls.suggested_action }}>{{ a }}</option>{% endfor %}</select>
+    <select name="action">{% for a in ['crear_lead','crear_tarea','abrir_caso','registrar_actividad','reenviar_fuera_crm','ignorar','revisar'] %}<option value="{{ a }}" {{ 'selected' if a==cls.suggested_action }}>{{ a|rotulo }}</option>{% endfor %}</select>
     <button>Aplicar</button><p class="small muted">Nada se crea sin este clic. No se envía ninguna respuesta.</p></form>{% endif %}
   {% endif %}
 </div></div>

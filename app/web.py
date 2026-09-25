@@ -51,6 +51,15 @@ ROTULOS = {
     "atencion": "Atención a clientes", "administracion": "Administración",
     "auto_lead": "Alta de lead", "auto_email": "Correo clasificado", "manual": "Creada a mano",
     "cliente_activo": "Cliente activo", "cliente_recurrente": "Cliente recurrente",
+    # "Prospecto" es la persona que preguntó (pestaña Prospectos); una CUENTA que aún no
+    # compra es un "Cliente potencial". Así los cuatro estados de cuenta se leen en
+    # positivo y nadie confunde a la persona con la empresa (D-56).
+    "prospecto": "Cliente potencial",
+    "lead": "Prospecto", "account": "Cuenta", "contact": "Contacto",
+    "opportunity": "Oportunidad", "quote": "Cotización", "case": "Caso",
+    "crear_lead": "Crear prospecto", "crear_tarea": "Crear tarea", "abrir_caso": "Abrir caso",
+    "registrar_actividad": "Registrar actividad", "reenviar_fuera_crm": "Reenviar fuera del sistema",
+    "ignorar": "Ignorar", "revisar": "Revisar a mano",
 }
 
 

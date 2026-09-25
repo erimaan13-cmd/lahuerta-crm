@@ -18,7 +18,7 @@
 <table><tr><th>Tarea</th><th>Rol</th><th>Prioridad</th><th>Vence</th><th>Origen</th><th>Relacionado</th><th></th></tr>
 {% for t in tasks %}<tr><td>{{ t.title }}</td><td>{{ t.assignee_role|rotulo }}</td><td><span class="chip {{ 'bad' if t.priority=='alta' }}">{{ t.priority|rotulo }}</span></td>
 <td>{{ t.due_at|local('%d/%m %H:%M') }}</td><td class="small">{{ t.origin|rotulo }}</td>
-<td>{% if t.related_type in ['lead','account','opportunity','case'] %}<a href="/{{ {'lead':'leads','account':'accounts','opportunity':'opportunities','case':'cases'}[t.related_type] }}/{{ t.related_id }}">{{ t.related_type }}</a>{% else %}{{ t.related_type or '—' }}{% endif %}</td>
+<td>{% if t.related_type in ['lead','account','opportunity','case'] %}<a href="/{{ {'lead':'leads','account':'accounts','opportunity':'opportunities','case':'cases'}[t.related_type] }}/{{ t.related_id }}">{{ t.related_type|rotulo }}</a>{% else %}{{ t.related_type|rotulo }}{% endif %}</td>
 <td>{% if t.status=='pendiente' and has_permission(user.role,'task:write') %}<form class="inline" method="post" action="/tasks/{{ t.id }}/complete"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}"><input type="hidden" name="next" value="/tasks"><button class="sec">Hecha</button></form>{% endif %}</td></tr>
 {% else %}<tr><td colspan="7" class="muted">Sin tareas.</td></tr>{% endfor %}</table>
 {% if has_permission(user.role,'task:write') %}

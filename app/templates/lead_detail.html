@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <p class="small"><a href="/leads">← Leads</a></p>
-<h1>{{ lead.full_name }} <span class="chip">{{ lead.status }}</span>
+<h1>{{ lead.full_name }} <span class="chip">{{ lead.status|rotulo }}</span>
 {% if lead.below_minimum %}<span class="chip warn">Bajo mínimo (500 kg)</span>{% endif %}</h1>
 <div class="two">
 <div>
@@ -37,7 +37,7 @@
     <label class="small"><input type="checkbox" name="create_opportunity" checked> Crear oportunidad</label>
     <p><select name="opp_type"><option value="estandar">Estándar</option><option value="formula_personalizada">Fórmula personalizada</option><option value="recompra">Recompra</option></select></p>
     <p><input name="opp_title" placeholder="Título de la oportunidad (opcional)" style="width:100%"></p>
-    <button>Convertir lead</button>
+    <button>Convertir en cliente</button>
   </form>{% endif %}
 </div>
 </div>
