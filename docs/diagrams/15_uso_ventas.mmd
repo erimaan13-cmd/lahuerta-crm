@@ -1,0 +1,49 @@
+---
+title: Dia de VENTAS - del prospecto al pedido, y a quien se lo pasa
+---
+flowchart TB
+  subgraph LEYENDA[" "]
+    L1["SISTEMA - pantalla o accion del sistema"]
+    L2("FUERA - ocurre fuera del sistema")
+    L3{{"INCOGNITA - hay que preguntarselo al cliente"}}
+    L4["ORDEN DEL DIA: INFERIDO<br/>deducido de los permisos, no de ver trabajar a nadie"]
+  end
+
+  F1["'Para mi el sistema es mi libreta de clientes:<br/>me dice a quien le debo una respuesta hoy<br/>y si hay producto para prometer una entrega'<br/>(frase INFERIDA - confirmar con la persona)"]
+
+  A1["1 · TABLERO<br/>decide: a quien le hablo primero"]
+  A1 --> A2["2 · MIS TAREAS<br/>ve las suyas y las de su rol<br/>decide: cual esta por vencer"]
+
+  A2 --> B1["3 · PROSPECTOS<br/>decide: este cliente califica - 500 kg o mas"]
+  B1 --> B2("FUERA - la llamada o el correo al cliente")
+  B2 --> B3["4 · registra la actividad<br/>el prospecto pasa a contactado"]
+  B3 --> B4["5 · CONVERTIR<br/>nacen cuenta, contacto y oportunidad"]
+
+  B4 --> C1["6 · OPORTUNIDADES - el tablero por etapas<br/>decide: en que etapa esta y que falta para avanzar"]
+  C1 --> C2["7 · COTIZACION - genera el PDF con folio"]
+  C2 --> C3("FUERA - descarga el PDF y lo manda el mismo<br/>el sistema NO envia correo")
+  C3 --> C4["8 · 'Marcar enviada'<br/>el sistema le crea la tarea de seguimiento"]
+
+  C4 --> D1["9 · consulta INVENTARIO antes de prometer<br/>puede VER existencias, no moverlas"]
+  D1 --> D2{{"que le dice al cliente si no hay producto:<br/>promete fecha, ofrece otro, o avisa a compras"}}
+
+  C1 --> E1["10 · GANADA<br/>el sistema crea sola una tarea para Administracion"]
+  E1 --> E2["11 · PEDIDO en borrador<br/>renglones en kg, fecha prometida"]
+  E2 --> E3["12 · CONFIRMAR<br/>revisa existencia pero NO la aparta"]
+  E3 --> E4{{"cuando confirma, alguien aparta el producto en bodega,<br/>o se surte el dia de la salida"}}
+
+  E3 --> F9("ENTREGA A: ALMACEN, que es quien pulsa 'Entregar'")
+  E1 --> G9("ENTREGA A: ADMINISTRACION, para la factura y el cobro")
+
+  E2 --> H1{{"quien captura el pedido: el vendedor o administracion"}}
+  C2 --> H2{{"quien autoriza un descuento:<br/>hoy el sistema acepta cualquier precio, incluso cero"}}
+  B1 --> H3{{"el minimo de 500 kg sigue vigente"}}
+
+  classDef sistema fill:#e8f0fe,stroke:#1a56db,color:#111827
+  classDef fuera fill:#f3f4f6,stroke:#6b7280,color:#111827,stroke-dasharray: 4 3
+  classDef incognita fill:#fef3c7,stroke:#b45309,color:#111827,stroke-width:2px
+  classDef frase fill:#ecfdf5,stroke:#047857,color:#111827
+  class L1,A1,A2,B1,B3,B4,C1,C2,C4,D1,E1,E2,E3 sistema
+  class L2,B2,C3,F9,G9 fuera
+  class L3,D2,E4,H1,H2,H3 incognita
+  class F1,L4 frase

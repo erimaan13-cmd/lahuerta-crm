@@ -1,0 +1,48 @@
+---
+title: Dia de MANTENIMIENTO - los camiones y el equipo
+---
+flowchart TB
+  subgraph LEYENDA[" "]
+    L1["SISTEMA - pantalla o accion del sistema"]
+    L2("FUERA - ocurre fuera del sistema")
+    L3{{"INCOGNITA - hay que preguntarselo al cliente"}}
+    L4["ORDEN DEL DIA: INFERIDO<br/>deducido de los permisos, no de ver trabajar a nadie"]
+  end
+
+  F1["'Para mi el sistema es lo que me recuerda cuando le toca<br/>servicio a cada camion, y donde anoto lo que se le hizo<br/>para no perder la cuenta'<br/>(frase INFERIDA - confirmar con la persona)"]
+
+  A1["1 · AVISOS de su area<br/>mantenimientos que ya vienen o ya se pasaron"]
+  A1 --> A2["2 · MANTENIMIENTO - lista de activos<br/>decide: a cual le toca hoy"]
+
+  A2 --> B1["3 · FICHA DEL ACTIVO<br/>ve marca, modelo, placas, responsable,<br/>su plan y sus documentos"]
+  B1 --> B2["4 · captura el ODOMETRO u horas<br/>la lectura SOLO SUBE, nunca baja"]
+  B2 --> B3{{"quien captura el kilometraje y cada cuando:<br/>si nadie lo captura, el plan por km NUNCA avisa"}}
+
+  A1 --> C1["5 · abre la ORDEN DE TRABAJO<br/>preventiva o correctiva, interna o externa"]
+  C1 --> C2("FUERA - la reparacion: el taller propio o el proveedor")
+  C2 --> C3{{"se piden cotizaciones para un servicio externo<br/>y quien lo autoriza"}}
+
+  C2 --> D1["6 · CIERRA la orden<br/>costo total, fecha, odometro y notas"]
+  D1 --> D2["el sistema reprograma el plan<br/>desde lo que REALMENTE se hizo"]
+  D2 --> A1
+
+  A2 --> E1["7 · DOCUMENTOS del activo<br/>poliza, verificacion, seguro - avisan a 30 dias"]
+  E1 --> E2("ENTREGA A: Administracion, si hay que pagar o renovar")
+
+  A2 --> F2["8 · ESTADO del activo<br/>activo, en reparacion o baja"]
+  F2 --> F3["un activo dado de baja deja de avisar"]
+
+  C1 --> G1{{"HUECO: no puede cancelar una orden desde la pantalla<br/>ni marcarla 'en proceso' - ver MAN-1 y MAN-2"}}
+  D1 --> G2{{"las refacciones salen del inventario:<br/>hoy mantenimiento NO descuenta piezas - ver MAN-3"}}
+  D1 --> G3{{"necesita desglosar mano de obra y refacciones:<br/>hoy solo hay un costo total"}}
+  A2 --> G4{{"que equipos existen hoy y quien los lleva"}}
+  B1 --> G5{{"trabaja desde el celular en el taller<br/>o captura despues en una computadora"}}
+
+  classDef sistema fill:#e8f0fe,stroke:#1a56db,color:#111827
+  classDef fuera fill:#f3f4f6,stroke:#6b7280,color:#111827,stroke-dasharray: 4 3
+  classDef incognita fill:#fef3c7,stroke:#b45309,color:#111827,stroke-width:2px
+  classDef frase fill:#ecfdf5,stroke:#047857,color:#111827
+  class L1,A1,A2,B1,B2,C1,D1,D2,E1,F2,F3 sistema
+  class L2,C2,E2 fuera
+  class L3,B3,C3,G1,G2,G3,G4,G5 incognita
+  class F1,L4 frase

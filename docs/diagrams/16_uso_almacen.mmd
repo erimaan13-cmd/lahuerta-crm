@@ -1,0 +1,47 @@
+---
+title: Dia de ALMACEN - el unico que mueve existencias
+---
+flowchart TB
+  subgraph LEYENDA[" "]
+    L1["SISTEMA - pantalla o accion del sistema"]
+    L2("FUERA - ocurre fuera del sistema")
+    L3{{"INCOGNITA - hay que preguntarselo al cliente"}}
+    L4["ORDEN DEL DIA: INFERIDO<br/>deducido de los permisos, no de ver trabajar a nadie"]
+  end
+
+  F1["'Para mi el sistema es el control de lo que hay en bodega:<br/>me dice que se va a caducar y que se esta acabando,<br/>y cuando surto un pedido lo baja solo'<br/>(frase INFERIDA - confirmar con la persona)"]
+
+  A1["1 · AVISOS de su area<br/>lotes por caducar y existencias bajo el minimo<br/>decide: que atiende primero"]
+  A1 --> A2["2 · INVENTARIO - existencias por lote y bodega"]
+
+  A2 --> B1["3 · PEDIDOS confirmados<br/>decide: cual se surte hoy"]
+  B1 --> B2("FUERA - junta la mercancia fisicamente")
+  B2 --> B3["4 · 'ENTREGAR'<br/>el sistema descuenta TODO O NADA<br/>y saca primero el lote que caduca antes"]
+  B3 --> B4["5 · ve los movimientos que genero<br/>la existencia nunca queda negativa"]
+  B4 --> C9("ENTREGA A: el reparto, y a Administracion para facturar")
+
+  A2 --> D1["6 · RECEPCION de compras<br/>captura kilos, bodega y CODIGO DE LOTE obligatorio"]
+  D1 --> D2["crea el lote y mete la ENTRADA"]
+  D2 --> D3{{"quien recibe en el anden: almacen o abastecimiento"}}
+
+  A2 --> E1["7 · MOVIMIENTOS a mano<br/>entrada, salida, ajuste - el ajuste EXIGE motivo"]
+  E1 --> E2["8 · TRASPASOS entre bodegas"]
+  E1 --> E3{{"con que frecuencia hacen conteo fisico<br/>y quien puede ajustar una diferencia"}}
+
+  A1 --> F2["9 · LOTE POR CADUCAR<br/>decide: se vende primero, se remata, se destruye"]
+  F2 --> F3{{"que hacen hoy con un lote que ya caduco:<br/>el sistema NO impide venderlo"}}
+
+  A1 --> G1["10 · EXISTENCIA BAJA<br/>decide: avisa que hay que comprar"]
+  G1 --> G2("ENTREGA A: ABASTECIMIENTO - el sistema NO crea la orden solo")
+  G2 --> G3{{"como le avisa a compras hoy:<br/>el sistema no tiene mensajes entre areas"}}
+
+  A2 --> H1{{"trabaja desde una computadora en la bodega<br/>o desde el celular con la mercancia enfrente"}}
+
+  classDef sistema fill:#e8f0fe,stroke:#1a56db,color:#111827
+  classDef fuera fill:#f3f4f6,stroke:#6b7280,color:#111827,stroke-dasharray: 4 3
+  classDef incognita fill:#fef3c7,stroke:#b45309,color:#111827,stroke-width:2px
+  classDef frase fill:#ecfdf5,stroke:#047857,color:#111827
+  class L1,A1,A2,B1,B3,B4,D1,D2,E1,E2,F2,G1 sistema
+  class L2,B2,C9,G2 fuera
+  class L3,D3,E3,F3,G3,H1 incognita
+  class F1,L4 frase

@@ -1,0 +1,54 @@
+---
+title: Dia de ABASTECIMIENTO - compra, pero no aprueba lo que compra
+---
+flowchart TB
+  subgraph LEYENDA[" "]
+    L1["SISTEMA - pantalla o accion del sistema"]
+    L2("FUERA - ocurre fuera del sistema")
+    L3{{"INCOGNITA - hay que preguntarselo al cliente"}}
+    L4["ORDEN DEL DIA: INFERIDO<br/>deducido de los permisos, no de ver trabajar a nadie"]
+  end
+
+  F1["'Para mi el sistema es mi lista de que falta y que ya viene:<br/>me dice que se esta acabando y en que ordenes<br/>estoy esperando mercancia'<br/>(frase INFERIDA - confirmar con la persona)"]
+
+  A1["1 · AVISOS - existencias bajo el minimo"]
+  A1 --> A2["2 · INVENTARIO - confirma cuanto hay de verdad<br/>decide: cuanto pedir"]
+  A2 --> A3{{"compra por minimos, por temporada,<br/>o cuando produccion se lo pide"}}
+
+  A2 --> B1["3 · PROVEEDORES<br/>decide: a quien le compra<br/>ve el historial de precios que pago antes"]
+  B1 --> B2{{"pide varias cotizaciones antes de comprar:<br/>el sistema NO las guarda"}}
+
+  B1 --> C1["4 · ORDEN DE COMPRA en borrador<br/>renglones en kg y costo unitario"]
+  C1 --> C2["5 · 'ENVIAR' la orden"]
+  C2 --> C3{"el total pasa de 20,000 MXN"}
+  C3 -->|no| C4["queda AUTORIZADA sola"]
+  C3 -->|si| C5["queda POR AUTORIZAR - EL NO PUEDE APROBARLA"]
+  C5 --> C6("ENTREGA A: EL ADMINISTRADOR, que es el unico que autoriza")
+  C6 --> C4
+
+  C4 --> D1("FUERA - le pide la mercancia al proveedor<br/>el sistema NO manda la orden")
+  D1 --> D2{{"como se lo pide hoy: telefono, correo, WhatsApp"}}
+
+  D1 --> E1("FUERA - el proveedor entrega en el anden")
+  E1 --> E2["6 · RECIBIR<br/>kilos, bodega y codigo de lote obligatorio<br/>la caducidad es opcional"]
+  E2 --> E3["se crea el lote y entra al inventario"]
+  E3 --> E9("ENTREGA A: ALMACEN, que ya tiene la mercancia contada")
+
+  E2 --> F2{"llego todo"}
+  F2 -->|no| F3["la orden sigue abierta: puede recibir el resto"]
+  F2 -->|si| F4["queda RECIBIDA"]
+  F4 --> F5["7 · captura el folio de la factura del proveedor"]
+  F5 --> F6("ENTREGA A: ADMINISTRACION, para el pago")
+
+  E2 --> G1{{"que hace con mercancia que no pasa calidad:<br/>hoy no hay rechazo ni devolucion en el sistema"}}
+  C1 --> G2{{"compra en sacos o cajas:<br/>el modulo solo maneja kilos"}}
+  B1 --> G3{{"hay importaciones en otra moneda:<br/>hoy no hay moneda ni tipo de cambio"}}
+
+  classDef sistema fill:#e8f0fe,stroke:#1a56db,color:#111827
+  classDef fuera fill:#f3f4f6,stroke:#6b7280,color:#111827,stroke-dasharray: 4 3
+  classDef incognita fill:#fef3c7,stroke:#b45309,color:#111827,stroke-width:2px
+  classDef frase fill:#ecfdf5,stroke:#047857,color:#111827
+  class L1,A1,A2,B1,C1,C2,C3,C4,C5,E2,E3,F2,F3,F4,F5 sistema
+  class L2,C6,D1,E1,E9,F6 fuera
+  class L3,A3,B2,D2,G1,G2,G3 incognita
+  class F1,L4 frase

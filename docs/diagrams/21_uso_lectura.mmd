@@ -1,0 +1,40 @@
+---
+title: Dia de SOLO LECTURA (direccion) - mira todo, casi no toca nada
+---
+flowchart TB
+  subgraph LEYENDA[" "]
+    L1["SISTEMA - pantalla o accion del sistema"]
+    L2("FUERA - ocurre fuera del sistema")
+    L3{{"INCOGNITA - hay que preguntarselo al cliente"}}
+    L4["ORDEN DEL DIA: INFERIDO<br/>deducido de los permisos, no de ver trabajar a nadie"]
+  end
+
+  F1["'Para mi el sistema es una ventana al negocio:<br/>quiero ver como va sin tener que preguntarle a nadie,<br/>y sin riesgo de desconfigurar algo'<br/>(frase INFERIDA - confirmar con la persona)"]
+
+  A1["1 · TABLERO<br/>ve las mismas 22 tarjetas que todos<br/>decide: nada, solo se informa"]
+  A1 --> A2["2 · las 13 pestanas<br/>ve ventas, inventario, compras, mantenimiento,<br/>prospectos, cuentas, correos, casos, tareas"]
+
+  A2 --> B1["NO ve: Personal, Caja chica,<br/>Historial ni Usuarios"]
+  B1 --> B2["si escribe la direccion a mano:<br/>'Tu rol no tiene el permiso pettycash:read'<br/>mensaje en clave - ver UI-1"]
+
+  A2 --> C1["NO puede escribir nada:<br/>ni prospectos, ni pedidos, ni movimientos,<br/>ni subir un documento"]
+
+  A2 --> D1["PERO SI PUEDE: silenciar un aviso<br/>y marcarlo como leido"]
+  D1 --> D2{{"debe poder apagar una alerta de lote por caducar:<br/>VERIFICADO que hoy si puede - ver UI-4"}}
+
+  A2 --> E1["Y SI PUEDE: descargar cualquier documento<br/>si conoce su enlace, incluso de caja chica<br/>o de un expediente - ver SEC-1"]
+
+  A1 --> F2{{"esta persona es el director o un socio;<br/>que numero mira primero al entrar"}}
+  A1 --> F3{{"le sirve el tablero como esta,<br/>o quiere un resumen distinto - ver UI-3"}}
+  A2 --> F4{{"deberia ver el historial sin poder editarlo:<br/>eso seria el rol auditor que ya esta en el backlog AUD-4"}}
+
+  classDef sistema fill:#e8f0fe,stroke:#1a56db,color:#111827
+  classDef fuera fill:#f3f4f6,stroke:#6b7280,color:#111827,stroke-dasharray: 4 3
+  classDef incognita fill:#fef3c7,stroke:#b45309,color:#111827,stroke-width:2px
+  classDef frase fill:#ecfdf5,stroke:#047857,color:#111827
+  classDef riesgo fill:#fee2e2,stroke:#b91c1c,color:#111827,stroke-width:2px
+  class L1,A1,A2,B1,B2,C1,D1 sistema
+  class L2 fuera
+  class L3,D2,F2,F3,F4 incognita
+  class F1,L4 frase
+  class E1 riesgo

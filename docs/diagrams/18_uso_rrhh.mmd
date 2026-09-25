@@ -1,0 +1,48 @@
+---
+title: Dia de RECURSOS HUMANOS - el unico que ve los expedientes
+---
+flowchart TB
+  subgraph LEYENDA[" "]
+    L1["SISTEMA - pantalla o accion del sistema"]
+    L2("FUERA - ocurre fuera del sistema")
+    L3{{"INCOGNITA - hay que preguntarselo al cliente"}}
+    L4["ORDEN DEL DIA: INFERIDO<br/>deducido de los permisos, no de ver trabajar a nadie"]
+  end
+
+  F1["'Para mi el sistema es donde tengo los expedientes<br/>y lo que me recuerda que un contrato se vence<br/>antes de que se me pase'<br/>(frase INFERIDA - confirmar con la persona)"]
+
+  A1["1 · AVISOS de su area<br/>contratos por vencer a 60 dias<br/>documentos por vencer a 30 dias"]
+  A1 --> A2["2 · PERSONAL<br/>SOLO RRHH y el administrador entran aqui<br/>cada consulta queda en la bitacora"]
+
+  A2 --> B1["3 · EXPEDIENTE del empleado<br/>decide: esta completo, le falta algun documento"]
+  B1 --> B2["4 · sube documentos escaneados<br/>contrato, identificacion, certificado<br/>se guardan tal cual, sin leerlos"]
+
+  A1 --> C1["5 · CONTRATO POR VENCER<br/>decide: renovar o terminar"]
+  C1 --> C2("FUERA - lo platica con el jefe del area y con la persona")
+  C2 --> C3{"decision"}
+  C3 -->|renovar| C4["6 · RENOVAR<br/>el anterior queda 'renovado' y nace uno nuevo"]
+  C3 -->|terminar| C5["6 · TERMINAR el contrato"]
+  C5 --> C6["7 · BAJA del empleado - exige motivo<br/>NADA se borra: queda en la bitacora"]
+  C6 --> C7("ENTREGA A: Administracion y el contador, para finiquito y nomina")
+
+  A2 --> D1["8 · PUESTOS<br/>funciones y requisitos, uno por renglon<br/>NO es puntaje ni valuacion"]
+  D1 --> D2{{"existen descripciones de puesto escritas hoy<br/>o hay que redactarlas"}}
+
+  A2 --> E1{{"FALTA EL AVISO DE PRIVACIDAD FIRMADO<br/>obligatorio ANTES de cargar expedientes reales"}}
+  B1 --> E2{{"hacen falta RFC, CURP, NSS, domicilio y salario:<br/>hoy el expediente NO los guarda"}}
+  C6 --> E3{{"necesitan reporte de rotacion:<br/>hoy la fecha y el motivo de baja van en notas libres"}}
+  A2 --> E4{{"se lleva asistencia, vacaciones o incidencias:<br/>hoy el sistema no tiene nada de eso"}}
+  C7 --> E5{{"con que sistema se calcula la nomina:<br/>este NO la calcula"}}
+
+  A2 --> G1["OJO: hoy cualquier usuario puede descargar<br/>un documento de empleado si conoce su enlace<br/>ver SEC-1 en el backlog"]
+
+  classDef sistema fill:#e8f0fe,stroke:#1a56db,color:#111827
+  classDef fuera fill:#f3f4f6,stroke:#6b7280,color:#111827,stroke-dasharray: 4 3
+  classDef incognita fill:#fef3c7,stroke:#b45309,color:#111827,stroke-width:2px
+  classDef frase fill:#ecfdf5,stroke:#047857,color:#111827
+  classDef riesgo fill:#fee2e2,stroke:#b91c1c,color:#111827,stroke-width:2px
+  class L1,A1,A2,B1,B2,C1,C3,C4,C5,C6,D1 sistema
+  class L2,C2,C7 fuera
+  class L3,D2,E1,E2,E3,E4,E5 incognita
+  class F1,L4 frase
+  class G1 riesgo

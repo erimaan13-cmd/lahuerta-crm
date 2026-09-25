@@ -1,0 +1,48 @@
+---
+title: Dia de ADMINISTRACION - el rol con mas llaves despues del administrador
+---
+flowchart TB
+  subgraph LEYENDA[" "]
+    L1["SISTEMA - pantalla o accion del sistema"]
+    L2("FUERA - ocurre fuera del sistema")
+    L3{{"INCOGNITA - hay que preguntarselo al cliente"}}
+    L4["ORDEN DEL DIA: INFERIDO<br/>deducido de los permisos, no de ver trabajar a nadie"]
+  end
+
+  F1["'Para mi el sistema es donde llevo los gastos con su comprobante<br/>y donde veo que se factura y que falta cobrar'<br/>(frase INFERIDA - confirmar con la persona)"]
+
+  A1["1 · AVISOS<br/>puede pulsar 'Revisar ahora' - solo el y el administrador"]
+  A1 --> A2["2 · TAREAS<br/>recibe sola la tarea que crea cada venta ganada"]
+
+  A2 --> B1["3 · PEDIDOS ganados<br/>decide: cual se factura hoy"]
+  B1 --> B2("FUERA - emite la factura en CONTPAQi")
+  B2 --> B3["4 · captura el FOLIO de la factura<br/>solo el folio: el sistema NO factura"]
+  B3 --> B4{{"quien captura el folio y en que momento:<br/>al facturar o al cobrar"}}
+  B3 --> B5("FUERA - el cobro y la cuenta por cobrar")
+  B5 --> B6{{"el sistema deberia avisar de facturas por cobrar:<br/>hoy NO registra cobranza"}}
+
+  A1 --> C1["5 · CAJA CHICA<br/>SOLO Administracion y el administrador entran aqui"]
+  C1 --> C2["6 · registra el GASTO<br/>el COMPROBANTE ES OBLIGATORIO"]
+  C2 --> C3["el sistema rechaza el gasto si no cabe en el saldo<br/>nunca queda negativo"]
+  C3 --> C4["7 · REPOSICION cuando se acaba<br/>aqui el comprobante es opcional"]
+  C4 --> C5["8 · exporta el CSV"]
+  C5 --> C6("ENTREGA A: EL CONTADOR, que lo captura en su sistema")
+  C6 --> C7{{"que formato necesita el contador<br/>y cada cuando se lo entregan"}}
+
+  C2 --> D1{{"quien puede gastar y hasta que monto sin permiso:<br/>el sistema NO tiene autorizacion de gastos"}}
+
+  A1 --> E1["9 · CORREOS<br/>puede cargar correos y revisar sugerencias"]
+  E1 --> E2{{"sigue habiendo un solo buzon administracion@<br/>y quien lo atiende"}}
+
+  A1 --> G1["10 · ORDENES DE COMPRA<br/>puede CREARLAS, pero NO autorizarlas"]
+  G1 --> G2("ENTREGA A: EL ADMINISTRADOR, para autorizar arriba de 20,000")
+  G2 --> G3{{"esto le estorba en el dia a dia,<br/>o esta bien que solo el dueno apruebe"}}
+
+  classDef sistema fill:#e8f0fe,stroke:#1a56db,color:#111827
+  classDef fuera fill:#f3f4f6,stroke:#6b7280,color:#111827,stroke-dasharray: 4 3
+  classDef incognita fill:#fef3c7,stroke:#b45309,color:#111827,stroke-width:2px
+  classDef frase fill:#ecfdf5,stroke:#047857,color:#111827
+  class L1,A1,A2,B1,B3,C1,C2,C3,C4,C5,E1,G1 sistema
+  class L2,B2,B5,C6,G2 fuera
+  class L3,B4,B6,C7,D1,E2,G3 incognita
+  class F1,L4 frase

@@ -13,6 +13,9 @@
 9. ¿Quién aprueba las compras: el dueño, o hace falta un rol de jefe de compras que autorice sin poder crear órdenes? → define si se agrega un rol (ver OPE-3 y D-58).
 10. ¿Existen de verdad las diez áreas del organigrama, o una sola persona cubre varias? → define si sobran roles.
 11. ¿Quién trabajará en computadora y quién en celular? → define qué pantallas conviene optimizar.
+12. **Cuando confirman un pedido, ¿apartan el producto físicamente en la bodega, o se surte hasta el día de la salida? ¿Ha pasado que dos pedidos prometan el mismo producto y no alcance?** → define RN-1.
+13. **Cuando un cliente les regresa mercancía, o cuando el proveedor manda producto que no pasa calidad, ¿qué hacen hoy con esos kilos: los vuelven a meter al almacén, los separan, los tiran? ¿Quién lo anota y dónde?** → define RN-2.
+14. **¿Les pasa que surten un pedido a medias porque no alcanzó el producto? Si sí, ¿cómo lo registran hoy y cómo sabe el cliente qué le queda pendiente?** → define RN-3.
 
 ## P1 — siguiente iteración
 
@@ -88,6 +91,22 @@ Los tres salieron de la revisión de la Fase 2. VERIFICADOS leyendo el código.
 | MAN-1 | Exponer `cancel_work_order` y `set_plan_active` por HTTP | Ambas funciones existen en `app/services/maintenance.py` (`:275` y `:191`), validan bien y auditan, pero **ninguna ruta las invoca**: desde la interfaz no se puede cancelar una orden de trabajo ni desactivar un plan | S |
 | MAN-2 | Implementar la transición a `en_proceso`, o quitar el estado | El estado está declarado en el servicio y en el modelo (`models.py:608`) pero **ninguna función lo asigna**: es inalcanzable. Una orden solo puede estar abierta, cerrada o cancelada | S |
 | MAN-3 | Decidir si las refacciones salen del inventario y si el costo se desglosa | Hoy mantenimiento **no descuenta piezas** (solo usa un ayudante numérico del módulo de inventario) y el costo es un total sin separar mano de obra. PENDIENTE de saber si La Huerta lleva refacciones en inventario | M |
+
+## RIESGOS DE NEGOCIO — no son dudas del cliente, son huecos que van a costar dinero (25-sep-2026)
+
+Subidos de categoría por decisión de Erick el 25-sep-2026: los tres estaban anotados como preguntas al
+cliente y se reclasifican porque **el daño ocurre aunque el cliente no responda nada**. VERIFICADOS
+leyendo el código y, en el caso de RN-1, reproducidos. **Ninguno está implementado.**
+
+| ID | Riesgo | Por qué es un riesgo, no una duda | Esfuerzo |
+|---|---|---|---|
+| RN-1 | **Confirmar un pedido no aparta existencia.** Dos vendedores pueden comprometer los mismos kilos y el conflicto no aparece hasta el momento de entregar | `confirm()` (`app/services/sales.py:146`) solo *consulta* la existencia con `check_stock`, que es lectura pura: no crea movimiento, no marca nada y no hay tabla ni columna de reserva. `deliver()` vuelve a revisar y ahí sí falla. Consecuencia comercial: dos clientes reciben promesa de entrega sobre el mismo lote, y quien pierde se enterará el día que esperaba su mercancía. Con un solo vendedor el riesgo es bajo; con dos o más es cuestión de tiempo. Hoy hay **dos usuarios de ventas** en el sistema | M |
+| RN-2 | **No hay forma de registrar una devolución ni producto rechazado**, así que el inventario queda incorrecto cuando ocurre | No existe función de devolución en ventas ni en compras. `cancel()` de ventas (`sales.py:189`) no revierte inventario y además no se puede cancelar un pedido ya entregado: `entregado` es estado terminal. En compras, `cancel()` tampoco revierte y el docstring lo dice: "una recibida ya movió inventario". La única salida es un **ajuste manual**, que exige motivo pero no distingue una devolución de un error de captura ni deja rastro del cliente o proveedor que la originó. Consecuencia: en cuanto haya la primera devolución, la existencia del sistema deja de coincidir con la bodega y nadie sabrá por qué | M |
+| RN-3 | **Asimetría entre compras y ventas**: se puede recibir una orden de compra a medias, pero no entregar un pedido a medias | En compras, un renglón en cero se ignora y la orden sigue abierta para recibir el resto (`procurement.py:248`). En ventas, `deliver()` surte todos los renglones o ninguno y deshace la operación completa si uno falla (`sales.py:164-185`). El sistema modela la realidad del proveedor pero no la del cliente, y la entrega parcial es más común hacia el cliente que desde el proveedor. **Hay que decidir en qué sentido se empareja**: permitir entrega parcial en ventas, o exigir recepción completa en compras. Dejarlo asimétrico obliga a la gente a inventarse un truco (capturar dos pedidos, o entregar de menos y ajustar), y esos trucos son los que ensucian el historial | M |
+
+**Las tres preguntas de negocio que se derivan** están al inicio de este documento, en la lista de
+validaciones con La Huerta (puntos 12, 13 y 14), redactadas para preguntárselas a una persona, no a un
+programador.
 
 ## SEGURIDAD — la descarga de documentos no respeta el permiso del módulo (25-sep-2026)
 

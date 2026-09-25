@@ -1,0 +1,43 @@
+---
+title: Dia del ADMINISTRADOR - lo unico que solo el puede hacer
+---
+flowchart TB
+  subgraph LEYENDA[" "]
+    L1["SISTEMA - pantalla o accion del sistema"]
+    L2("FUERA - ocurre fuera del sistema")
+    L3{{"INCOGNITA - hay que preguntarselo al cliente"}}
+    L4["ORDEN DEL DIA: INFERIDO<br/>deducido de los permisos, no de ver trabajar a nadie"]
+  end
+
+  F1["'Para mi el sistema es donde veo si el negocio va bien<br/>y donde autorizo lo que cuesta dinero'<br/>(frase INFERIDA - confirmar con la persona)"]
+
+  A1["1 · TABLERO<br/>decide: donde esta el problema hoy"]
+  A1 --> A2["2 · AVISOS<br/>ve TODOS los avisos, de todas las areas<br/>decide: que area esta desatendida"]
+  A2 --> A3["3 · 'Revisar ahora'<br/>SOLO el y Administracion pueden generar avisos"]
+
+  A3 --> B1["4 · ABASTECIMIENTO - ordenes POR AUTORIZAR<br/>decide: se aprueba esta compra<br/>ES LO UNICO QUE SOLO EL PUEDE HACER"]
+  B1 --> B2{"decision"}
+  B2 -->|autoriza| B3["la orden pasa a AUTORIZADA<br/>queda su nombre y la hora"]
+  B2 -->|no| B4["la cancela con motivo"]
+  B3 --> C9("ENTREGA A: Abastecimiento, que ya puede pedir al proveedor")
+
+  A1 --> D1["5 · HISTORIAL - solo el lo ve<br/>decide: quien hizo ese cambio y cuando<br/>puede exportar a CSV"]
+  D1 --> D2["verifica la integridad de la cadena"]
+
+  A1 --> E1["6 · USUARIOS - solo el<br/>decide: altas, bajas, cambio de area, contrasenas"]
+  E1 --> E2("ENTREGA A: la persona, con su acceso")
+
+  A1 --> G1["7 · PERSONAL y CAJA CHICA<br/>los ve igual que RRHH y Administracion"]
+
+  B1 --> H1{{"el umbral de 20,000 MXN es el real,<br/>y quiere revisar cada compra que lo pase"}}
+  E1 --> H2{{"quien mas deberia poder dar de alta usuarios<br/>si el no esta"}}
+  A3 --> H3{{"alguien va a pulsar 'Revisar ahora' todos los dias,<br/>o hace falta que corra solo"}}
+
+  classDef sistema fill:#e8f0fe,stroke:#1a56db,color:#111827
+  classDef fuera fill:#f3f4f6,stroke:#6b7280,color:#111827,stroke-dasharray: 4 3
+  classDef incognita fill:#fef3c7,stroke:#b45309,color:#111827,stroke-width:2px
+  classDef frase fill:#ecfdf5,stroke:#047857,color:#111827
+  class L1,A1,A2,A3,B1,B2,B3,B4,D1,D2,E1,G1 sistema
+  class L2,C9,E2 fuera
+  class L3,H1,H2,H3 incognita
+  class F1,L4 frase
