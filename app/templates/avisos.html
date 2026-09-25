@@ -6,7 +6,7 @@
 {% if not correo_activo %}
 <p class="card small" style="border-left:4px solid var(--warn)">
   <b>Envío por correo: todavía no.</b> El adaptador de correo no está configurado, así que los avisos
-  quedan en cola con estado <span class="chip warn">sin_adaptador</span> y solo se ven en esta pantalla.
+  quedan en cola con estado <span class="chip warn">En cola (sin correo)</span> y solo se ven en esta pantalla.
   Cuando se configure el envío, los mismos avisos saldrán por correo sin cambiar nada más.
 </p>
 {% endif %}
@@ -17,39 +17,42 @@
     <option value="leida" {{ 'selected' if f.status == 'leida' }}>Leídos</option>
     <option value="" {{ 'selected' if not f.status }}>Todos</option>
   </select></label>
-  <label>Tipo<select name="kind"><option value="">(todos)</option>
+  <label>Tipo<select name="kind"><option value="">Todos los tipos</option>
     {% for k, l in kinds.items() %}<option value="{{ k }}" {{ 'selected' if f.kind == k }}>{{ l }}</option>{% endfor %}
   </select></label>
-  <button>Filtrar</button> <a href="/avisos">limpiar</a>
+  <div class="acciones"><button>Filtrar</button> <a href="/avisos">limpiar</a></div>
 </form>
 {% if has_permission(user.role, 'integration:run') %}
-<form class="inline" method="post" action="/avisos/generar" style="margin-top:8px">
-  <input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
-  <button class="sec">Revisar ahora</button>
-  <span class="small muted">Recorre contratos, documentos, lotes, existencias, mantenimientos y tareas. Correrlo dos veces no duplica avisos.</span>
-</form>
+<div style="margin-top:12px">
+  <form class="inline" method="post" action="/avisos/generar">
+    <input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
+    <button class="sec">Revisar ahora</button>
+  </form>
+  <span class="hint">Recorre contratos, documentos, lotes, existencias, mantenimientos y tareas. Correrlo dos veces no duplica avisos.</span>
+</div>
 {% endif %}
 
+{% set SEV = {'ok': 'Al día', 'warn': 'Por vencer', 'bad': 'Vencido'} %}
 <table style="margin-top:10px"><tr><th>Aviso</th><th>Tipo</th><th>Vence</th><th>Correo</th><th>Acciones</th></tr>
 {% for a in avisos %}<tr>
-  <td><span class="chip {{ a.severity if a.severity in ['ok','warn','bad'] else '' }}">{{ a.severity }}</span>
-    {% if a.link %}<a href="{{ a.link }}">{{ a.title }}</a>{% else %}{{ a.title }}{% endif %}
-    {% if a.body %}<br><span class="small muted">{{ a.body }}</span>{% endif %}
-    <br><span class="small muted">{{ a.created_at|local('%d/%m/%Y %H:%M') }}{% if a.status == 'leida' %} · leído{% endif %}</span></td>
+  <td><div><span class="chip {{ a.severity if a.severity in ['ok','warn','bad'] else '' }}">{{ SEV.get(a.severity, a.severity|rotulo) }}</span></div>
+    <div style="margin-top:4px">{% if a.link %}<a href="{{ a.link }}">{{ a.title }}</a>{% else %}{{ a.title }}{% endif %}</div>
+    {% if a.body %}<div class="small muted">{{ a.body }}</div>{% endif %}
+    <div class="small muted">{{ a.created_at|local('%d/%m/%Y %H:%M') }}{% if a.status == 'leida' %} · leído{% endif %}</div></td>
   <td class="small">{{ kinds.get(a.kind, a.kind) }}</td>
   <td class="small">{% if a.due_on %}<span class="chip {{ a.due_on|expiry }}">{{ a.due_on|local('%d/%m/%Y') }}</span>{% else %}—{% endif %}</td>
-  <td class="small muted">{{ a.email_status }}</td>
-  <td>
+  <td class="small muted">{{ a.email_status|rotulo }}</td>
+  <td><div class="acciones">
     {% if a.status == 'pendiente' %}
     <form class="inline" method="post" action="/avisos/{{ a.id }}/leido"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
       <button class="sec small">Marcar leído</button></form>
     {% endif %}
-    <form class="inline" method="post" action="/avisos/silenciar"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
+    <form class="inline" method="post" action="/avisos/silenciar" style="width:100%"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
       <input type="hidden" name="mute_key" value="{{ a.mute_key }}">
-      <select name="days"><option value="30">30 días</option><option value="">sin fecha</option></select>
-      <input name="reason" placeholder="Motivo" size="12">
+      <label style="flex:0 1 140px">Silenciar por<select name="days"><option value="30">30 días</option><option value="">sin fecha</option></select></label>
+      <label style="flex:1 1 160px">Motivo<input name="reason"></label>
       <button class="sec small">Silenciar</button></form>
-  </td>
+  </div></td>
 </tr>{% else %}<tr><td colspan="5" class="muted">No hay avisos con este filtro.</td></tr>{% endfor %}
 </table>
 
@@ -57,7 +60,7 @@
 <div>
   <h2>Pendientes por tipo</h2>
   <table><tr><th>Tipo</th><th>#</th></tr>
-  {% for k, v in m.por_tipo.items() %}<tr><td>{{ k }}</td><td>{{ v }}</td></tr>
+  {% for k, v in m.por_tipo.items() %}<tr><td>{{ kinds.get(k, k|rotulo) }}</td><td>{{ v }}</td></tr>
   {% else %}<tr><td colspan="2" class="muted">Nada pendiente.</td></tr>{% endfor %}
   </table>
 </div>

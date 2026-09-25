@@ -1,11 +1,23 @@
 {% extends "base.html" %}
 {% block content %}
 <h1>Tareas</h1>
-<p>{% for s in ['pendiente','hecha'] %}<a class="chip {{ 'ok' if status==s }}" href="/tasks?status={{ s }}">{{ s }}</a> {% endfor %} ·
-{% for r in ['ventas','atencion','calidad','administracion'] %}<a class="chip {{ 'ok' if role==r }}" href="/tasks?status={{ status }}&role={{ r }}">{{ r }}</a> {% endfor %}<a href="/tasks?status={{ status }}">todos los roles</a></p>
+<form class="row card" method="get" action="/tasks">
+  <label>Estado<select name="status" data-auto>
+    {% for s in ['pendiente','hecha'] %}<option value="{{ s }}" {{ 'selected' if status==s }}>{{ s|rotulo }}</option>{% endfor %}
+  </select></label>
+  <label>Área<select name="role" data-auto>
+    <option value="">Todas las áreas</option>
+    {% for r in ['ventas','atencion','calidad','administracion'] %}<option value="{{ r }}" {{ 'selected' if role==r }}>{{ r|rotulo }}</option>{% endfor %}
+  </select></label>
+  <label>Prioridad<select name="priority" data-auto>
+    <option value="">Todas</option>
+    {% for p in ['alta','media','baja'] %}<option value="{{ p }}" {{ 'selected' if priority==p }}>{{ p|rotulo }}</option>{% endfor %}
+  </select></label>
+  <div class="acciones"><button>Filtrar</button> <a href="/tasks">limpiar</a></div>
+</form>
 <table><tr><th>Tarea</th><th>Rol</th><th>Prioridad</th><th>Vence</th><th>Origen</th><th>Relacionado</th><th></th></tr>
-{% for t in tasks %}<tr><td>{{ t.title }}</td><td>{{ t.assignee_role or '—' }}</td><td><span class="chip {{ 'bad' if t.priority=='alta' }}">{{ t.priority }}</span></td>
-<td>{{ t.due_at|local('%d/%m %H:%M') }}</td><td class="small">{{ t.origin }}</td>
+{% for t in tasks %}<tr><td>{{ t.title }}</td><td>{{ t.assignee_role|rotulo }}</td><td><span class="chip {{ 'bad' if t.priority=='alta' }}">{{ t.priority|rotulo }}</span></td>
+<td>{{ t.due_at|local('%d/%m %H:%M') }}</td><td class="small">{{ t.origin|rotulo }}</td>
 <td>{% if t.related_type in ['lead','account','opportunity','case'] %}<a href="/{{ {'lead':'leads','account':'accounts','opportunity':'opportunities','case':'cases'}[t.related_type] }}/{{ t.related_id }}">{{ t.related_type }}</a>{% else %}{{ t.related_type or '—' }}{% endif %}</td>
 <td>{% if t.status=='pendiente' and has_permission(user.role,'task:write') %}<form class="inline" method="post" action="/tasks/{{ t.id }}/complete"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}"><input type="hidden" name="next" value="/tasks"><button class="sec">Hecha</button></form>{% endif %}</td></tr>
 {% else %}<tr><td colspan="7" class="muted">Sin tareas.</td></tr>{% endfor %}</table>

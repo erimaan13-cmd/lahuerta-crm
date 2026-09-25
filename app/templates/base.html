@@ -148,7 +148,18 @@
     t.classList.add('cards');
     [].forEach.call(t.querySelectorAll('tr'), function (tr) {
       [].forEach.call(tr.children, function (td, i) {
-        if (td.tagName === 'TD' && heads[i]) td.setAttribute('data-label', heads[i]);
+        // Una celda que abarca toda la fila es un mensaje ("Sin tareas."), no un dato:
+        // ponerle el rótulo de la primera columna confundiría.
+        if (td.tagName !== 'TD' || !heads[i] || td.colSpan > 1) return;
+        td.setAttribute('data-label', heads[i]);
+        // El contenido se agrupa en una sola caja. Sin esto, en celular el nombre, el
+        // chip y el correo de una misma celda se reparten el ancho como si fueran
+        // columnas, y cada uno queda comprimido en dos letras por renglón.
+        if (!td.firstElementChild || !td.firstElementChild.classList.contains('valor')) {
+          var v = document.createElement('div'); v.className = 'valor';
+          while (td.firstChild) v.appendChild(td.firstChild);
+          td.appendChild(v);
+        }
       });
     });
     if (!t.parentElement.classList.contains('table-wrap')) {
@@ -170,6 +181,42 @@
   });
   document.addEventListener('submit', function () { bar.style.width = '70%'; });
   window.addEventListener('pageshow', function () { bar.style.width = '0'; });
+})();
+
+// --- Filtros que responden solos.
+//     data-auto: al cambiar el selector se aplica el filtro, sin buscar el botón.
+//     data-filtra="<campo>": este selector reduce las opciones de ese otro selector,
+//     usando el valor que cada opción declara en data-<campo> (historial: área → usuario).
+(function () {
+  document.querySelectorAll('select[data-filtra]').forEach(function (origen) {
+    var destino = origen.form && origen.form.elements[origen.dataset.filtra];
+    if (!destino) return;
+    var todas = [].slice.call(destino.options);
+    function depurar() {
+      var v = origen.value;
+      var visibles = todas.filter(function (o) { return !v || !o.dataset.grupo || o.dataset.grupo === v; });
+      if (visibles.length === todas.length || !v) visibles = todas;
+      var actual = destino.value;
+      destino.replaceChildren.apply(destino, visibles);
+      destino.value = visibles.some(function (o) { return o.value === actual; }) ? actual : '';
+    }
+    origen.addEventListener('change', depurar);
+    depurar();
+  });
+  document.querySelectorAll('[data-auto]').forEach(function (el) {
+    el.addEventListener('change', function () { if (el.form) el.form.requestSubmit(); });
+  });
+  // Filtrar una tabla ya cargada sin ir al servidor: útil en el tablero, donde la
+  // lista es corta y recargar la página entera por una etapa sería desproporcionado.
+  document.querySelectorAll('select[data-filtra-tabla]').forEach(function (sel) {
+    var tabla = document.querySelector(sel.dataset.filtraTabla);
+    if (!tabla) return;
+    sel.addEventListener('change', function () {
+      [].forEach.call(tabla.querySelectorAll('tr[data-clave]'), function (tr) {
+        tr.hidden = !!sel.value && tr.dataset.clave !== sel.value;
+      });
+    });
+  });
 })();
 
 // --- Contador de avisos pendientes (una llamada ligera; si falla, el menú sigue igual).

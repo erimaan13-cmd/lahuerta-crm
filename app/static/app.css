@@ -194,7 +194,6 @@ h3 { font-size: 14px; }
 
 /* chips de estado */
 .chip {
-  white-space: normal;
   display: inline-block; padding: 2px 10px; border-radius: var(--r-full);
   background: var(--crema-200); color: var(--ink-2);
   font-size: 12.5px; font-weight: 600; white-space: nowrap;
@@ -204,8 +203,53 @@ h3 { font-size: 14px; }
 .chip.bad { background: var(--bad-bg); color: var(--bad-ink); }
 .chip.info { background: var(--info-bg); color: var(--info-ink); }
 
+/* Chips que son filtros, no estados: el seleccionado se distingue por color de
+   marca y no solo por un gris pálido (contraste AA sobre fondo claro). */
+.filtros { display: flex; flex-wrap: wrap; gap: var(--s2); margin: 0 0 var(--s3); padding: 0; }
+.fchip {
+  display: inline-flex; align-items: center; min-height: 34px;
+  padding: 4px 12px; border-radius: var(--r-full);
+  background: var(--surface); border: 1px solid var(--line-2);
+  color: var(--ink-2); font-size: 13px; font-weight: 600;
+}
+.fchip:hover { background: var(--crema-200); text-decoration: none; border-color: var(--cafe-600); }
+.fchip[aria-current="true"] {
+  background: var(--cafe-600); border-color: var(--cafe-600); color: #fff; font-weight: 700;
+}
+.fchip[aria-current="true"]:hover { background: var(--cafe-700); }
+
 .muted { color: var(--muted); }
 .small { font-size: 12.5px; }
+
+/* Texto explicativo de un botón: siempre en su propio renglón, debajo, nunca a un
+   costado (a un costado se parte alrededor del botón y se lee mal). */
+.hint { display: block; width: 100%; margin-top: var(--s2); color: var(--muted); font-size: 12.5px; }
+
+/* Columna útil en monitor pero ruido en celular (por ejemplo la IP del historial). */
+.solo-monitor { display: table-cell; }
+
+/* Sección plegable: el usuario decide si ocupa espacio. */
+details.plegable { margin: 0 0 var(--s3); }
+details.plegable > summary {
+  cursor: pointer; list-style: none; display: flex; align-items: center; gap: var(--s2);
+  min-height: 44px; padding: var(--s2) var(--s3);
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r2);
+  font-weight: 650;
+}
+details.plegable > summary::-webkit-details-marker { display: none; }
+details.plegable > summary::after { content: "▾"; margin-left: auto; color: var(--muted); }
+details.plegable[open] > summary::after { content: "▴"; }
+details.plegable > .cuerpo { padding-top: var(--s2); }
+
+/* Grupo de cifras: cada bloque dice a qué corresponde antes de soltar los números. */
+.grupo-chips { margin-bottom: var(--s3); }
+.grupo-chips:last-child { margin-bottom: 0; }
+.grupo-chips .rotulo {
+  display: block; margin-bottom: var(--s2);
+  font-size: 11px; text-transform: uppercase; letter-spacing: .04em;
+  color: var(--muted); font-weight: 700;
+}
+.grupo-chips .chips { display: flex; flex-wrap: wrap; gap: var(--s2); }
 
 /* ------------------------------------------------------------------ tablas */
 .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: var(--r3); }
@@ -232,8 +276,20 @@ input, select, textarea {
 textarea { width: 100%; min-height: 70px; }
 input:hover, select:hover, textarea:hover { border-color: var(--cafe-600); }
 label { display: flex; flex-direction: column; gap: var(--s1); font-size: 12.5px; color: var(--muted); }
+
+/* Un campo nunca puede ser más ancho que su recuadro: sin `min-width: 0` el
+   contenido más largo de un <select> estira la caja y empuja la página entera
+   (en celular eso se ve como un zoom raro y texto que se sale por la derecha). */
+label > input, label > select, label > textarea { width: 100%; min-width: 0; }
 .row { display: flex; gap: var(--s3); flex-wrap: wrap; align-items: end; }
-form.inline { display: inline; }
+.row > label { flex: 1 1 200px; min-width: 0; }
+.row > button, .row > .btn, .row > a { flex: 0 0 auto; }
+
+/* Formulario de una sola acción: el control y su botón necesitan aire entre sí. */
+form.inline { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--s2); vertical-align: middle; }
+form.inline input, form.inline select { min-width: 0; }
+/* Celda con varias acciones: se apilan con separación en vez de amontonarse. */
+.acciones { display: flex; flex-wrap: wrap; gap: var(--s2); align-items: center; }
 
 button, .btn {
   font: inherit; font-weight: 600;
@@ -276,7 +332,9 @@ pre { white-space: pre-wrap; background: var(--crema-100); padding: var(--s3); b
   /* En celular la búsqueda vive en la barra inferior: así caben la campana y el menú. */
   .topbar .search, .topbar .user-mini { display: none; }
   .topbar .brand { margin-right: auto; }
-  .chip { white-space: normal; }   /* en pantalla angosta el texto salta de línea en vez de salirse */
+  /* En pantalla angosta el chip salta de línea en vez de salirse; en monitor se queda
+     en una sola línea, porque ahí la columna es estrecha y se partiría letra por letra. */
+  .chip { white-space: normal; overflow-wrap: anywhere; }
 
   /* menú deslizante */
   .nav {
@@ -297,15 +355,32 @@ pre { white-space: pre-wrap; background: var(--crema-100); padding: var(--s3); b
     background: var(--surface); border: 1px solid var(--line); border-radius: var(--r3);
     margin-bottom: var(--s2); padding: var(--s2) var(--s3); box-shadow: var(--shadow-1);
   }
-  table.cards td { border: 0; padding: 5px 0; display: flex; gap: var(--s3); align-items: baseline; }
+  table.cards td { border: 0; padding: 6px 0; display: flex; gap: var(--s3); align-items: flex-start; }
   table.cards td::before {
     content: attr(data-label);
-    flex: 0 0 38%; max-width: 38%;
-    font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em;
+    flex: 0 0 30%; max-width: 30%;                 /* rótulo angosto: el valor manda */
+    padding-top: 1px;
+    font-size: 11px; text-transform: uppercase; letter-spacing: .03em;
     color: var(--muted); font-weight: 700;
+    overflow-wrap: anywhere;
   }
+  /* El valor ocupa el resto y parte lo que no quepa. Sin `min-width: 0` un correo
+     largo se sale por la derecha y deja de leerse. */
+  table.cards td > .valor { flex: 1 1 auto; min-width: 0; max-width: 100%; }
+  table.cards td > * { min-width: 0; max-width: 100%; }
+  table.cards td { overflow-wrap: anywhere; }
   table.cards td:empty { display: none; }
+  table.cards td:not([data-label])::before { content: none; }   /* estados vacíos, sin rótulo */
+  table.cards td:not([data-label]) { display: block; color: var(--muted); }
+  /* Una celda con varios controles (cambiar rol, restablecer contraseña) se apila. */
+  table.cards td form.inline { width: 100%; }
+
+  .solo-monitor { display: none !important; }      /* columnas que en celular solo estorban */
   .table-wrap { overflow: visible; }
+
+  /* Última red de seguridad: nada puede empujar la página a lo ancho. */
+  main, .card, table.cards tr { max-width: 100%; }
+  main { overflow-x: clip; }
 }
 
 @media (min-width: 1024px) {

@@ -37,7 +37,9 @@ def test_la_pantalla_lista_filtra_y_avisa_que_el_correo_no_esta_configurado(clie
     e, aviso = _con_contrato_por_vencer(db)
     html = client_for("rrhh").get("/avisos").text
     assert "Rosa Lara (DEMO)" in html and f"/rrhh/empleados/{e.id}" in html
-    assert "sin_adaptador" in html and "adaptador de correo no está configurado" in html
+    # En pantalla el estado se lee en español (D-53: los códigos internos no se imprimen);
+    # el código "sin_adaptador" sigue siendo el valor guardado y viaja por la API.
+    assert "En cola (sin correo)" in html and "adaptador de correo no está configurado" in html
     assert 'class="chip warn"' in html                     # severidad con chip de color
 
     c = client_for("admin")

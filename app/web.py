@@ -42,6 +42,25 @@ def _kg(v):
     return "—" if v in (None, "") else f"{float(v):,.2f} kg"
 
 
+# Códigos internos que se muestran en pantalla. El diccionario cubre los que no se
+# entienden solos; el resto se convierte con la regla general (guion bajo → espacio,
+# mayúscula inicial), para que nadie lea "cliente_recurrente" en la interfaz.
+ROTULOS = {
+    "needs_review": "Por revisar", "auto": "Automático", "confirmado": "Confirmado",
+    "corregido": "Corregido", "aplicado": "Aplicado", "sin_adaptador": "En cola (sin correo)",
+    "atencion": "Atención a clientes", "administracion": "Administración",
+    "auto_lead": "Alta de lead", "auto_email": "Correo clasificado", "manual": "Creada a mano",
+    "cliente_activo": "Cliente activo", "cliente_recurrente": "Cliente recurrente",
+}
+
+
+def _rotulo(v) -> str:
+    if v in (None, ""):
+        return "—"
+    s = str(v)
+    return ROTULOS.get(s) or (s.replace("_", " ").capitalize())
+
+
 def _expiry(dt, warn_days: int = 30) -> str:
     """Clase visual de un vencimiento: rojo si ya pasó, ámbar si está cerca."""
     if not dt:
@@ -54,6 +73,7 @@ templates.env.filters["local"] = _local
 templates.env.filters["expiry"] = _expiry
 templates.env.filters["money"] = _money
 templates.env.filters["kg"] = _kg
+templates.env.filters["rotulo"] = _rotulo
 templates.env.globals.update(STAGE_LABELS=pipeline.STAGE_LABELS, CATEGORIES=CATEGORIES,
                              ROLE_LABELS=ROLE_LABELS, has_permission=has_permission,
                              QUOTE_TRANSITIONS=crm.QUOTE_TRANSITIONS, KINDS=ATTACHMENT_KINDS,

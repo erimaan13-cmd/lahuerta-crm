@@ -1,11 +1,15 @@
 {% extends "base.html" %}
 {% block content %}
 <h1>Cuentas</h1>
-<p>{% for lc in ['', 'prospecto','cliente_activo','cliente_recurrente','inactivo'] %}<a class="chip {{ 'ok' if (lifecycle or '')==lc }}" href="/accounts{{ '?lifecycle=' ~ lc if lc }}">{{ lc or 'todas' }}</a> {% endfor %}
-{% if has_permission(user.role, 'integration:run') %}<form class="inline" method="post" action="/integrations/erp-sync"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}"><button class="sec">Sincronizar pedidos (ERP simulado)</button></form>{% endif %}</p>
+<div class="filtros">{% for lc in ['', 'prospecto','cliente_activo','cliente_recurrente','inactivo'] %}
+  <a class="fchip" aria-current="{{ 'true' if (lifecycle or '')==lc else 'false' }}"
+     href="/accounts{{ '?lifecycle=' ~ lc if lc }}">{{ 'Todas' if not lc else lc|rotulo }}</a>{% endfor %}</div>
+{% if has_permission(user.role, 'integration:run') %}
+<form class="inline" method="post" action="/integrations/erp-sync"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}"><button class="sec">Sincronizar pedidos (ERP simulado)</button></form>
+<span class="hint">Trae los pedidos del ERP de demostración para que cada cuenta muestre su historial de compra.</span>{% endif %}
 <table><tr><th>Cuenta</th><th>Sector</th><th>Ciudad</th><th>Ciclo de vida</th><th>Contactos</th><th>Oportunidades</th><th>Pedidos (ref. ERP)</th></tr>
 {% for a in accounts %}<tr><td><a href="/accounts/{{ a.id }}">{{ a.name }}</a> {% if a.is_key_account %}<span class="chip ok">cuenta clave</span>{% endif %}<br><span class="small muted">{{ a.domain or '' }}</span></td>
-<td>{{ a.sector_code or '—' }}</td><td>{{ a.city or '—' }}</td><td><span class="chip">{{ a.lifecycle }}</span></td>
+<td>{{ a.sector_code|rotulo }}</td><td>{{ a.city or '—' }}</td><td><span class="chip">{{ a.lifecycle|rotulo }}</span></td>
 <td>{{ a.contacts|length }}</td><td>{{ a.opportunities|length }}</td><td>{{ a.orders|length }}</td></tr>
 {% endfor %}</table>
 {% if has_permission(user.role, 'account:write') %}

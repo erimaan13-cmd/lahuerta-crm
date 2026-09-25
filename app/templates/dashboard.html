@@ -37,9 +37,11 @@
 {% if avisos %}
 <h2>Avisos pendientes</h2>
 <div class="card small">
-  {% for a in avisos %}<p><span class="chip {{ a.severity }}">{{ a.kind.replace('_', ' ') }}</span>
-    {% if a.link %}<a href="{{ a.link }}">{{ a.title }}</a>{% else %}{{ a.title }}{% endif %}
-    <span class="muted">· {{ a.created_at|local('%d/%m %H:%M') }}</span></p>{% endfor %}
+  {% for a in avisos %}<div style="margin-bottom:10px">
+    <div><span class="chip {{ a.severity }}">{{ a.kind|rotulo }}</span></div>
+    <div style="margin-top:4px">{% if a.link %}<a href="{{ a.link }}">{{ a.title }}</a>{% else %}{{ a.title }}{% endif %}</div>
+    <div class="muted">{{ a.created_at|local('%d/%m %H:%M') }}</div>
+  </div>{% endfor %}
   <p><a href="/avisos">Ver todos los avisos</a></p>
 </div>
 {% endif %}
@@ -56,19 +58,34 @@
 
 <div class="two" style="margin-top:12px">
 <div>
-  <h2>Pipeline por etapa</h2>
+  {# Plegable: en celular esta tabla ocupaba media pantalla antes de llegar a lo demás. #}
   {% set maxc = (m.pipeline.values()|map(attribute='count')|max) or 1 %}
-  <table><tr><th>Etapa</th><th>#</th><th>kg estimados</th><th>Valor MXN</th><th></th></tr>
-  {% for code, p in m.pipeline.items() %}
-    <tr><td>{{ p.label }}</td><td>{{ p.count }}</td><td>{{ '{:,.0f}'.format(p.kg) }}</td><td>{{ '{:,.0f}'.format(p.mxn) }}</td>
-    <td style="width:30%"><div class="bar" style="width:{{ (p.count/maxc*100)|round }}%"></div></td></tr>
-  {% endfor %}</table>
+  {% set total_op = m.pipeline.values()|map(attribute='count')|sum %}
+  <details class="plegable" open>
+    <summary>Pipeline por etapa · {{ total_op }} oportunidad{{ 'es' if total_op != 1 else '' }}</summary>
+    <div class="cuerpo">
+      <label style="max-width:320px">Ver etapa
+        <select data-filtra-tabla="#tabla-pipeline">
+          <option value="">Todas las etapas</option>
+          {% for code, p in m.pipeline.items() %}<option value="{{ code }}">{{ p.label }} ({{ p.count }})</option>{% endfor %}
+        </select></label>
+      <table id="tabla-pipeline" style="margin-top:8px"><tr><th>Etapa</th><th>#</th><th>kg estimados</th><th>Valor MXN</th><th class="solo-monitor"></th></tr>
+      {% for code, p in m.pipeline.items() %}
+        <tr data-clave="{{ code }}"><td>{{ p.label }}</td><td>{{ p.count }}</td><td>{{ '{:,.0f}'.format(p.kg) }}</td><td>{{ '{:,.0f}'.format(p.mxn) }}</td>
+        <td class="solo-monitor" style="width:30%"><div class="bar" style="width:{{ (p.count/maxc*100)|round }}%"></div></td></tr>
+      {% endfor %}</table>
+    </div>
+  </details>
 
-  <h2>Correos por categoría</h2>
-  <table><tr><th>Categoría</th><th>#</th></tr>
-  {% for k, v in m.emails_by_category.items()|sort(attribute=1, reverse=True) %}<tr><td>{{ k }}</td><td>{{ v }}</td></tr>{% endfor %}
-  </table>
-  <p class="small muted">Estado de revisión: {% for k, v in m.emails_by_review.items() %}<span class="chip">{{ k }}: {{ v }}</span> {% endfor %}</p>
+  <details class="plegable">
+    <summary>Correos por categoría</summary>
+    <div class="cuerpo">
+      <table><tr><th>Categoría</th><th>#</th></tr>
+      {% for k, v in m.emails_by_category.items()|sort(attribute=1, reverse=True) %}<tr><td>{{ CATEGORIES[k].label if k in CATEGORIES else k|rotulo }}</td><td>{{ v }}</td></tr>{% endfor %}
+      </table>
+      <p class="small muted">Estado de revisión: {% for k, v in m.emails_by_review.items() %}<span class="chip">{{ k|rotulo }}: {{ v }}</span> {% endfor %}</p>
+    </div>
+  </details>
 </div>
 <div>
   <h2>Mis tareas (usuario o rol)</h2>
@@ -82,17 +99,26 @@
     último pedido {{ c.last_order|local('%d/%m/%Y') }} · intervalo habitual {{ c.interval_days }} días · <span class="chip warn">{{ c.days_overdue }} días de atraso</span></p>
   {% else %}<p class="muted">Ningún cliente fuera de su ciclo de compra.</p>{% endfor %}
   {% if has_permission(user.role, 'integration:run') %}<form method="post" action="/automations/reorder-check"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}"><button class="sec">Generar tareas de recompra</button></form>{% endif %}</div>
+  {# Antes eran cuatro filas de chips seguidas, sin decir a qué correspondía cada
+     grupo. Ahora cada grupo lleva su rótulo y los chips respiran. #}
+  {% macro grupo(titulo, datos, clase='') %}
+    <div class="grupo-chips">
+      <span class="rotulo">{{ titulo }}</span>
+      <div class="chips">{% for k, v in datos.items() %}<span class="chip {{ clase }}">{{ k|rotulo }} · <b>{{ v }}</b></span>{% endfor %}</div>
+    </div>
+  {% endmacro %}
+
   <h2>Leads</h2>
   <div class="card small">
-    {% for k, v in m.leads_by_status.items() %}<span class="chip">{{ k }}: {{ v }}</span> {% endfor %}
-    <p>Por origen: {% for k, v in m.leads_by_source.items() %}<span class="chip">{{ k }}: {{ v }}</span> {% endfor %}</p>
-    <p><span class="chip warn">Bajo mínimo 500 kg: {{ m.leads_below_minimum }}</span> <span class="chip warn">Posibles duplicados: {{ m.leads_possible_duplicates }}</span></p>
+    {{ grupo('Por estado', m.leads_by_status) }}
+    {{ grupo('Por origen', m.leads_by_source) }}
+    {{ grupo('Requieren atención', {'Bajo mínimo 500 kg': m.leads_below_minimum, 'Posibles duplicados': m.leads_possible_duplicates}, 'warn') }}
   </div>
   <h2>Cuentas y cotizaciones</h2>
   <div class="card small">
-    {% for k, v in m.accounts_by_lifecycle.items() %}<span class="chip">{{ k }}: {{ v }}</span> {% endfor %}
-    <p>Cotizaciones: {% for k, v in m.quotes_by_status.items() %}<span class="chip">{{ k }}: {{ v }}</span> {% endfor %}</p>
-    <p>Casos: {% for k, v in m.cases_by_type.items() %}<span class="chip">{{ k }}: {{ v }}</span> {% endfor %}</p>
+    {{ grupo('Cuentas por ciclo de vida', m.accounts_by_lifecycle) }}
+    {{ grupo('Cotizaciones', m.quotes_by_status) }}
+    {{ grupo('Casos por tipo', m.cases_by_type) }}
   </div>
 </div>
 </div>

@@ -369,11 +369,15 @@ async def ui_quote(opp_id: str, request: Request, db: Session = Depends(dbmod.ge
 
 
 @app.get("/tasks", response_class=HTMLResponse)
-def ui_tasks(request: Request, status: str = "pendiente", role: str | None = None, db: Session = Depends(dbmod.get_db), user: User = Depends(require("task:read"))):
+def ui_tasks(request: Request, status: str = "pendiente", role: str | None = None, priority: str | None = None,
+             db: Session = Depends(dbmod.get_db), user: User = Depends(require("task:read"))):
     stmt = select(Task).where(Task.status == status).order_by(Task.due_at)
     if role:
         stmt = stmt.where(Task.assignee_role == role)
-    return render(request, "tasks.html", user, tasks=list(db.scalars(stmt)), status=status, role=role)
+    if priority:                      # filtrar por urgencia sin salir de la pantalla
+        stmt = stmt.where(Task.priority == priority)
+    return render(request, "tasks.html", user, tasks=list(db.scalars(stmt)), status=status, role=role,
+                  priority=priority)
 
 
 @app.post("/tasks", dependencies=[Depends(csrf_protect)])

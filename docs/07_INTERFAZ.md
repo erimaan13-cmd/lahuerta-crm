@@ -43,8 +43,32 @@ botón), `aria-current` en la página activa, y `prefers-reduced-motion` respeta
 - **Sin copiar plantillas de terceros.** Del catálogo revisado se tomó el patrón general
   (barra lateral + barra superior + tarjetas), que es de uso común, no el diseño de ninguna plantilla.
 
+## Iteración 6 · auditoría con capturas reales del cliente (25-sep-2026)
+
+Erick revisó el sistema en su iPhone a través del túnel y envió capturas señaladas. Se corrigió:
+
+| Señalamiento | Corrección | Alcance |
+|---|---|---|
+| Correos y dominios cortados por la derecha | El contenido de cada celda se agrupa en `div.valor` y parte lo que no cabe; el rótulo baja a 30 % | Todas las fichas de celular (D-48) |
+| El desplegable de Usuario se salía del recuadro y "zoomeaba" la página | `min-width: 0` en las etiquetas: ningún campo excede su contenedor | Todos los formularios (D-49) |
+| "Revisar ahora" y "Crear orden en borrador" con el texto a un costado | Clase `.hint`: el texto va debajo, en su renglón | Avisos, Abastecimiento, Leads, Cuentas |
+| Controles amontonados (rol + Cambiar, contraseña + Restablecer, silenciar) | `form.inline` pasa a `inline-flex` con separación; celdas con varias acciones usan `.acciones` | Usuarios, Avisos |
+| Chips de filtro en minúscula, con guion bajo y sin contraste | Componente `.fchip` con etiqueta legible y estado activo en color de marca | Cuentas |
+| 18 chips de filtro en Correos, y filtros de Tareas sin prioridad | Desplegables que se aplican al elegir (D-51) | Correos, Tareas |
+| "Ingerir buzón", "Subir .eml" sin significado | Renombrados y con nota de una línea; el detalle va a la documentación (D-53) | Correos |
+| Historial: selectores sin relación entre sí, IP y detalle ilegibles | Área reduce la lista de usuarios (D-52), técnico a "Búsqueda avanzada", IP solo en monitor (D-54) | Historial |
+| Pipeline muy largo | Sección plegable con filtro por etapa | Tablero |
+| "Sin tareas." con el rótulo TAREA al lado | Las celdas que abarcan la fila ya no reciben rótulo | Todas las tablas |
+
+Verificación: sin desbordamiento horizontal en las ocho pantallas revisadas, a 390 px y a 1280 px,
+con 233 pruebas en verde.
+
+**Regla que quedó de esta iteración:** lo que necesita explicación se documenta en
+`docs/08_GUION_DOCUMENTACION.md` (guía de uso, video y diagrama), no se imprime en pantalla.
+
 ## Pendiente
 
-- Densidad de las tablas largas en celular (el pipeline por etapa queda muy alto).
+- Aplicar el mismo repaso a las pantallas de operación (inventario, mantenimiento, RRHH), que
+  todavía no se revisaron con capturas del cliente.
 - Modo oscuro, si el cliente lo pide.
 - Revisión de contraste con herramienta automática al desplegar en un dominio real.

@@ -1,19 +1,44 @@
 {% extends "base.html" %}
 {% block content %}
 <h1>{{ title or 'Correos clasificados' }}</h1>
-<p>{% for code, meta in CATEGORIES.items() %}<a class="chip {{ 'ok' if category==code }}" href="/emails?category={{ code }}">{{ meta.label }}</a> {% endfor %}<a href="/emails">todas</a></p>
-<p>{% for r in ['needs_review','auto','confirmado','corregido','aplicado'] %}<a class="chip {{ 'ok' if review==r }}" href="/emails?review={{ r }}">{{ r }}</a> {% endfor %}</p>
+
+{# Dieciocho chips llenaban tres renglones en celular. Dos desplegables dicen lo mismo
+   y el filtro se aplica solo al elegir (ley de Hick: menos opciones visibles a la vez). #}
+<form class="row card" method="get" action="/emails">
+  <label>Categoría<select name="category" data-auto>
+    <option value="">Todas las categorías</option>
+    {% for code, meta in CATEGORIES.items() %}<option value="{{ code }}" {{ 'selected' if category==code }}>{{ meta.label }}</option>{% endfor %}
+  </select></label>
+  <label>Revisión<select name="review" data-auto>
+    <option value="">Todas</option>
+    {% for r in ['needs_review','auto','confirmado','corregido','aplicado'] %}<option value="{{ r }}" {{ 'selected' if review==r }}>{{ r|rotulo }}</option>{% endfor %}
+  </select></label>
+  <div class="acciones"><button>Filtrar</button> <a href="/emails">limpiar</a></div>
+</form>
+
 {% if has_permission(user.role,'email:ingest') %}
-<div class="card row"><form class="inline" method="post" action="/emails/ingest-demo"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}"><button class="sec">Ingerir buzón de demostración</button></form>
-<form class="inline" method="post" action="/emails/upload" enctype="multipart/form-data"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}"><input type="file" name="file" accept=".eml" required> <button class="sec">Subir .eml</button></form>
-<span class="small muted">Solo lectura: el sistema nunca responde, borra, archiva ni modifica buzones.</span></div>{% endif %}
+<div class="card" style="margin-top:8px">
+  <form class="inline" method="post" action="/emails/ingest-demo"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
+    <button class="sec">Cargar correos de ejemplo</button></form>
+  <span class="hint">Trae el buzón de demostración y lo clasifica, para ver la pantalla con datos sin conectar un correo real.</span>
+
+  <form class="inline" method="post" action="/emails/upload" enctype="multipart/form-data" style="margin-top:16px; width:100%">
+    <input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
+    {# El botón gris "Choose File / Seleccionar archivo" lo dibuja el navegador y no se
+       puede traducir; la etiqueta de arriba es la que dice qué se espera. #}
+    <label style="flex:1 1 220px">Archivo del correo (.eml)
+      <input type="file" name="file" accept=".eml" required></label>
+    <button class="sec">Clasificar este correo</button></form>
+  <span class="hint">Sube <b>un correo guardado</b> (archivo .eml, el formato que genera Outlook o Gmail al guardar un mensaje) para ver cómo lo clasifica el sistema.</span>
+  <span class="hint">Solo lectura: el sistema nunca responde, borra, archiva ni modifica buzones.</span>
+</div>{% endif %}
 <table style="margin-top:10px"><tr><th>Recibido</th><th>Remitente</th><th>Asunto</th><th>Categoría</th><th>Confianza</th><th>Revisión</th><th>Vínculo CRM</th><th>Sugerencia</th></tr>
 {% for m in emails %}{% set c = m.classification %}<tr>
-<td class="small">{{ m.received_at|local('%d/%m %H:%M') }}</td><td class="small">{{ m.from_name or '' }}<br>{{ m.from_email }}<br><span class="muted">{{ c.extracted_entities.sender_kind }}</span></td>
+<td class="small">{{ m.received_at|local('%d/%m %H:%M') }}</td><td class="small">{{ m.from_name or '' }}<br>{{ m.from_email }}<br><span class="muted">{{ c.extracted_entities.sender_kind|rotulo }}</span></td>
 <td><a href="/emails/{{ m.id }}">{{ m.subject or '(sin asunto)' }}</a></td>
 <td>{{ CATEGORIES[c.final_category or c.category].label }}{% if c.final_category and c.final_category != c.category %}<br><span class="small muted">(modelo: {{ c.category }})</span>{% endif %}</td>
 <td><span class="chip {{ 'ok' if c.confidence>=0.6 else 'warn' }}">{{ '%.2f'|format(c.confidence) }}</span></td>
-<td><span class="chip {{ 'bad' if c.review_status=='needs_review' }}">{{ c.review_status }}</span></td>
+<td><span class="chip {{ 'bad' if c.review_status=='needs_review' }}">{{ c.review_status|rotulo }}</span></td>
 <td class="small">{{ c.crm_link_type or '—' }}</td><td class="small">{{ c.suggested_action_label }} → <b>{{ c.suggested_owner_role or '—' }}</b></td></tr>
 {% else %}<tr><td colspan="8" class="muted">Sin correos.</td></tr>{% endfor %}</table>
 {% endblock %}

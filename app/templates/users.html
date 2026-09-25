@@ -7,13 +7,16 @@
 <td><form class="inline" method="post" action="/admin/users/{{ u.id }}/role"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
   <select name="role">{% for ro in roles %}<option value="{{ ro }}" {{ 'selected' if ro==u.role }}>{{ ROLE_LABELS[ro] }}</option>{% endfor %}</select>
   <button class="sec small">Cambiar</button></form></td>
-<td><span class="chip {{ 'ok' if u.is_active else 'bad' }}">{{ 'activo' if u.is_active else 'desactivado' }}</span></td>
+<td><span class="chip {{ 'ok' if u.is_active else 'bad' }}">{{ 'Activo' if u.is_active else 'Desactivado' }}</span></td>
 <td class="small">{{ r.last|local('%d/%m/%Y %H:%M') }}</td>
 <td><a href="/audit?actor={{ u.id }}">{{ r.n }} · ver historial</a></td>
-<td><form class="inline" method="post" action="/admin/users/{{ u.id }}/active"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
-  <input type="hidden" name="active" value="{{ '0' if u.is_active else '1' }}"><button class="sec small">{{ 'Desactivar' if u.is_active else 'Reactivar' }}</button></form>
+<td><div class="acciones">
+  <form class="inline" method="post" action="/admin/users/{{ u.id }}/active"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
+    <input type="hidden" name="active" value="{{ '0' if u.is_active else '1' }}"><button class="sec small">{{ 'Desactivar' if u.is_active else 'Reactivar' }}</button></form>
   <form class="inline" method="post" action="/admin/users/{{ u.id }}/password"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
-  <input name="password" type="password" minlength="10" placeholder="nueva contraseña" required> <button class="sec small">Restablecer</button></form></td>
+    <label style="flex:1 1 180px">Nueva contraseña (mín. 10)<input name="password" type="password" minlength="10" required></label>
+    <button class="sec small">Restablecer</button></form>
+</div></td>
 </tr>{% endfor %}</table>
 <h2>Nuevo usuario</h2>
 <form class="card row" method="post" action="/admin/users"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">

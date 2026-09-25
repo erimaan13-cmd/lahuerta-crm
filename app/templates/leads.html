@@ -5,14 +5,14 @@
   <label>Estado<select name="status"><option value="">(todos)</option>{% for s in ['nuevo','contactado','calificado','convertido','descartado'] %}<option {{ 'selected' if f.status==s }}>{{ s }}</option>{% endfor %}</select></label>
   <label>Sector<select name="sector"><option value="">(todos)</option>{% for s in sectors %}<option value="{{ s.code }}" {{ 'selected' if f.sector==s.code }}>{{ s.name }}</option>{% endfor %}</select></label>
   <label>Origen<select name="source"><option value="">(todos)</option>{% for s in sources %}<option {{ 'selected' if f.source==s }}>{{ s }}</option>{% endfor %}</select></label>
-  <button>Filtrar</button> <a href="/leads">limpiar</a>
+  <div class="acciones"><button>Filtrar</button> <a href="/leads">limpiar</a></div>
 </form>
 <table style="margin-top:10px"><tr><th>Nombre</th><th>Empresa</th><th>Sector</th><th>Volumen</th><th>Origen</th><th>Estado</th><th>Alertas</th><th>Alta</th></tr>
 {% for l in leads %}<tr>
   <td><a href="/leads/{{ l.id }}">{{ l.full_name }}</a><br><span class="small muted">{{ l.email or '' }} {{ l.phone or '' }}</span></td>
-  <td>{{ l.company_name or '—' }}<br><span class="small muted">{{ l.city or '' }}</span></td><td>{{ l.sector_code or '—' }}</td>
-  <td>{{ l.volume_band }}{% if l.est_volume_kg %}<br><span class="small">{{ l.est_volume_kg|int }} kg</span>{% endif %}</td>
-  <td>{{ l.source }}</td><td><span class="chip">{{ l.status }}</span></td>
+  <td>{{ l.company_name or '—' }}<br><span class="small muted">{{ l.city or '' }}</span></td><td>{{ l.sector_code|rotulo }}</td>
+  <td>{{ l.volume_band|rotulo }}{% if l.est_volume_kg %}<br><span class="small">{{ l.est_volume_kg|int }} kg</span>{% endif %}</td>
+  <td>{{ l.source|rotulo }}</td><td><span class="chip">{{ l.status|rotulo }}</span></td>
   <td>{% if l.below_minimum %}<span class="chip warn">&lt; 500 kg</span>{% endif %} {% if l.duplicate_reason %}<span class="chip warn" title="{{ l.duplicate_reason }}">posible duplicado</span>{% endif %}</td>
   <td class="small">{{ l.created_at|local('%d/%m %H:%M') }}</td></tr>
 {% else %}<tr><td colspan="8" class="muted">Sin resultados.</td></tr>{% endfor %}
@@ -33,7 +33,8 @@
     <label>Campaña<input name="campaign"></label>
   </div>
   <p><label class="small muted">¿En qué podemos ayudarte?<textarea name="message" rows="2"></textarea></label></p>
-  <button>Crear lead</button> <span class="small muted">Se crea automáticamente una tarea de primer contacto (SLA 4 h).</span>
+  <button>Crear lead</button>
+  <span class="hint">Se crea automáticamente una tarea de primer contacto (SLA 4 h).</span>
 </form>
 {% endif %}
 {% endblock %}
