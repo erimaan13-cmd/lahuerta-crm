@@ -1,0 +1,72 @@
+---
+title: Proceso de compra - de la necesidad al lote en bodega
+---
+flowchart TB
+  subgraph LEYENDA["LEYENDA - tres tipos de paso"]
+    L1["SISTEMA - lo que hoy hace el sistema"]
+    L2("FUERA - ocurre fuera del sistema")
+    L3{{"INCOGNITA - no sabemos como se hace hoy en La Huerta"}}
+  end
+
+  A1["SISTEMA - aviso de existencia bajo el minimo<br/>compara contra min_stock_kg del producto"]
+  A2{{"INCOGNITA - quien revisa ese aviso y cada cuando;<br/>hoy el sistema NO crea la orden solo"}}
+  A3{{"INCOGNITA - se compra por minimos, por temporada<br/>o cuando lo pide produccion"}}
+  A1 --> A2 --> B1
+  A3 --> B1
+
+  B0["SISTEMA - alta de proveedor<br/>nombre, origen nacional o importado, contacto"]
+  B0 --> B1
+  B0B{{"INCOGNITA - se piden varias cotizaciones antes de comprar;<br/>hoy el sistema no guarda cotizaciones de proveedor"}}
+  B0B --> B1
+
+  B1["SISTEMA - orden de compra en BORRADOR<br/>folio OC, renglones en kg y costo unitario"]
+  B1 --> B2["SISTEMA - Enviar la orden"]
+  B2 --> C1{"SISTEMA - el total pasa de 20,000 MXN"}
+
+  C1 -->|no| C2["SISTEMA - queda AUTORIZADA sin firma"]
+  C1 -->|si| C3["SISTEMA - queda POR AUTORIZAR"]
+  C3 --> C4["SISTEMA - Autorizar<br/>SOLO el administrador puede"]
+  C4 --> C2
+
+  C1 --> C5{{"INCOGNITA - el umbral de 20,000 MXN es el real"}}
+  C4 --> C6{{"INCOGNITA - hace falta un jefe de compras que autorice<br/>sin poder crear ordenes"}}
+
+  C2 --> D1("FUERA - se le pide la mercancia al proveedor<br/>el sistema NO manda la orden ni por correo ni en PDF")
+  D1 --> D2{{"INCOGNITA - como se pide hoy:<br/>telefono, correo, WhatsApp, visita"}}
+
+  D1 --> E1("FUERA - el proveedor entrega fisicamente")
+  E1 --> E2{{"INCOGNITA - quien recibe en el anden<br/>y quien revisa calidad y caducidad"}}
+  E2 --> F1
+
+  F1["SISTEMA - Recibir la orden<br/>por renglon: kilos, bodega y CODIGO DE LOTE obligatorio"]
+  F1 --> F2["SISTEMA - caducidad opcional<br/>si no se captura, la calcula con la vida util del producto"]
+  F2 --> F3["SISTEMA - crea el lote si no existia<br/>si ya existia, lo reutiliza"]
+  F3 --> F4["SISTEMA - movimiento de ENTRADA a inventario<br/>unica via: inventory.move"]
+
+  F1 --> G1{"SISTEMA - llegaron todos los kilos"}
+  G1 -->|si| G2["SISTEMA - la orden queda RECIBIDA"]
+  G1 -->|no| G3["SISTEMA - sigue AUTORIZADA<br/>se puede recibir otra vez"]
+  G3 --> F1
+
+  G3 --> G4{{"INCOGNITA - hasta cuando se espera un faltante<br/>y que se hace si nunca llega"}}
+  F1 --> G5{{"INCOGNITA - que se hace con mercancia rechazada<br/>o devuelta: hoy no existe en el sistema"}}
+  F2 --> G6{{"INCOGNITA - se rechaza un lote con poca vida util,<br/>y cual es el minimo aceptable"}}
+
+  G2 --> H1["SISTEMA - se captura el folio de la factura del proveedor<br/>solo el folio, sin datos fiscales"]
+  H1 --> H2("FUERA - la factura del proveedor y su registro contable")
+  H2 --> H3("FUERA - el pago al proveedor")
+  H3 --> H4{{"INCOGNITA - el sistema deberia llevar cuentas por pagar;<br/>hoy no registra pagos, plazos ni anticipos"}}
+
+  C2 --> I1["SISTEMA - Cancelar<br/>exige motivo; NO revierte inventario"]
+
+  F4 --> J1["SISTEMA - el lote ya cuenta para la existencia<br/>y entra al control de caducidades"]
+
+  B1 --> K1{{"INCOGNITA - se compra en sacos o cajas y no en kilos;<br/>el modulo de compras solo maneja kilos"}}
+  B0 --> K2{{"INCOGNITA - hay importaciones con otra moneda;<br/>hoy no hay moneda ni tipo de cambio ni impuestos"}}
+
+  classDef sistema fill:#e8f0fe,stroke:#1a56db,color:#111827
+  classDef fuera fill:#f3f4f6,stroke:#6b7280,color:#111827,stroke-dasharray: 4 3
+  classDef incognita fill:#fef3c7,stroke:#b45309,color:#111827,stroke-width:2px
+  class L1,A1,B0,B1,B2,C1,C2,C3,C4,F1,F2,F3,F4,G1,G2,G3,H1,I1,J1 sistema
+  class L2,D1,E1,H2,H3 fuera
+  class L3,A2,A3,B0B,C5,C6,D2,E2,G4,G5,G6,H4,K1,K2 incognita

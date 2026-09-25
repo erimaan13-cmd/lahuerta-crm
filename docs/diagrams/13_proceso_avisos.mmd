@@ -1,0 +1,58 @@
+---
+title: Proceso de avisos - las seis reglas, a quien le llegan y como se apagan
+---
+flowchart TB
+  subgraph LEYENDA["LEYENDA - tres tipos de paso"]
+    L1["SISTEMA - lo que hoy hace el sistema"]
+    L2("FUERA - ocurre fuera del sistema")
+    L3{{"INCOGNITA - no sabemos como se hace hoy en La Huerta"}}
+  end
+
+  Z1["SISTEMA - alguien pulsa 'Revisar ahora'<br/>solo Administrador y Administracion pueden"]
+  Z2{{"INCOGNITA - no hay tarea programada:<br/>si nadie pulsa el boton, no hay avisos"}}
+  Z1 --> R1
+  Z2 --> Z1
+
+  subgraph REGLAS["SISTEMA - las seis reglas que se revisan"]
+    R1["1 · Contrato por vencer<br/>60 dias antes - a RRHH - SEMANAL"]
+    R2["2 · Documento por vencer<br/>30 dias antes - segun el dueno del archivo - SEMANAL"]
+    R3["3 · Lote por caducar<br/>30 dias antes y solo si AUN HAY EXISTENCIA - a Almacen - SEMANAL"]
+    R4["4 · Existencia bajo el minimo<br/>a Almacen - DIARIO"]
+    R5["5 · Mantenimiento programado<br/>15 dias, 500 km o 50 horas - a Mantenimiento - SEMANAL"]
+    R6["6 · Tarea vencida<br/>al rol y a la persona asignada - DIARIO"]
+  end
+
+  R1 --> S1
+  R2 --> S1
+  R3 --> S1
+  R4 --> S1
+  R5 --> S1
+  R6 --> S1
+
+  S1{"SISTEMA - ese aviso esta silenciado"}
+  S1 -->|si| S2["SISTEMA - no se crea, y no gasta el turno del periodo"]
+  S1 -->|no| S3{"SISTEMA - ya se creo en este periodo"}
+  S3 -->|si| S4["SISTEMA - no lo duplica<br/>revisar dos veces al dia es inofensivo"]
+  S3 -->|no| T1["SISTEMA - se crea el aviso"]
+
+  T1 --> U1["SISTEMA - se marca como 'sin adaptador'<br/>porque el envio de correo esta apagado"]
+  U1 --> U2("FUERA - hoy nadie recibe correo ni mensaje:<br/>el aviso SOLO se ve entrando al sistema")
+  U2 --> U3{{"INCOGNITA - a quien y por que medio deberia llegar:<br/>correo, WhatsApp, o basta la pantalla"}}
+
+  T1 --> V1["SISTEMA - lo ve el rol destinatario,<br/>la persona asignada, y el Administrador todo"]
+  V1 --> V2{{"INCOGNITA - quien revisa los avisos cada manana<br/>y que pasa si nadie los ve"}}
+
+  V1 --> W1["SISTEMA - marcar LEIDO"]
+  V1 --> W2["SISTEMA - SILENCIAR por N dias o para siempre<br/>tambien marca leidos los pendientes"]
+  W2 --> W3["SISTEMA - al silenciar deja de generarse<br/>hasta que alguien lo reactive"]
+
+  W2 --> W4{{"INCOGNITA - cualquier rol puede silenciar, incluso 'solo lectura':<br/>debe quedar asi o restringirse al area"}}
+
+  T1 --> X1{{"INCOGNITA - los avisos nunca se archivan ni caducan:<br/>hace falta limpieza con el tiempo"}}
+
+  classDef sistema fill:#e8f0fe,stroke:#1a56db,color:#111827
+  classDef fuera fill:#f3f4f6,stroke:#6b7280,color:#111827,stroke-dasharray: 4 3
+  classDef incognita fill:#fef3c7,stroke:#b45309,color:#111827,stroke-width:2px
+  class L1,Z1,R1,R2,R3,R4,R5,R6,S1,S2,S3,S4,T1,U1,V1,W1,W2,W3 sistema
+  class L2,U2 fuera
+  class L3,Z2,U3,V2,W4,X1 incognita

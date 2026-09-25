@@ -1,0 +1,60 @@
+---
+title: Proceso de mantenimiento - del activo al plan cumplido
+---
+flowchart TB
+  subgraph LEYENDA["LEYENDA - tres tipos de paso"]
+    L1["SISTEMA - lo que hoy hace el sistema"]
+    L2("FUERA - ocurre fuera del sistema")
+    L3{{"INCOGNITA - no sabemos como se hace hoy en La Huerta"}}
+  end
+
+  A1["SISTEMA - alta del ACTIVO<br/>clave unica, tipo camion/clima/equipo,<br/>marca, modelo, placas o serie, ubicacion"]
+  A2{{"INCOGNITA - que inventario de equipos existe hoy<br/>y quien lo lleva"}}
+  A2 --> A1
+
+  A1 --> A3["SISTEMA - asignar responsable<br/>a un usuario del sistema y/o a un empleado"]
+
+  A1 --> B1["SISTEMA - alta del PLAN<br/>al menos una frecuencia:<br/>dias, kilometros u horas - se pueden combinar"]
+  B1 --> B2["SISTEMA - calcula el proximo vencimiento<br/>en las tres dimensiones a la vez"]
+  B2 --> B3["SISTEMA - vence lo que ocurra PRIMERO<br/>umbrales: 15 dias, 500 km, 50 horas"]
+
+  B1 --> B4{{"INCOGNITA - existen programas de mantenimiento escritos,<br/>o los define el mecanico por costumbre"}}
+
+  C1("FUERA - el camion rueda, el equipo trabaja")
+  C1 --> C2["SISTEMA - se captura el ODOMETRO u horas<br/>la lectura SOLO PUEDE SUBIR, nunca bajar"]
+  C2 --> B3
+  C2 --> C3{{"INCOGNITA - quien captura el kilometraje y cada cuando;<br/>si nadie lo captura, el plan por km nunca avisa"}}
+
+  B3 --> D1["SISTEMA - aviso de mantenimiento programado<br/>dirigido a Mantenimiento y al responsable del plan<br/>uno por semana"]
+  D1 --> D2{{"INCOGNITA - el sistema NO crea la orden solo:<br/>quien ve el aviso y decide atenderlo"}}
+
+  D2 --> E1["SISTEMA - alta de la ORDEN DE TRABAJO<br/>folio OM, preventivo o correctivo,<br/>interno o externo con nombre del proveedor"]
+  E1 --> E2["SISTEMA - la orden nace ABIERTA"]
+
+  F1("FUERA - una falla inesperada")
+  F1 --> E1
+
+  E2 --> G1("FUERA - la reparacion fisica: el taller o el proveedor")
+  G1 --> G2{{"INCOGNITA - se piden cotizaciones para un servicio externo<br/>y quien lo autoriza"}}
+
+  G1 --> H1["SISTEMA - CERRAR la orden<br/>costo, fecha, odometro, horas y notas"]
+  H1 --> H2["SISTEMA - actualiza la lectura del activo si es mayor"]
+  H2 --> H3["SISTEMA - reprograma el plan desde lo REALMENTE hecho"]
+  H3 --> B2
+
+  E2 --> I1{{"INCOGNITA - las refacciones salen del inventario:<br/>hoy el mantenimiento NO descuenta piezas"}}
+  H1 --> I2{{"INCOGNITA - se necesita desglosar mano de obra y refacciones:<br/>hoy solo hay un costo total"}}
+
+  A1 --> J1["SISTEMA - documentos del activo con vencimiento<br/>poliza, verificacion, seguro - avisan a 30 dias"]
+
+  A1 --> K1["SISTEMA - estado del activo:<br/>activo, en reparacion o baja"]
+  K1 --> K2["SISTEMA - un activo dado de baja deja de avisar"]
+
+  E2 --> L4{{"INCOGNITA - una orden en curso no se puede marcar 'en proceso'<br/>ni cancelar desde la pantalla: falta la ruta"}}
+
+  classDef sistema fill:#e8f0fe,stroke:#1a56db,color:#111827
+  classDef fuera fill:#f3f4f6,stroke:#6b7280,color:#111827,stroke-dasharray: 4 3
+  classDef incognita fill:#fef3c7,stroke:#b45309,color:#111827,stroke-width:2px
+  class L1,A1,A3,B1,B2,B3,C2,D1,E1,E2,H1,H2,H3,J1,K1,K2 sistema
+  class L2,C1,F1,G1 fuera
+  class L3,A2,B4,C3,D2,G2,I1,I2,L4 incognita

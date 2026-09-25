@@ -1,0 +1,58 @@
+---
+title: Proceso de personal - del puesto al expediente y sus contratos
+---
+flowchart TB
+  subgraph LEYENDA["LEYENDA - tres tipos de paso"]
+    L1["SISTEMA - lo que hoy hace el sistema"]
+    L2("FUERA - ocurre fuera del sistema")
+    L3{{"INCOGNITA - no sabemos como se hace hoy en La Huerta"}}
+  end
+
+  A1["SISTEMA - alta del PUESTO<br/>titulo unico, area, funciones y requisitos<br/>una por renglon, no es puntaje"]
+  A2{{"INCOGNITA - existen descripciones de puesto escritas hoy,<br/>o hay que redactarlas"}}
+  A2 --> A1
+
+  B1("FUERA - reclutamiento, entrevistas y seleccion")
+  B1 --> B2{{"INCOGNITA - como se recluta y quien decide la contratacion"}}
+  B2 --> C1
+
+  A1 --> C1["SISTEMA - alta del EXPEDIENTE<br/>numero de empleado, nombre, area,<br/>puesto, fecha de ingreso, telefono, correo"]
+  C1 --> C2["SISTEMA - queda en estado ACTIVO"]
+
+  C1 --> C3{{"INCOGNITA - hacen falta RFC, CURP, NSS, domicilio y salario:<br/>hoy el expediente NO los guarda"}}
+
+  C2 --> D1("FUERA - se firma el contrato en papel")
+  D1 --> D2["SISTEMA - alta del CONTRATO<br/>temporal o indeterminado, fechas<br/>UNO vigente por empleado"]
+  D2 --> D3["SISTEMA - se sube el PDF escaneado<br/>se guarda tal cual, sin leerlo"]
+
+  D2 --> E1{"SISTEMA - el contrato tiene fecha de fin"}
+  E1 -->|si| E2["SISTEMA - aviso a 60 dias del vencimiento<br/>dirigido a RRHH, uno por semana"]
+  E1 -->|no| E3["SISTEMA - indeterminado: no vence, no avisa"]
+
+  E2 --> F1{"SISTEMA - que se decide"}
+  F1 -->|renovar| F2["SISTEMA - RENOVAR<br/>el anterior queda 'renovado' y nace uno nuevo"]
+  F1 -->|terminar| F3["SISTEMA - TERMINAR<br/>el contrato queda 'terminado'"]
+  F2 --> E1
+
+  F3 --> G1["SISTEMA - BAJA del empleado<br/>estado 'baja', exige motivo<br/>cierra los contratos vigentes"]
+  G1 --> G2["SISTEMA - nada se borra:<br/>el expediente queda en la bitacora"]
+
+  G1 --> G3{{"INCOGNITA - se necesita reporte de rotacion:<br/>hoy la fecha y el motivo de baja van en notas libres"}}
+
+  C2 --> H1["SISTEMA - aviso: empleado activo SIN contrato vigente<br/>solo aparece en el tablero, no genera aviso"]
+
+  D3 --> I1["SISTEMA - documentos con vencimiento<br/>avisan a 30 dias"]
+
+  G1 --> J1("FUERA - finiquito, IMSS, SAT y nomina")
+  J1 --> J2{{"INCOGNITA - con que sistema se calcula la nomina hoy;<br/>este sistema NO la calcula ni la exporta"}}
+
+  C1 --> K1{{"INCOGNITA - falta el AVISO DE PRIVACIDAD firmado<br/>antes de cargar expedientes reales - OBLIGATORIO"}}
+
+  C1 --> K2{{"INCOGNITA - se registra asistencia, vacaciones o incidencias:<br/>hoy el sistema no tiene nada de eso"}}
+
+  classDef sistema fill:#e8f0fe,stroke:#1a56db,color:#111827
+  classDef fuera fill:#f3f4f6,stroke:#6b7280,color:#111827,stroke-dasharray: 4 3
+  classDef incognita fill:#fef3c7,stroke:#b45309,color:#111827,stroke-width:2px
+  class L1,A1,C1,C2,D2,D3,E1,E2,E3,F1,F2,F3,G1,G2,H1,I1 sistema
+  class L2,B1,D1,J1 fuera
+  class L3,A2,B2,C3,G3,J2,K1,K2 incognita

@@ -1,0 +1,54 @@
+---
+title: Proceso de caja chica - del gasto al reporte para el contador
+---
+flowchart TB
+  subgraph LEYENDA["LEYENDA - tres tipos de paso"]
+    L1["SISTEMA - lo que hoy hace el sistema"]
+    L2("FUERA - ocurre fuera del sistema")
+    L3{{"INCOGNITA - no sabemos como se hace hoy en La Huerta"}}
+  end
+
+  A1["SISTEMA - alta del FONDO<br/>nombre, monto asignado y responsable"]
+  A2{{"INCOGNITA - cuantas cajas hay, de cuanto,<br/>y quien es responsable de cada una"}}
+  A2 --> A1
+
+  B1("FUERA - alguien gasta dinero en efectivo<br/>y trae el ticket en papel")
+  B1 --> B2{{"INCOGNITA - quien puede gastar de la caja<br/>y hasta que monto sin pedir permiso"}}
+  B2 --> C1
+
+  C1["SISTEMA - registrar GASTO<br/>monto, categoria y descripcion"]
+  C1 --> C2["SISTEMA - el COMPROBANTE ES OBLIGATORIO<br/>sin archivo no se registra el gasto"]
+  C2 --> C3["SISTEMA - se acepta PDF, foto, XML, texto<br/>hasta 15 MB; NO se lee el contenido"]
+
+  C1 --> C4{"SISTEMA - el gasto cabe en el saldo"}
+  C4 -->|no| C5["SISTEMA - lo rechaza:<br/>'registra primero una reposicion'<br/>el saldo NUNCA queda negativo"]
+  C4 -->|si| C6["SISTEMA - queda registrado y recalcula el saldo"]
+
+  C1 --> D1{{"INCOGNITA - hoy alguien autoriza el gasto antes de capturarlo:<br/>el sistema NO tiene flujo de autorizacion"}}
+
+  C6 --> E1["SISTEMA - saldo = monto del fondo<br/>+ reposiciones - gastos<br/>se recalcula en cada consulta"]
+
+  E1 --> F1{"SISTEMA - el saldo se acabo"}
+  F1 -->|si| F2("FUERA - alguien entrega efectivo para reponer la caja")
+  F2 --> F3["SISTEMA - registrar REPOSICION<br/>comprobante OPCIONAL aqui"]
+  F3 --> E1
+
+  F3 --> F4{{"INCOGNITA - quien reponia y con que autorizacion;<br/>el sistema no calcula cuanto falta ni pide aprobacion"}}
+
+  E1 --> G1["SISTEMA - exportar CSV<br/>fecha, caja, tipo, categoria, monto,<br/>descripcion, responsable, comprobante si/no"]
+  G1 --> G2("FUERA - el contador lo captura en su sistema")
+  G2 --> G3{{"INCOGNITA - que formato necesita el contador<br/>y cada cuando se lo entregan"}}
+
+  C6 --> H1["SISTEMA - ningun movimiento se edita ni se borra<br/>para corregir hay que capturar el contrario"]
+  H1 --> H2{{"INCOGNITA - se hace arqueo o conteo fisico de la caja:<br/>hoy el sistema no lo registra ni compara"}}
+
+  E1 --> I1{{"INCOGNITA - hay cierre de periodo mensual:<br/>hoy la caja no cierra, es un flujo continuo"}}
+
+  C3 --> J1["SISTEMA - documentos con vencimiento avisan a 30 dias<br/>dirigido a Administracion"]
+
+  classDef sistema fill:#e8f0fe,stroke:#1a56db,color:#111827
+  classDef fuera fill:#f3f4f6,stroke:#6b7280,color:#111827,stroke-dasharray: 4 3
+  classDef incognita fill:#fef3c7,stroke:#b45309,color:#111827,stroke-width:2px
+  class L1,A1,C1,C2,C3,C4,C5,C6,E1,F1,F3,G1,H1,J1 sistema
+  class L2,B1,F2,G2 fuera
+  class L3,A2,B2,D1,F4,G3,H2,I1 incognita

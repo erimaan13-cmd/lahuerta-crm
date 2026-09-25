@@ -10,6 +10,9 @@
 6. Entrega propia o tercerizada; zonas de cobertura.
 7. Volumen diario de correos y de leads (dimensiona la necesidad de LLM y colas).
 8. Tratamiento de datos personales para usar un LLM externo (aviso de privacidad, E16).
+9. ¿Quién aprueba las compras: el dueño, o hace falta un rol de jefe de compras que autorice sin poder crear órdenes? → define si se agrega un rol (ver OPE-3 y D-58).
+10. ¿Existen de verdad las diez áreas del organigrama, o una sola persona cubre varias? → define si sobran roles.
+11. ¿Quién trabajará en computadora y quién en celular? → define qué pantallas conviene optimizar.
 
 ## P1 — siguiente iteración
 
@@ -57,11 +60,49 @@ adjuntos con vencimiento · cuatro roles nuevos · tableros por módulo. Detalle
 | FAC-2 | Conector con el SDK de CONTPAQi Comercial Premium (si esa es su versión) | Existencias y precios en vivo; requiere PC Windows encendida |
 | OPE-1 | Tarea programada diaria que ejecute `notifications.generate` | Hoy los avisos se generan a demanda |
 | OPE-2 | Adaptador de envío de correo para los avisos | Quedan en cola como `sin_adaptador` |
-| OPE-3 | Confirmar con La Huerta: umbral de autorización de compras y si administración autoriza | Hoy solo autoriza `admin` |
+| OPE-3 | Preguntar a La Huerta: **¿quién aprueba las compras: el dueño, o hace falta un rol de jefe de compras que autorice sin poder crear órdenes?** Y confirmar el umbral de $20,000 MXN | Que hoy solo autorice `admin` es separación de funciones y **se queda así** (D-58): si Abastecimiento tuviera la llave aprobaría sus propias compras. La pregunta es si se necesita un rol intermedio |
 | OPE-4 | Recepciones con varios lotes por renglón (tabla de recepciones) | Hoy el renglón guarda el último lote; el rastro completo está en los movimientos |
 | OPE-5 | Campos de baja en el expediente (fecha y motivo) para reporte de rotación | Hoy van en notas y bitácora |
 | OPE-6 | Aviso de privacidad para empleados y política de uso del sistema | Obligatorio antes de cargar expedientes reales |
 | OPE-7 | Migrar lo que hoy llevan en Excel | PENDIENTE de saber qué existe |
+
+## Interfaz — hallazgos del recorrido por rol (25-sep-2026)
+
+Los tres salen de `09_RECORRIDO_POR_ROL.md`. **Ninguno está implementado**; se anotan para decidirlos
+después. Los tres conservan la visibilidad cruzada del menú, que se queda como está por decisión
+(D-57).
+
+| ID | Tarea | Por qué | Esfuerzo |
+|---|---|---|---|
+| UI-1 | El mensaje de bloqueo debe decir de quién es la sección y a quién pedírsela, no el código del permiso | Hoy se lee "Tu rol no tiene el permiso 'pettycash:read'"; un almacenista no sabe qué significa | S |
+| UI-2 | Reordenar el menú para que el bloque del área de cada quien quede primero, conservando el resto visible | Alguien de almacén ve cinco secciones comerciales antes de llegar a Inventario (ley de Hick) | S |
+| UI-3 | Tablero adaptado al rol | Hoy es el mismo para todos y es la pantalla más densa (22 renglones): útil para ventas, ruido para un mecánico | M |
+| UI-4 | Decidir si silenciar un aviso debe seguir al alcance de todos los roles | **VERIFICADO con prueba:** silenciar y marcar leído exigen solo `notification:read` (`app/routers/notifications.py:31` y `:39`), que tienen los diez roles, así que el rol `lectura` puede apagar una alerta de lote por caducar (se comprobó entrando como `direccion@demo.local`). El código lo hace a propósito ("silenciar es decisión del área"), pero un usuario de consulta no debería poder | S |
+
+## Mantenimiento — funciones sin puerta de entrada (25-sep-2026)
+
+Los tres salieron de la revisión de la Fase 2. VERIFICADOS leyendo el código.
+
+| ID | Tarea | Por qué | Esfuerzo |
+|---|---|---|---|
+| MAN-1 | Exponer `cancel_work_order` y `set_plan_active` por HTTP | Ambas funciones existen en `app/services/maintenance.py` (`:275` y `:191`), validan bien y auditan, pero **ninguna ruta las invoca**: desde la interfaz no se puede cancelar una orden de trabajo ni desactivar un plan | S |
+| MAN-2 | Implementar la transición a `en_proceso`, o quitar el estado | El estado está declarado en el servicio y en el modelo (`models.py:608`) pero **ninguna función lo asigna**: es inalcanzable. Una orden solo puede estar abierta, cerrada o cancelada | S |
+| MAN-3 | Decidir si las refacciones salen del inventario y si el costo se desglosa | Hoy mantenimiento **no descuenta piezas** (solo usa un ayudante numérico del módulo de inventario) y el costo es un total sin separar mano de obra. PENDIENTE de saber si La Huerta lleva refacciones en inventario | M |
+
+## SEGURIDAD — la descarga de documentos no respeta el permiso del módulo (25-sep-2026)
+
+| ID | Tarea | Por qué | Esfuerzo |
+|---|---|---|---|
+| SEC-1 | `GET /documentos/{id}` y `GET /api/documentos/{id}` deben exigir el permiso del módulo dueño del adjunto (`hr:read` para `employee`, `pettycash:read` para `petty_cash`, etc.), no `dashboard:read` | **VERIFICADO con una prueba reproducible.** Ambas rutas piden solo `dashboard:read` (`app/routers/files.py:31` y `:47`), que está en `BASE_READ` y por tanto lo tienen **los diez roles**, y no comprueban a qué entidad pertenece el archivo. Comprobado entrando como `direccion@demo.local` (rol `lectura`): recibe **403 en `/caja`** y aun así **descarga con 200 el comprobante de caja chica** y lee su contenido, lo mismo por la API. Con expedientes reales esto expondría identificaciones y contratos de empleados a cualquier usuario autenticado. Contradice la regla 4c de CLAUDE.md y la decisión D-40. Agrava el riesgo que `GET /documentos` (`files.py:39`, mismo permiso) liste documentos de todas las entidades con sus identificadores | S |
+
+**Prioridad:** antes de cargar datos reales de personal o de caja, y antes de exponer el sistema por
+un túnel público.
+
+## Inventario — hueco de trazabilidad por lote (hallado el 25-sep-2026)
+
+| ID | Tarea | Por qué | Esfuerzo |
+|---|---|---|---|
+| INV-1 | Exigir lote en toda salida, o repartir la salida sin lote entre los lotes por PEPS | **VERIFICADO con una prueba reproducible.** Una salida manual sin lote se valida contra el total de la bodega, no contra un lote, y se guarda con `lot_id = NULL`. Resultado: con una entrada de 100 kg al lote L1 y una salida de 50 kg sin lote, la pantalla de existencias muestra **dos renglones: −50 kg "sin lote" y 100 kg en L1**. El total (50 kg) es correcto y nunca queda negativo, así que la regla 4b se respeta en el agregado, pero el lote sigue declarando 100 kg cuando salieron 50: se rompe el rastro por lote que exige FSSC 22000. La entrega de pedidos NO tiene este problema (reparte por PEPS); solo la captura manual de salidas | S |
 
 ## Deuda técnica conocida
 

@@ -1,5 +1,8 @@
+---
+title: Recorrido del cliente (vista comercial) - el proceso interno esta en 08_proceso_venta.mmd
+---
 flowchart LR
-  L[Lead<br/>web · WhatsApp · tel · correo] --> K[Contacto<br/>tarea SLA 4 h]
+  L[Prospecto<br/>web · WhatsApp · tel · correo] --> K[Contacto<br/>tarea SLA 4 h]
   K --> Q{Calificación<br/>≥500 kg · B2B · MX}
   Q -- no --> X[Descartado<br/>con motivo]
   Q -- sí --> CV[Conversión<br/>Cuenta + Contacto]
@@ -12,8 +15,8 @@ flowchart LR
   COT --> G
   G -- perdida + motivo --> LO[Perdida]
   G -- ganada --> W[Ganada<br/>evento ERP + tarea Admin]
-  W --> PED[Pedido en ERP<br/>OrderReference en CRM]
-  PED --> ENT[Entrega < 72 h<br/>estado desde ERP/WMS]
+  W --> PED[Pedido en el sistema<br/>folio PED · descuenta inventario al entregar]
+  PED --> ENT[Entrega<br/>salida por PEPS · factura en CONTPAQi, solo el folio]
   ENT --> SEG[Seguimiento]
   SEG --> INC{¿Incidencia?}
   INC -- sí --> CASE[Caso / reclamación<br/>lote obligatorio → QMS]

@@ -1,40 +1,94 @@
+---
+title: Arquitectura lógica del sistema interno La Huerta (iteración 7, sep-2026)
+---
 flowchart TB
-  USERS[Clientes / prospectos / usuarios internos]
-  subgraph UI[Interfaz CRM]
-    HTML[Jinja HTML /ui]
-    API[API REST /api JSON]
+  USERS[Usuarios internos<br/>10 roles]
+
+  subgraph RUTAS["1 · RUTAS · validan permiso y forma, NO deciden reglas"]
+    R1["main.py<br/>CRM comercial + historial + usuarios"]
+    R2["routers/sales.py · inventory.py · procurement.py"]
+    R3["routers/rrhh.py · pettycash.py · maintenance.py"]
+    R4["routers/notifications.py · files.py"]
   end
-  subgraph SVC[Servicios de aplicación · app/services]
-    S1[crm.py: leads · cuentas · oportunidades<br/>cotizaciones · actividades · tareas · casos]
-    S2[email_pipeline.py]
-    S3[dashboard.py]
+
+  subgraph SVC["2 · SERVICIOS · aplican las reglas y registran en la bitácora"]
+    C1["crm.py · pipeline.py<br/>prospectos · cuentas · oportunidades · cotizaciones · casos"]
+    C2["email_pipeline.py<br/>clasifica y sugiere"]
+    C3["dashboard.py · automations.py · users.py"]
+    O1["sales.py<br/>pedidos"]
+    O2["inventory.py<br/>UNICO dueño de existencias"]
+    O3["procurement.py<br/>compras"]
+    O4["hr.py · pettycash.py · maintenance.py"]
+    O5["notifications.py · files.py"]
   end
-  subgraph DOM[Dominio CRM]
-    M[models.py]
-    PL[pipeline.py reglas de etapa]
+
+  subgraph DOM["3 · MODELOS · app/models.py"]
+    M["Entidades y restricciones"]
+    SM[("stock_movements<br/>entradas y salidas, nunca un saldo")]
+    AE[("audit_events<br/>solo se agrega, cadena SHA-256")]
   end
-  DB[(SQLAlchemy → SQLite hoy / PostgreSQL P1)]
-  subgraph WF[Workflow / automatización]
-    W1[Tarea primer contacto] ; W2[Tareas por etapa y caso] ; W3[Sugerencias de correo]
+
+  DB[("SQLite hoy · PostgreSQL P1")]
+
+  subgraph TRANS["Transversal · lo usan todas las capas"]
+    W["web.py<br/>plantillas · sesión · CSRF"]
+    P["permissions.py<br/>rol→permisos"]
+    A["audit.py<br/>record y verify_chain"]
+    B["business_time.py · common.py · config.py"]
   end
-  subgraph CLS[Clasificador desacoplado · app/classifier]
-    N[normalize] --> R[rules] --> E[engine] ; X[extract] --> E ; LLM[LLMClient puerto · off]
+
+  subgraph CLS["Clasificador · app/classifier · NO toca la base de datos"]
+    N[normalize] --> RL[rules] --> EN[engine]
+    EX[extract] --> EN
+    LL["llm.py · puerto apagado"]
   end
-  subgraph INT[Integration layer · app/integrations]
-    EP[EmailProvider: EML · Mock · Gmail P1]
-    ERPA[ErpAdapter: Mock · real P1]
-    OUT[(Outbox IntegrationEvent)]
+
+  subgraph INT["Integraciones · app/integrations"]
+    EP["email_providers.py<br/>SOLO LECTURA"]
+    ER["erp.py<br/>simulado"]
   end
-  EXT[(Correo · ERP · WMS · QMS · Facturación)]
-  USERS --> UI --> SVC --> DOM --> DB
-  SVC --> WF
-  S2 --> CLS
-  S2 --> EP
-  S1 --> OUT
-  ERPA --> S1
-  EP --- EXT
-  ERPA --- EXT
-  OUT -.-> EXT
-  subgraph X1[Transversal]
-    AUTH[Auth sesión firmada] ; RBAC[permissions.py] ; AUD[AuditEvent append-only] ; OBS[logs JSON · request-id · /health] ; CFG[config.py env] ; BK[scripts/backup_db.py]
+
+  subgraph FUERA["Fuera del sistema · no lo hace el CRM"]
+    CP["CONTPAQi<br/>emite las facturas"]
+    BUZ["Buzón de correo"]
+    TEL["Teléfono · WhatsApp · papel"]
   end
+
+  USERS --> RUTAS
+  R1 --> C1
+  R1 --> C2
+  R1 --> C3
+  R2 --> O1
+  R2 --> O2
+  R2 --> O3
+  R3 --> O4
+  R4 --> O5
+  SVC --> M --> DB
+
+  O1 -->|"inventory.move salida"| O2
+  O3 -->|"inventory.move entrada"| O2
+  O2 --> SM
+  SM -->|"existencia = SUMA de movimientos"| O2
+
+  SVC -->|"record en CADA mutación"| A
+  RUTAS -->|"cada solicitud, incluso denegada"| A
+  A --> AE
+
+  RUTAS --> P
+  RUTAS --> W
+  C2 --> CLS
+  C2 --> EP
+  ER --> C1
+  EP --- BUZ
+  O1 -->|"solo se captura el folio"| CP
+  USERS --- TEL
+
+  REGLA1["REGLA 1 · ninguna ruta edita ni borra audit_events"]
+  REGLA2["REGLA 2 · solo inventory.move escribe movimientos"]
+  REGLA3["REGLA 3 · el sistema NO emite facturas fiscales"]
+  REGLA4["REGLA 4 · ningún módulo escribe en las tablas de otro"]
+
+  REGLA1 -.-> AE
+  REGLA2 -.-> SM
+  REGLA3 -.-> CP
+  REGLA4 -.-> O2

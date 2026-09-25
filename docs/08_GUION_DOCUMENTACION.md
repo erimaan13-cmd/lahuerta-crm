@@ -91,18 +91,45 @@ generarse durante los días indicados.
 
 ## 3. Quién ve qué (para el diagrama de roles)
 
-| Rol | Ve | No ve |
-|---|---|---|
-| Almacén | Inventario, lotes, movimientos | Personal, caja chica |
-| Abastecimiento | Órdenes de compra, proveedores, inventario | Personal, caja chica |
-| Ventas | Prospectos, cuentas, oportunidades, pedidos, correos | Personal, caja chica |
-| RRHH | Expedientes, contratos, puestos | Caja chica |
-| Administración | Caja chica, facturas, todo lo operativo de lectura | — |
-| Mantenimiento | Activos, planes, órdenes de trabajo | Personal, caja chica |
-| Administrador | Todo, incluido el historial y los usuarios | — |
+**El sistema tiene visibilidad cruzada a propósito (D-57): todos los roles ven las mismas 13
+pestañas.** La razón es operativa: un vendedor debe poder consultar la existencia antes de prometer
+una entrega, y quien atiende un reclamo debe poder ver el lote que salió. Lo que cambia entre roles
+**no es lo que ven, sino lo que pueden escribir**.
 
-Los expedientes de personal y la caja chica están restringidos por decisión D-40, y **cada consulta
-queda registrada en la bitácora**.
+Solo cuatro secciones están reservadas:
+
+| Sección reservada | Quién entra | Por qué |
+|---|---|---|
+| Personal (expedientes) | RRHH y administradores | Datos personales (D-40); falta el aviso de privacidad |
+| Caja chica | Administración y administradores | Montos y comprobantes (D-40) |
+| Historial | Solo administradores | Regla 1 del proyecto |
+| Usuarios | Solo administradores | Altas, bajas y cambios de rol |
+
+Quién **escribe** en cada módulo:
+
+| Rol | Escribe |
+|---|---|
+| Almacén | Movimientos de inventario, tareas |
+| Abastecimiento | Órdenes de compra, inventario, tareas |
+| Ventas | Prospectos (y los convierte), cuentas, oportunidades, cotizaciones, pedidos, casos, tareas |
+| Atención a clientes | Prospectos, casos, tareas, carga de correos |
+| Calidad | Casos, tareas |
+| RRHH | Expedientes, contratos, puestos, tareas |
+| Administración | Caja chica, órdenes de compra, pedidos, casos, carga de correos |
+| Mantenimiento | Activos, planes, órdenes de trabajo, tareas |
+| Solo lectura | Solo puede silenciar y marcar leídos los avisos (ver nota) |
+| Administrador | Todo, incluidos historial y usuarios |
+
+**Nota sobre los avisos:** silenciar y marcar leído exigen únicamente `notification:read`, que tienen
+los diez roles, así que **incluso "solo lectura" puede apagar una alerta**. Está hecho a propósito
+(silenciar es decisión del área), pero conviene revisarlo: anotado como UI-4. **Generar** los avisos sí
+está restringido a `admin` y `administracion` (`integration:run`).
+
+Autorizar una orden de compra (`procurement:authorize`) es **solo del administrador**, y es
+deliberado: si Abastecimiento tuviera esa llave podría aprobar sus propias compras (D-58).
+
+Cada consulta a personal y a caja chica **queda registrada en la bitácora**. El detalle completo del
+recorrido por rol está en `09_RECORRIDO_POR_ROL.md`.
 
 ---
 

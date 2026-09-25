@@ -1,0 +1,75 @@
+---
+title: Proceso de venta - del prospecto al pedido entregado
+---
+flowchart TB
+  subgraph LEYENDA["LEYENDA - tres tipos de paso"]
+    L1["SISTEMA - lo que hoy hace el sistema"]
+    L2("FUERA - ocurre fuera del sistema")
+    L3{{"INCOGNITA - no sabemos como se hace hoy en La Huerta"}}
+  end
+
+  A1("FUERA - el cliente pregunta<br/>web, WhatsApp, telefono o correo")
+  A2{{"INCOGNITA - quien recibe cada canal<br/>y en cuanto tiempo responde"}}
+  A1 --> A2 --> B1
+
+  B1["SISTEMA - alta de prospecto<br/>crm.create_lead"]
+  B2["SISTEMA - crea sola la tarea de primer contacto<br/>vence en 4 h habiles"]
+  B1 --> B2
+  B2 --> C1
+
+  C1("FUERA - la llamada o el correo al cliente")
+  C1 --> C2["SISTEMA - se registra la actividad<br/>el prospecto pasa a contactado"]
+  C2 --> D1{"SISTEMA - calificacion<br/>500 kg o mas"}
+  D1 -->|no| D2["SISTEMA - descartado con motivo"]
+  D1 -->|si| E1["SISTEMA - convertir<br/>crea cuenta, contacto y oportunidad"]
+
+  E1 --> F1["SISTEMA - oportunidad en Requerimiento<br/>8 etapas, saltarselas es normal"]
+  F1 --> F2("FUERA - envio y prueba de la muestra fisica")
+  F2 --> F3["SISTEMA - etapa Muestra aprobada"]
+  F1 --> G1
+  F3 --> G1
+
+  G1["SISTEMA - cotizacion con folio COT y PDF"]
+  G2("FUERA - el PDF se descarga y lo manda una persona<br/>el sistema NO envia correo")
+  G3["SISTEMA - Marcar enviada<br/>crea la tarea de seguimiento"]
+  G1 --> G2 --> G3
+
+  G3 --> H1{{"INCOGNITA - quien autoriza un descuento<br/>o un precio especial"}}
+  H1 --> H2["SISTEMA - etapa Negociacion"]
+  H2 --> I1{"SISTEMA - se gana o se pierde"}
+  I1 -->|perdida| I2["SISTEMA - Perdida con motivo"]
+  I1 -->|ganada| I3["SISTEMA - Ganada<br/>tarea para Administracion"]
+
+  I3 --> J0{{"INCOGNITA - como llega la orden en firme del cliente:<br/>llamada, correo, orden de compra en papel"}}
+  J0 --> J1["SISTEMA - pedido en borrador<br/>folio PED, renglones en kg"]
+  J1 --> J2["SISTEMA - Confirmar<br/>revisa existencia pero NO la aparta"]
+  J2 --> J2B{{"INCOGNITA - hoy se aparta producto<br/>cuando se confirma un pedido"}}
+
+  J2 --> K1["SISTEMA - Entregar<br/>descuenta inventario, todo o nada"]
+  K1 --> K2["SISTEMA - PEPS: sale primero el lote<br/>que caduca antes"]
+  K2 --> K3["SISTEMA - se crean los movimientos de salida<br/>la existencia nunca queda negativa"]
+  K3 --> K4["SISTEMA - la cuenta pasa de<br/>Cliente potencial a Cliente activo"]
+
+  K1 --> L4("FUERA - el reparto fisico de la mercancia")
+  L4 --> L5{{"INCOGNITA - reparto propio o paqueteria,<br/>y se firma evidencia de entrega"}}
+
+  K4 --> M1("FUERA - CONTPAQi emite la factura")
+  M1 --> M2["SISTEMA - se captura el folio de la factura<br/>solo el folio, sin timbrar"]
+  M2 --> M3{{"INCOGNITA - quien captura ese folio<br/>y en que momento"}}
+
+  M2 --> N1("FUERA - el cobro y la cuenta por cobrar")
+  N1 --> N2{{"INCOGNITA - el sistema deberia avisar<br/>de facturas por cobrar"}}
+
+  K4 --> O1["SISTEMA - alerta de recompra<br/>por intervalo promedio + 20 por ciento"]
+  O1 --> O2["SISTEMA - nueva oportunidad tipo recompra"]
+  O2 --> F1
+
+  K3 --> P1{{"INCOGNITA - que se hace con una devolucion<br/>o con producto rechazado: hoy no existe en el sistema"}}
+  J2 --> P2{{"INCOGNITA - se entregan pedidos parciales:<br/>hoy el sistema entrega todo o nada"}}
+
+  classDef sistema fill:#e8f0fe,stroke:#1a56db,color:#111827
+  classDef fuera fill:#f3f4f6,stroke:#6b7280,color:#111827,stroke-dasharray: 4 3
+  classDef incognita fill:#fef3c7,stroke:#b45309,color:#111827,stroke-width:2px
+  class L1,B1,B2,C2,D1,D2,E1,F1,F3,G1,G3,H2,I1,I2,I3,J1,J2,K1,K2,K3,K4,M2,O1,O2 sistema
+  class L2,A1,C1,F2,G2,L4,M1,N1 fuera
+  class L3,A2,H1,J0,J2B,L5,M3,N2,P1,P2 incognita
