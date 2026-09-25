@@ -5,7 +5,7 @@
 <div class="two"><div>
 <table><tr><th>Tipo</th><td>{{ c.type }}</td><th>Severidad</th><td>{{ c.severity }}</td></tr>
 <tr><th>Lote</th><td>{{ c.lot_reference or '—' }}</td><th>Pedido</th><td>{{ c.order_ref or '—' }}</td></tr>
-<tr><th>Cuenta</th><td colspan="3">{% if c.account %}<a href="/accounts/{{ c.account_id }}">{{ c.account.name }}</a>{% elif c.lead_id %}<a href="/leads/{{ c.lead_id }}">lead</a>{% endif %}</td></tr>
+<tr><th>Cuenta</th><td colspan="3">{% if c.account %}<a href="/accounts/{{ c.account_id }}">{{ c.account.name }}</a>{% elif c.lead_id %}<a href="/leads/{{ c.lead_id }}">prospecto</a>{% endif %}</td></tr>
 <tr><th>Descripción</th><td colspan="3">{{ c.description or '—' }}</td></tr></table>
 {% set rtype='case' %}{% set rid=c.id %}{% set next_url='/cases/' ~ c.id %}
 {% include "_timeline.html" %}

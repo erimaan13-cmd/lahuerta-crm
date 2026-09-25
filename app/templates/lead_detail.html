@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-<p class="small"><a href="/leads">← Leads</a></p>
+<p class="small"><a href="/leads">← Prospectos</a></p>
 <h1>{{ lead.full_name }} <span class="chip">{{ lead.status|rotulo }}</span>
 {% if lead.below_minimum %}<span class="chip warn">Bajo mínimo (500 kg)</span>{% endif %}</h1>
 <div class="two">
@@ -15,7 +15,7 @@
       {% if dup %} → <a href="/leads/{{ dup.id }}">{{ dup.full_name }}</a>
       {% if has_permission(user.role, 'lead:write') and lead.status != 'convertido' and dup.status != 'convertido' %}
       <form class="inline" method="post" action="/leads/{{ lead.id }}/merge"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}"><input type="hidden" name="keep_id" value="{{ dup.id }}"><button class="sec">Fusionar en el original</button></form>{% endif %}{% endif %}</td></tr>{% endif %}
-    {% if lead.merged_into_id %}<tr><th>Fusionado en</th><td colspan="3"><a href="/leads/{{ lead.merged_into_id }}">ver lead que se conservó</a></td></tr>{% endif %}
+    {% if lead.merged_into_id %}<tr><th>Fusionado en</th><td colspan="3"><a href="/leads/{{ lead.merged_into_id }}">ver el prospecto que se conservó</a></td></tr>{% endif %}
     {% if lead.discard_reason %}<tr><th>Motivo descarte</th><td colspan="3">{{ lead.discard_reason }}</td></tr>{% endif %}
     {% if lead.converted_account_id %}<tr><th>Convertido</th><td colspan="3"><a href="/accounts/{{ lead.converted_account_id }}">Cuenta</a>
       {% if lead.converted_opportunity_id %} · <a href="/opportunities/{{ lead.converted_opportunity_id }}">Oportunidad</a>{% endif %}</td></tr>{% endif %}
