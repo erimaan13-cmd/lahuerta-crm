@@ -75,7 +75,7 @@ ENTITY_PARAMS = {"lead_id": "lead", "account_id": "account", "opp_id": "opportun
                  "employee_id": "employee", "fund_id": "petty_cash", "product_id": "product",
                  "lot_id": "lot", "warehouse_id": "warehouse", "wo_id": "work_order",
                  "notification_id": "notification", "attachment_id": "attachment"}
-# Excepción documentada a la regla 1 (D-48): `/api/avisos/pendientes` se llama en cada carga
+# Excepción documentada a la regla 1 (D-55): `/api/avisos/pendientes` se llama en cada carga
 # de página y su registro ahogaría la bitácora. Es de solo lectura: ninguna mutación queda fuera.
 SKIP_ACCESS_LOG = {"/health", "/login", "/logout", "/favicon.ico", "/api/avisos/pendientes"}
 DENIED = {401, 403, 415, 429}
