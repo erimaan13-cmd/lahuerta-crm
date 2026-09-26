@@ -35,9 +35,24 @@ ENTITY_READ_PERMISSION = {
     "account": "account:read",
     "case": "case:read",
 }
-# Un tipo que no esté en la tabla falla cerrado: solo administradores. Así, agregar un entity_type
-# nuevo sin actualizar esta tabla deja el documento demasiado protegido, nunca demasiado expuesto.
+# Subir un documento a una entidad es escribir en el expediente de ese módulo: quien lo vea después va a
+# suponer que lo puso el área dueña. Por eso la subida exige el permiso de ESCRITURA del módulo, además
+# de `attachment:write` (D-61).
+ENTITY_WRITE_PERMISSION = {
+    "employee": "hr:write",
+    "employment_contract": "hr:write",
+    "petty_cash": "pettycash:write",
+    "asset": "maintenance:write",
+    "purchase_order": "procurement:write",
+    "sales_order": "sales:write",
+    "lot": "inventory:write",
+    "account": "account:write",
+    "case": "case:write",
+}
+# Un tipo que no esté en las tablas falla cerrado: solo administradores. Así, agregar un entity_type
+# nuevo sin actualizarlas deja el documento demasiado protegido, nunca demasiado expuesto.
 UNKNOWN_ENTITY_PERMISSION = "audit:read"
+UNKNOWN_ENTITY_WRITE_PERMISSION = "users:manage"
 
 KINDS = {
     "poliza_garantia": "Póliza de garantía", "factura_compra": "Factura de compra",
@@ -56,6 +71,16 @@ def permission_for(entity_type: str | None) -> str:
 def may_read(role: str | None, entity_type: str | None) -> bool:
     from app.permissions import has_permission
     return has_permission(role, permission_for(entity_type))
+
+
+def write_permission_for(entity_type: str | None) -> str:
+    """Permiso de escritura que exige subir un adjunto a esa entidad."""
+    return ENTITY_WRITE_PERMISSION.get(entity_type or "", UNKNOWN_ENTITY_WRITE_PERMISSION)
+
+
+def may_write(role: str | None, entity_type: str | None) -> bool:
+    from app.permissions import has_permission
+    return has_permission(role, write_permission_for(entity_type))
 
 
 def parse_date(value: str | None) -> datetime | None:

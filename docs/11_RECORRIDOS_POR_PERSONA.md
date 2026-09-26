@@ -99,8 +99,11 @@ nombre promete, y está dibujado así en su diagrama.
 
 También **podía descargar cualquier documento**, incluido un comprobante de caja o de un expediente.
 **Eso quedó arreglado el 26-sep-2026** (SEC-1, decisión D-59): ahora un adjunto exige el permiso de
-lectura del módulo dueño, con 15 pruebas que lo fijan. El diagrama `21_uso_lectura.mmd` conserva la
-caja roja como registro de lo que pasaba, con la nota de que ya está resuelto.
+**lectura** del módulo dueño. El mismo día se cerró el lado simétrico (SEC-2, decisión D-61): subir un
+adjunto exige el permiso de **escritura** del módulo, porque un documento plantado en el expediente de
+otra área se lee como si lo hubiera puesto esa área. Entre las dos, 32 pruebas fijan el comportamiento.
+El diagrama `21_uso_lectura.mmd` conserva la caja roja como registro de lo que pasaba, con la nota de
+que ya está resuelto.
 
 ---
 
@@ -145,5 +148,7 @@ había visto en las otras fases:
 2. **El sistema tampoco impide vender un lote ya caducado.** VERIFICADO: `move()` no compara la fecha
    de caducidad con hoy; las caducidades solo alimentan avisos, que son informativos.
 
-Sumado a RN-2 (no se puede registrar la devolución), el circuito de una reclamación queda abierto por
-los dos extremos: no se puede frenar el lote ni recibir de vuelta el producto.
+Estos dos huecos, junto con la imposibilidad de registrar una devolución y con las salidas sin lote,
+quedaron agrupados en el backlog como **RN-5 · no se puede hacer un retiro de producto**: el circuito de
+una reclamación está abierto por los dos extremos, no se puede frenar el lote ni recibirlo de vuelta.
+Es el riesgo de mayor peso comercial del sistema.

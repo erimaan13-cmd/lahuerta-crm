@@ -613,6 +613,11 @@ verificaciones, contratos escaneados.
 documento de un expediente lo ven RRHH y el administrador; un comprobante de caja, Administración y el
 administrador.
 
+**Quién puede subir:** solo quien **escribe** en ese módulo. RRHH sube al expediente de un empleado,
+Administración al de una caja, Mantenimiento al de un camión. Si intentas adjuntar algo a un módulo que
+no te toca, el sistema lo rechaza — y es a propósito: un documento en el expediente de alguien se lee
+como si lo hubiera puesto su área.
+
 El sistema **guarda los archivos tal cual y nunca los lee**. No hay lectura automática de texto: si un
 documento tiene vencimiento, alguien lo captura y entonces el sistema avisa.
 

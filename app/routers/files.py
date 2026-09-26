@@ -20,6 +20,10 @@ async def ui_upload(request: Request, file: UploadFile = File(...), entity_type:
                     entity_id: str = Form(...), kind: str = Form("otro"), title: str = Form(""),
                     expires_on: str = Form(""), next: str = Form("/"),
                     db: Session = Depends(dbmod.get_db), user: User = Depends(require("attachment:write"))):
+    # Un documento plantado en el expediente de otra área se lee como si lo hubiera puesto esa área:
+    # subir exige el permiso de escritura del módulo dueño, no solo poder subir archivos (D-61).
+    if not files_svc.may_write(user.role, entity_type):
+        raise Forbidden(files_svc.write_permission_for(entity_type))
     files_svc.save_upload(db, entity_type, entity_id, file.filename or "", await file.read(), user.id,
                           kind=kind, title=title or None, expires_on=expires_on or None,
                           content_type=file.content_type)

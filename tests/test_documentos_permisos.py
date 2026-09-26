@@ -8,6 +8,7 @@ import pytest
 
 from app import config
 from app.services import files as files_svc
+from tests.conftest import ui_post
 
 
 @pytest.fixture()
@@ -115,4 +116,56 @@ def test_tipo_desconocido_solo_lo_ve_el_administrador(db, client_for, uploads):
 def test_la_tabla_cubre_todos_los_tipos_en_uso():
     """Si alguien agrega un entity_type a ENTITY_LABELS, esta prueba obliga a decidir su permiso."""
     faltan = set(files_svc.ENTITY_LABELS) - set(files_svc.ENTITY_READ_PERMISSION)
-    assert not faltan, f"tipos sin permiso asignado en ENTITY_READ_PERMISSION: {sorted(faltan)}"
+    assert not faltan, f"tipos sin permiso de lectura en ENTITY_READ_PERMISSION: {sorted(faltan)}"
+    faltan_w = set(files_svc.ENTITY_LABELS) - set(files_svc.ENTITY_WRITE_PERMISSION)
+    assert not faltan_w, f"tipos sin permiso de escritura en ENTITY_WRITE_PERMISSION: {sorted(faltan_w)}"
+
+
+# ================================================================== la subida (SEC-2, D-61)
+def _subir(c, entity_type, entity_id="x-1", nombre="doc.pdf"):
+    """Sube un archivo como lo hace el formulario: multipart con su token CSRF."""
+    return ui_post(c, "/documentos",
+                   {"entity_type": entity_type, "entity_id": entity_id, "kind": "otro",
+                    "title": "", "expires_on": "", "next": "/"},
+                   files={"file": (nombre, b"contenido", "application/pdf")},
+                   follow_redirects=False)
+
+
+@pytest.mark.parametrize("rol,tipo", [
+    ("almacen", "employee"),        # el caso que motivó el arreglo
+    ("almacen", "petty_cash"),
+    ("ventas", "employee"),
+    ("rrhh", "petty_cash"),         # RRHH escribe expedientes, no cajas
+    ("administracion", "employee"),  # y Administración cajas, no expedientes
+    ("mantenimiento", "employee"),
+])
+def test_no_se_puede_plantar_un_documento_en_otro_modulo(client_for, uploads, rol, tipo):
+    assert _subir(client_for(rol), tipo).status_code == 403
+
+
+@pytest.mark.parametrize("rol,tipo", [
+    ("rrhh", "employee"),
+    ("administracion", "petty_cash"),
+    ("mantenimiento", "asset"),
+    ("almacen", "lot"),
+    ("abastecimiento", "purchase_order"),
+    ("ventas", "sales_order"),
+    ("ventas", "account"),
+    ("calidad", "case"),
+    ("admin", "employee"),
+])
+def test_quien_escribe_el_modulo_si_puede_subirle_documentos(client_for, uploads, rol, tipo):
+    r = _subir(client_for(rol), tipo)
+    assert r.status_code == 303, f"{rol} deberia poder subir a {tipo}, dio {r.status_code}"
+
+
+def test_lectura_no_sube_nada(client_for, uploads):
+    """Ya lo impedía `attachment:write`; queda fijado para que no se relaje."""
+    assert _subir(client_for("lectura"), "asset").status_code == 403
+
+
+def test_tipo_desconocido_al_subir_solo_el_administrador(client_for, uploads):
+    assert _subir(client_for("rrhh"), "modulo_que_no_existe").status_code == 403
+    assert _subir(client_for("almacen"), "modulo_que_no_existe").status_code == 403
+    # el administrador tampoco pasa: save_upload valida que el entity_type exista
+    assert _subir(client_for("admin"), "modulo_que_no_existe").status_code == 422
