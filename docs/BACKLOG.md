@@ -14,7 +14,7 @@
 10. ¿Existen de verdad las diez áreas del organigrama, o una sola persona cubre varias? → define si sobran roles.
 11. ¿Quién trabajará en computadora y quién en celular? → define qué pantallas conviene optimizar.
 12. **Cuando confirman un pedido, ¿apartan el producto físicamente en la bodega, o se surte hasta el día de la salida? ¿Ha pasado que dos pedidos prometan el mismo producto y no alcance?** → define RN-1.
-13. **Cuando un cliente les regresa mercancía, o cuando el proveedor manda producto que no pasa calidad, ¿qué hacen hoy con esos kilos: los vuelven a meter al almacén, los separan, los tiran? ¿Quién lo anota y dónde?** → define RN-2.
+13. **Si un cliente les reporta un problema con un lote, ¿qué hacen hoy, paso por paso, desde que les llama hasta que recuperan el producto?** Y en particular: cuando un cliente regresa mercancía, o cuando el proveedor manda producto que no pasa calidad, ¿qué hacen con esos kilos — los vuelven a meter al almacén, los separan, los tiran? ¿Quién lo anota y dónde? → define **RN-5**, el riesgo de mayor peso comercial del sistema.
 14. **¿Les pasa que surten un pedido a medias porque no alcanzó el producto? Si sí, ¿cómo lo registran hoy y cómo sabe el cliente qué le queda pendiente?** → define RN-3.
 
 ## P1 — siguiente iteración
@@ -101,32 +101,69 @@ leyendo el código y, en el caso de RN-1, reproducidos. **Ninguno está implemen
 | ID | Riesgo | Por qué es un riesgo, no una duda | Esfuerzo |
 |---|---|---|---|
 | RN-1 | **Confirmar un pedido no aparta existencia.** Dos vendedores pueden comprometer los mismos kilos y el conflicto no aparece hasta el momento de entregar | `confirm()` (`app/services/sales.py:146`) solo *consulta* la existencia con `check_stock`, que es lectura pura: no crea movimiento, no marca nada y no hay tabla ni columna de reserva. `deliver()` vuelve a revisar y ahí sí falla. Consecuencia comercial: dos clientes reciben promesa de entrega sobre el mismo lote, y quien pierde se enterará el día que esperaba su mercancía. Con un solo vendedor el riesgo es bajo; con dos o más es cuestión de tiempo. Hoy hay **dos usuarios de ventas** en el sistema | M |
-| RN-2 | **No hay forma de registrar una devolución ni producto rechazado**, así que el inventario queda incorrecto cuando ocurre | No existe función de devolución en ventas ni en compras. `cancel()` de ventas (`sales.py:189`) no revierte inventario y además no se puede cancelar un pedido ya entregado: `entregado` es estado terminal. En compras, `cancel()` tampoco revierte y el docstring lo dice: "una recibida ya movió inventario". La única salida es un **ajuste manual**, que exige motivo pero no distingue una devolución de un error de captura ni deja rastro del cliente o proveedor que la originó. Consecuencia: en cuanto haya la primera devolución, la existencia del sistema deja de coincidir con la bodega y nadie sabrá por qué | M |
 | RN-3 | **Asimetría entre compras y ventas**: se puede recibir una orden de compra a medias, pero no entregar un pedido a medias | En compras, un renglón en cero se ignora y la orden sigue abierta para recibir el resto (`procurement.py:248`). En ventas, `deliver()` surte todos los renglones o ninguno y deshace la operación completa si uno falla (`sales.py:164-185`). El sistema modela la realidad del proveedor pero no la del cliente, y la entrega parcial es más común hacia el cliente que desde el proveedor. **Hay que decidir en qué sentido se empareja**: permitir entrega parcial en ventas, o exigir recepción completa en compras. Dejarlo asimétrico obliga a la gente a inventarse un truco (capturar dos pedidos, o entregar de menos y ajustar), y esos trucos son los que ensucian el historial | M |
 
+| **RN-5** | **No se puede hacer un retiro de producto.** Tiene su propia sección enseguida, porque son cuatro piezas | **Es el riesgo de mayor peso comercial del sistema** y absorbe lo que antes era RN-2. Ver la sección siguiente | M–L |
 | RN-4 | **El sistema de avisos solo corre si alguien pulsa "Revisar ahora"**, botón que solo tienen dos roles. Sin tarea programada y sin correo, **un aviso de caducidad no existe hasta que alguien se acuerda de pedirlo** | Tres hechos VERIFICADOS que se suman: (1) `notifications.generate` no tiene programador — ningún código lo llama solo, solo la ruta `POST /avisos/generar` (`app/routers/notifications.py:57`); (2) esa ruta exige `integration:run`, que solo tienen `admin` y `administracion`, así que ni Almacén ni Mantenimiento ni RRHH pueden generar los avisos que van dirigidos a ellos; (3) el envío de correo está apagado y **no existe ningún código que envíe correo** en el proyecto, así que todo aviso nace con estado `sin_adaptador` y solo se ve entrando al sistema. Consecuencia: el lote que caduca en 30 días, el contrato que vence en 60 y la existencia bajo el mínimo **no avisan a nadie** si nadie pulsó el botón. El sistema parece vigilar y no vigila. Es el segundo riesgo más grave después de SEC-1. Las piezas ya estaban anotadas por separado como OPE-1 y OPE-2; aquí se juntan porque el riesgo es la combinación, no cada una | M |
 
-**Las tres preguntas de negocio que se derivan de RN-1, RN-2 y RN-3** están al inicio de este documento,
-en la lista de validaciones con La Huerta (puntos 12, 13 y 14), redactadas para preguntárselas a una
-persona, no a un programador. RN-4 no necesita pregunta: hay que arreglarlo.
+**Las preguntas de negocio que se derivan de RN-1 y RN-3** están al inicio de este documento,
+en la lista de validaciones con La Huerta (puntos 12 y 14), redactadas para preguntárselas a una
+persona, no a un programador. RN-4 no necesita pregunta: hay que arreglarlo. **RN-2 dejó de existir por
+su cuenta: se absorbió en RN-5**, más abajo.
+
+## RN-5 · NO SE PUEDE HACER UN RETIRO DE PRODUCTO (26-sep-2026)
+
+**El riesgo de mayor peso comercial de todo el sistema.** Agrupado por decisión de Erick el 26-sep-2026:
+los cuatro hallazgos estaban sueltos y por separado parecían detalles técnicos. Juntos dicen una cosa
+sola, y es grave:
+
+> **Si un cliente reporta un problema con un lote, el sistema no permite frenarlo, no permite recibirlo
+> de vuelta, y no permite saber con certeza a quién más se le vendió.**
+
+Para una empacadora de alimentos con certificación FSSC 22000, eso es exactamente lo que un retiro de
+producto —un *recall*— exige poder hacer. Los cuatro son VERIFICADOS en el código, y dos reproducidos
+con pruebas.
+
+| Pieza | Qué falta | Qué impide hacer |
+|---|---|---|
+| **a) No se puede bloquear un lote** | No existe ninguna función para marcar un lote como retenido o sospechoso. `inventory.move()` no consulta ningún estado del lote | **Frenar la salida.** Mientras se investiga la queja, el lote sigue disponible y cualquiera puede surtirlo en el siguiente pedido |
+| **b) No se impide vender un lote caducado** | `move()` no compara `lot.expires_on` con la fecha de hoy. Las caducidades solo alimentan avisos, que son informativos | **Confiar en el sistema como barrera.** Hoy la única barrera es que alguien lea el aviso — y los avisos no se generan solos (RN-4) |
+| **c) No se puede registrar una devolución ni producto rechazado** (antes RN-2) | No hay función de devolución en ventas ni en compras. `cancel()` no revierte inventario, y `entregado` es estado terminal. La única salida es un ajuste manual, que no distingue una devolución de un error de captura ni guarda de qué cliente vino | **Recibir el producto de vuelta.** En cuanto entra el primer kilo devuelto, la existencia del sistema deja de coincidir con la bodega y nadie sabrá por qué |
+| **d) Las salidas sin lote rompen el rastro** (antes INV-1) | Una salida manual sin lote se valida contra el total de la bodega y se guarda con `lot_id = NULL`. **Reproducido:** entrada de 100 kg al lote L1 y salida de 50 kg sin lote dejan la pantalla con dos renglones, −50 kg "sin lote" y 100 kg en L1. El total (50 kg) es correcto; el lote miente | **Saber a quién se le vendió.** La entrega de pedidos sí reparte por caducidad y queda bien; la captura manual es la que abre el hueco |
+
+### Lo que sí funciona hoy, y por qué vale la pena arreglar el resto
+
+El rastreo **existe y es bueno**: la recepción exige código de lote obligatorio, la entrega de un pedido
+reparte por caducidad y deja movimientos con referencia al pedido, y Calidad puede ver por esos
+movimientos a qué clientes salió un lote. La base está puesta. Lo que falta son las cuatro piezas de
+arriba, y ninguna es un rediseño.
+
+### Orden sugerido
+
+1. **(d)** Exigir lote en toda salida, o repartir la salida sin lote por PEPS. Es la más pequeña y sin
+   ella las otras tres descansan sobre datos inciertos.
+2. **(a)** Estado del lote (disponible / retenido) consultado por `inventory.move()`.
+3. **(c)** Devolución de cliente y rechazo a proveedor como movimientos con su propia referencia.
+4. **(b)** Bloquear la salida de lote caducado, con excepción autorizada y registrada.
+
+**La pregunta al cliente** está en la lista de validaciones, punto 13, y es la que debe hacerse primero:
+*"si un cliente les reporta un problema con un lote, ¿qué hacen hoy, paso por paso, desde que les llama
+hasta que recuperan el producto?"*. La respuesta dirá si el sistema debe reproducir su procedimiento
+actual o ayudarles a construirlo.
 
 ## SEGURIDAD — los adjuntos y el permiso de su módulo (25-sep-2026)
 
-**SEC-1 quedó resuelto el 26-sep-2026** con la decisión D-59 y 15 pruebas nuevas. Queda SEC-2, el lado
-simétrico que salió a la luz al arreglarlo.
+**Los dos quedaron resueltos el 26-sep-2026**, SEC-1 con la decisión D-59 y SEC-2 con la D-61. En total
+32 pruebas fijan el comportamiento en `tests/test_documentos_permisos.py`.
 
 | ID | Tarea | Por qué | Esfuerzo |
 |---|---|---|---|
-| SEC-2 | La **subida** de adjuntos sigue pidiendo solo `attachment:write`, sin mirar a qué entidad apuntan | Al arreglar SEC-1 quedó claro el lado simétrico: `POST /documentos` (`app/routers/files.py:18`) exige `attachment:write`, que tienen nueve de los diez roles, y **no comprueba el `entity_type`**. Alguien de Almacén puede subir un archivo al expediente de un empleado o a una caja chica. Es menos grave que SEC-1 —escribe, no lee datos personales— pero es el mismo error de diseño, y ensucia el expediente de alguien más. El arreglo es la misma tabla de D-59 con el permiso de escritura | S |
+| ~~SEC-2~~ **RESUELTO el 26-sep-2026** (D-61) | La **subida** de adjuntos pedía solo `attachment:write`, sin mirar a qué entidad apuntan | `POST /documentos` exigía `attachment:write`, que tienen nueve de los diez roles, y **no comprobaba el `entity_type`**: alguien de Almacén podía plantar un archivo en el expediente de un empleado. Es un problema de **integridad**: quien lo viera en RRHH supondría que lo puso RRHH. Ahora exige el permiso de escritura del módulo dueño, con la misma tabla y el mismo fallo cerrado que D-59 | S |
 | ~~SEC-1~~ **RESUELTO el 26-sep-2026** (D-59) | `GET /documentos/{id}` y `GET /api/documentos/{id}` deben exigir el permiso del módulo dueño del adjunto (`hr:read` para `employee`, `pettycash:read` para `petty_cash`, etc.), no `dashboard:read` | **VERIFICADO con una prueba reproducible.** Ambas rutas piden solo `dashboard:read` (`app/routers/files.py:31` y `:47`), que está en `BASE_READ` y por tanto lo tienen **los diez roles**, y no comprueban a qué entidad pertenece el archivo. Comprobado entrando como `direccion@demo.local` (rol `lectura`): recibe **403 en `/caja`** y aun así **descarga con 200 el comprobante de caja chica** y lee su contenido, lo mismo por la API. Con expedientes reales esto expondría identificaciones y contratos de empleados a cualquier usuario autenticado. Contradice la regla 4c de CLAUDE.md y la decisión D-40. Agrava el riesgo que `GET /documentos` (`files.py:39`, mismo permiso) liste documentos de todas las entidades con sus identificadores | S |
 
-**Prioridad de SEC-2:** antes de cargar datos reales de personal o de caja.
-
-## Inventario — hueco de trazabilidad por lote (hallado el 25-sep-2026)
-
-| ID | Tarea | Por qué | Esfuerzo |
-|---|---|---|---|
-| INV-1 | Exigir lote en toda salida, o repartir la salida sin lote entre los lotes por PEPS | **VERIFICADO con una prueba reproducible.** Una salida manual sin lote se valida contra el total de la bodega, no contra un lote, y se guarda con `lot_id = NULL`. Resultado: con una entrada de 100 kg al lote L1 y una salida de 50 kg sin lote, la pantalla de existencias muestra **dos renglones: −50 kg "sin lote" y 100 kg en L1**. El total (50 kg) es correcto y nunca queda negativo, así que la regla 4b se respeta en el agregado, pero el lote sigue declarando 100 kg cuando salieron 50: se rompe el rastro por lote que exige FSSC 22000. La entrega de pedidos NO tiene este problema (reparte por PEPS); solo la captura manual de salidas | S |
+**Efecto lateral aceptado de D-61:** Atención a clientes ya no puede adjuntar documentos a una **cuenta**,
+porque no tiene `account:write`. Sí puede adjuntarlos a los **casos**, que es su trabajo. Si en la
+práctica necesita ambos, la salida es darle `account:write`, no relajar la regla.
 
 ## Deuda técnica conocida
 
