@@ -21,6 +21,24 @@ ENTITY_LABELS = {
     "asset": "Activo", "employee": "Empleado", "petty_cash": "Caja chica", "purchase_order": "Orden de compra",
     "sales_order": "Pedido", "lot": "Lote", "account": "Cuenta", "case": "Caso",
 }
+# Un documento hereda la reserva del módulo dueño: el comprobante de una caja es tan reservado como la
+# caja, y la identificación de un empleado tanto como su expediente (regla 4c del proyecto y D-40).
+# Antes bastaba `dashboard:read` para descargar cualquiera, que lo tienen los diez roles (D-59).
+ENTITY_READ_PERMISSION = {
+    "employee": "hr:read",
+    "employment_contract": "hr:read",  # todavía no es un entity_type en uso; queda cubierto de antemano
+    "petty_cash": "pettycash:read",
+    "asset": "maintenance:read",
+    "purchase_order": "procurement:read",
+    "sales_order": "sales:read",
+    "lot": "inventory:read",
+    "account": "account:read",
+    "case": "case:read",
+}
+# Un tipo que no esté en la tabla falla cerrado: solo administradores. Así, agregar un entity_type
+# nuevo sin actualizar esta tabla deja el documento demasiado protegido, nunca demasiado expuesto.
+UNKNOWN_ENTITY_PERMISSION = "audit:read"
+
 KINDS = {
     "poliza_garantia": "Póliza de garantía", "factura_compra": "Factura de compra",
     "tarjeta_circulacion": "Tarjeta de circulación", "seguro": "Póliza de seguro",
@@ -28,6 +46,16 @@ KINDS = {
     "identificacion": "Identificación", "comprobante": "Comprobante", "certificado": "Certificado",
     "otro": "Otro",
 }
+
+
+def permission_for(entity_type: str | None) -> str:
+    """Permiso de lectura que exige un adjunto según a qué entidad pertenece."""
+    return ENTITY_READ_PERMISSION.get(entity_type or "", UNKNOWN_ENTITY_PERMISSION)
+
+
+def may_read(role: str | None, entity_type: str | None) -> bool:
+    from app.permissions import has_permission
+    return has_permission(role, permission_for(entity_type))
 
 
 def parse_date(value: str | None) -> datetime | None:

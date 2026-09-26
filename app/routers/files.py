@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from app import db as dbmod
 from app.models import User
 from app.services import files as files_svc
-from app.web import back, csrf_protect, render, require, ser
+from app.web import Forbidden, back, csrf_protect, render, require, ser
 
 router = APIRouter(tags=["documentos"])
 
@@ -26,10 +26,17 @@ async def ui_upload(request: Request, file: UploadFile = File(...), entity_type:
     return back(next or "/")
 
 
+def _guard(user: User, att) -> None:
+    """Un adjunto solo se entrega a quien puede leer el módulo dueño (regla 4c, D-40, D-59)."""
+    if not files_svc.may_read(user.role, att.entity_type):
+        raise Forbidden(files_svc.permission_for(att.entity_type))
+
+
 @router.get("/documentos/{attachment_id}")
 def ui_download(attachment_id: str, db: Session = Depends(dbmod.get_db),
                 user: User = Depends(require("dashboard:read"))):
     att = files_svc.get(db, attachment_id)
+    _guard(user, att)
     return FileResponse(files_svc.path_of(att), filename=att.filename,
                         media_type=att.content_type or "application/octet-stream")
 
@@ -37,12 +44,25 @@ def ui_download(attachment_id: str, db: Session = Depends(dbmod.get_db),
 @router.get("/documentos")
 def ui_list(request: Request, entity_type: str | None = None, db: Session = Depends(dbmod.get_db),
             user: User = Depends(require("dashboard:read"))):
-    """Vencimientos próximos de todos los documentos (pólizas, seguros, verificaciones…)."""
-    return render(request, "documentos.html", user, docs=files_svc.expiring(db, 3650),
-                  soon=files_svc.expiring(db), kinds=files_svc.KINDS, entities=files_svc.ENTITY_LABELS)
+    """Vencimientos próximos de los documentos que este usuario puede leer.
+
+    Pedir explícitamente un tipo reservado (`?entity_type=employee` sin `hr:read`) da 403; sin filtro,
+    la lista se recorta a lo permitido para que la pestaña siga sirviendo a los demás roles.
+    """
+    if entity_type and not files_svc.may_read(user.role, entity_type):
+        raise Forbidden(files_svc.permission_for(entity_type))
+    visible = [a for a in files_svc.expiring(db, 3650) if files_svc.may_read(user.role, a.entity_type)]
+    soon = [a for a in files_svc.expiring(db) if files_svc.may_read(user.role, a.entity_type)]
+    if entity_type:
+        visible = [a for a in visible if a.entity_type == entity_type]
+        soon = [a for a in soon if a.entity_type == entity_type]
+    return render(request, "documentos.html", user, docs=visible, soon=soon,
+                  kinds=files_svc.KINDS, entities=files_svc.ENTITY_LABELS)
 
 
 @router.get("/api/documentos/{attachment_id}")
 def api_attachment(attachment_id: str, db: Session = Depends(dbmod.get_db),
                    user: User = Depends(require("dashboard:read"))):
-    return ser(files_svc.get(db, attachment_id))
+    att = files_svc.get(db, attachment_id)
+    _guard(user, att)
+    return ser(att)
