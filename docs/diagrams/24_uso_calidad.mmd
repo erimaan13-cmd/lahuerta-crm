@@ -1,0 +1,49 @@
+---
+title: Dia de CALIDAD E INOCUIDAD - la reclamacion y su lote
+---
+flowchart TB
+  subgraph LEYENDA[" "]
+    L1["SISTEMA - pantalla o accion del sistema"]
+    L2("FUERA - ocurre fuera del sistema")
+    L3{{"INCOGNITA - hay que preguntarselo al cliente"}}
+    L4["ORDEN DEL DIA: INFERIDO<br/>deducido de los permisos, no de ver trabajar a nadie"]
+  end
+
+  F1["'Para mi el sistema es donde sigo cada reclamacion<br/>hasta saber de que lote salio el producto<br/>y que se hizo al respecto'<br/>(frase INFERIDA - confirmar con la persona)"]
+
+  A1["1 · CASOS<br/>decide: cual reclamacion atiende primero"]
+  A1 --> A2["2 · el caso trae el NUMERO DE LOTE<br/>es obligatorio para resolver una reclamacion"]
+
+  A2 --> B1["3 · INVENTARIO - busca ese lote<br/>ve cuanto queda y cuando caduca<br/>puede VER, no mover"]
+  B1 --> B2["4 · PEDIDOS - ve a quien mas se le vendio<br/>ese lote, por los movimientos de salida"]
+  B2 --> B3{{"con eso alcanza para rastrear,<br/>o necesita ver el lote del proveedor tambien"}}
+
+  B3 --> C1("FUERA - la investigacion real:<br/>revisar la muestra, hablar con produccion, con el proveedor")
+  C1 --> C2{{"que procedimiento siguen hoy ante una reclamacion,<br/>y quien decide si se repone o se bonifica"}}
+
+  C1 --> D1["5 · registra la ACTIVIDAD y avanza el CASO"]
+  D1 --> D2["6 · sube evidencia como documento<br/>fotos, analisis, acta - se guarda tal cual"]
+  D2 --> D3["7 · CIERRA el caso con su resolucion"]
+
+  D3 --> E9("ENTREGA A: VENTAS y ATENCION, que le responden al cliente<br/>el sistema NO manda correos")
+  D3 --> E8("ENTREGA A: ABASTECIMIENTO, si la causa fue el proveedor")
+
+  A1 --> F2["8 · TAREAS<br/>puede crear tareas para otras areas"]
+
+  B1 --> G1{{"HUECO: si el producto se devuelve,<br/>no hay forma de registrarlo - ver RN-2"}}
+  A2 --> G2{{"deberia poder BLOQUEAR un lote sospechoso<br/>para que no se venda: hoy el sistema no lo permite"}}
+  B1 --> G3{{"el sistema tampoco impide vender un lote ya caducado"}}
+
+  A1 --> H1["LO QUE NO PUEDE: cotizar, crear pedidos,<br/>mover inventario, ver personal o caja"]
+
+  A1 --> I1{{"esto reemplaza un QMS o convive con uno:<br/>el sistema NO es un QMS, las no conformidades son casos"}}
+  A2 --> I2{{"que pide FSSC 22000 que hoy no este:<br/>el rastro por lote existe pero ver INV-1"}}
+
+  classDef sistema fill:#e8f0fe,stroke:#1a56db,color:#111827
+  classDef fuera fill:#f3f4f6,stroke:#6b7280,color:#111827,stroke-dasharray: 4 3
+  classDef incognita fill:#fef3c7,stroke:#b45309,color:#111827,stroke-width:2px
+  classDef frase fill:#ecfdf5,stroke:#047857,color:#111827
+  class L1,A1,A2,B1,B2,D1,D2,D3,F2,H1 sistema
+  class L2,C1,E9,E8 fuera
+  class L3,B3,C2,G1,G2,G3,I1,I2 incognita
+  class F1,L4 frase

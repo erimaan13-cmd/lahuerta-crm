@@ -1,6 +1,6 @@
 # 11 · Los recorridos, persona por persona
 
-Septiembre 2026. Informe de la Fase 3. Acompaña a los diagramas `14` a `22` de `docs/diagrams/`.
+Septiembre 2026. Informe de la Fase 3. Acompaña a los diagramas `14` a `24` de `docs/diagrams/`.
 
 Etiquetas de evidencia: **VERIFICADO** = comprobado en el código o corriendo el sistema ·
 **INFERIDO** = razonamiento que puede estar equivocado · **PENDIENTE** = falta preguntárselo al cliente.
@@ -12,7 +12,7 @@ puede hacer* cada rol: eso se lee en la matriz de permisos. Lo que **deduje** es
 hace, qué mira primero al entrar y cómo le pasa el trabajo al siguiente. Nunca he visto trabajar a
 nadie de La Huerta.
 
-Estos nueve diagramas son, entonces, un **borrador para que el cliente lo corrija**, no un retrato.
+Estos once diagramas son, entonces, un **borrador para que el cliente lo corrija**, no un retrato.
 Sirven mejor si se los enseñas a cada persona y le preguntas "¿así es tu día?". Lo más probable es que
 cambien, y ese es el punto.
 
@@ -20,7 +20,7 @@ Lo mismo aplica a **la frase de cada rol**: está escrita en primera persona par
 persona, pero **la escribí yo**, no ella. Cada diagrama lo dice al lado de la frase. Confírmalas o
 cámbialas con las suyas.
 
-## Los ocho archivos y su frase
+## Los archivos y su frase
 
 | Archivo | Rol | Frase (INFERIDA) |
 |---|---|---|
@@ -33,11 +33,12 @@ cámbialas con las suyas.
 | `20_uso_mantenimiento.mmd` | Mantenimiento | "Es lo que me recuerda cuándo le toca servicio a cada camión, y donde anoto lo que se le hizo" |
 | `21_uso_lectura.mmd` | Solo lectura | "Es una ventana al negocio: quiero ver cómo va sin preguntarle a nadie y sin riesgo de desconfigurar algo" |
 
-Más `22_uso_general.mmd`, que muestra cómo se entrelazan.
+Más `23_uso_atencion.mmd` y `24_uso_calidad.mmd` (ver el final de este documento) y
+`22_uso_general.mmd`, que muestra cómo se entrelazan los recorridos.
 
 ---
 
-## Lo que se ve al poner los ocho recorridos juntos
+## Lo que se ve al poner los diez recorridos juntos
 
 ### 1. Cada rol tiene exactamente una cosa que solo él puede hacer
 
@@ -52,6 +53,8 @@ Es el hallazgo más útil de la fase, y VERIFICADO en la matriz de permisos:
 | RRHH | **Ver y escribir expedientes** |
 | Administración | **Caja chica**, y generar los avisos |
 | Mantenimiento | **Activos, planes y órdenes de trabajo** |
+| Atención a clientes | **Cargar correos** (junto con Administración) |
+| Calidad e inocuidad | Ninguna propia: comparte casos y tareas con Atención y Ventas |
 | Solo lectura | Ninguna |
 
 Si el cliente dice que una persona hace dos de estos papeles, el sistema ya lo permite: se le asigna el
@@ -90,9 +93,14 @@ Y si nadie lo captura, el sistema se queda callado sin avisar que está callado:
 
 ### 5. El rol "solo lectura" no es tan de solo lectura
 
-VERIFICADO con pruebas: **puede silenciar avisos** (ver UI-4) y **puede descargar cualquier documento**
-si conoce su enlace, incluso un comprobante de caja o de un expediente (ver SEC-1). Ambas cosas están
-dibujadas en rojo en su diagrama porque son lo contrario de lo que su nombre promete.
+VERIFICADO con pruebas: **puede silenciar avisos y marcarlos leídos** (UI-4, decidido en D-60 que debe
+exigir permiso de escritura del módulo, todavía sin implementar). Eso es lo contrario de lo que su
+nombre promete, y está dibujado así en su diagrama.
+
+También **podía descargar cualquier documento**, incluido un comprobante de caja o de un expediente.
+**Eso quedó arreglado el 26-sep-2026** (SEC-1, decisión D-59): ahora un adjunto exige el permiso de
+lectura del módulo dueño, con 15 pruebas que lo fijan. El diagrama `21_uso_lectura.mmd` conserva la
+caja roja como registro de lo que pasaba, con la nota de que ya está resuelto.
 
 ---
 
@@ -112,13 +120,30 @@ PENDIENTES todas. Van además de las que ya están en `docs/BACKLOG.md`.
 
 ---
 
-## Dos roles que no están en esta fase
+## Los diez roles quedaron cubiertos
 
-El sistema tiene **diez** roles y esta fase cubre **ocho**. Faltan **Atención a clientes** y **Calidad e
-inocuidad**, que no venían en la lista del encargo. No los inventé por mi cuenta para no meter archivos
-que nadie pidió, pero existen y tienen permisos propios:
+La primera versión de esta fase traía ocho. Se agregaron los dos que faltaban por decisión de Erick el
+26-sep-2026, porque **Calidad es quien atiende una reclamación con número de lote** y sin ese recorrido
+el rastreo por lote no se ve en ninguna parte:
 
-- **Atención a clientes** escribe prospectos, casos y tareas, y puede cargar correos.
-- **Calidad e inocuidad** escribe casos y tareas. Es el rol que atendería una reclamación con lote.
+| Archivo | Rol | Frase (INFERIDA) |
+|---|---|---|
+| `23_uso_atencion.mmd` | Atención a clientes | "Es donde aterriza todo lo que llega: clasifico el correo, doy de alta al que pregunta y abro el caso al que tiene un problema" |
+| `24_uso_calidad.mmd` | Calidad e inocuidad | "Es donde sigo cada reclamación hasta saber de qué lote salió el producto y qué se hizo al respecto" |
 
-Si los quieres, son dos archivos más con la misma plantilla.
+**Lo que aporta el recorrido de Atención:** es la única, junto con Administración, que puede **cargar
+correos**, y es la puerta de entrada de los cuatro canales. VERIFICADO que **no puede convertir** un
+prospecto: eso lo pasa a Ventas. Y que el sistema nunca aplica una sugerencia del clasificador sola.
+
+**Lo que aporta el recorrido de Calidad, y es lo más valioso:** al atender una reclamación con lote,
+puede *ver* el inventario y rastrear por los movimientos de salida **a qué otros clientes se les vendió
+ese mismo lote**. Ese es el rastreo que pide FSSC 22000 y hoy funciona. Pero aparecen dos huecos que no
+había visto en las otras fases:
+
+1. **No puede bloquear un lote sospechoso** para que no se venda. No existe esa función. INFERIDO: en
+   una empresa de alimentos, es lo primero que se quiere hacer al recibir una queja.
+2. **El sistema tampoco impide vender un lote ya caducado.** VERIFICADO: `move()` no compara la fecha
+   de caducidad con hoy; las caducidades solo alimentan avisos, que son informativos.
+
+Sumado a RN-2 (no se puede registrar la devolución), el circuito de una reclamación queda abierto por
+los dos extremos: no se puede frenar el lote ni recibir de vuelta el producto.

@@ -1,5 +1,8 @@
 data/crm.db
 backups/
+# Adjuntos subidos al usar el sistema: cada corrida de app.seed crea archivos nuevos y no se borran.
+# Los dos adjuntos de demostración que sí están versionados se quedan (git los sigue rastreando).
+data/uploads/
 __pycache__/
 *.pyc
 .env

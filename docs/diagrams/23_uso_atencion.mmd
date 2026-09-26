@@ -1,0 +1,50 @@
+---
+title: Dia de ATENCION A CLIENTES - la puerta de entrada de todo lo que llega
+---
+flowchart TB
+  subgraph LEYENDA[" "]
+    L1["SISTEMA - pantalla o accion del sistema"]
+    L2("FUERA - ocurre fuera del sistema")
+    L3{{"INCOGNITA - hay que preguntarselo al cliente"}}
+    L4["ORDEN DEL DIA: INFERIDO<br/>deducido de los permisos, no de ver trabajar a nadie"]
+  end
+
+  F1["'Para mi el sistema es donde aterriza todo lo que llega:<br/>clasifico el correo, doy de alta al que pregunta<br/>y abro el caso al que tiene un problema'<br/>(frase INFERIDA - confirmar con la persona)"]
+
+  A1("FUERA - llega un correo, una llamada,<br/>un WhatsApp o un formulario del sitio")
+  A1 --> A2{{"quien atiende cada canal hoy,<br/>y sigue habiendo un solo buzon administracion@"}}
+
+  A2 --> B1["1 · CORREOS<br/>puede CARGAR correos al sistema<br/>solo ella y Administracion pueden"]
+  B1 --> B2["2 · el clasificador propone categoria y entidades<br/>decide: la sugerencia es correcta"]
+  B2 --> B3["3 · NEEDS REVIEW - la bandeja de lo dudoso<br/>decide: confirma o corrige la categoria"]
+  B3 --> B4["4 · APLICAR la sugerencia con un clic<br/>el sistema NUNCA la aplica solo"]
+
+  B4 --> C1{"de que se trata"}
+  C1 -->|es alguien que pregunta| C2["5 · crea el PROSPECTO"]
+  C1 -->|es una queja| C3["5 · abre el CASO"]
+  C1 -->|es seguimiento| C4["5 · registra la ACTIVIDAD en la cuenta"]
+
+  C2 --> D9("ENTREGA A: VENTAS, que califica y convierte<br/>ella NO puede convertir")
+
+  C3 --> E1["6 · el caso necesita NUMERO DE LOTE<br/>si es reclamacion de calidad"]
+  E1 --> E2{{"el cliente le dice el lote por telefono,<br/>o hay que pedirle foto de la etiqueta"}}
+  E1 --> E9("ENTREGA A: CALIDAD, que resuelve la reclamacion")
+
+  B1 --> F2["7 · sube el archivo .eml de un correo suelto<br/>para clasificarlo sin conectar el buzon"]
+
+  A2 --> G1["8 · TAREAS - las suyas y las de su rol"]
+  G1 --> G2["puede crear tareas para otras areas"]
+
+  B4 --> H1["LO QUE NO PUEDE: cotizar, crear pedidos,<br/>mover inventario ni ver personal o caja"]
+
+  B2 --> I1{{"el sistema NO responde, borra ni archiva correos:<br/>quien contesta al cliente y con que"}}
+  A1 --> I2{{"cuantos correos llegan al dia:<br/>define si hace falta algo mas que reglas"}}
+
+  classDef sistema fill:#e8f0fe,stroke:#1a56db,color:#111827
+  classDef fuera fill:#f3f4f6,stroke:#6b7280,color:#111827,stroke-dasharray: 4 3
+  classDef incognita fill:#fef3c7,stroke:#b45309,color:#111827,stroke-width:2px
+  classDef frase fill:#ecfdf5,stroke:#047857,color:#111827
+  class L1,B1,B2,B3,B4,C1,C2,C3,C4,E1,F2,G1,G2,H1 sistema
+  class L2,A1,D9,E9 fuera
+  class L3,A2,E2,I1,I2 incognita
+  class F1,L4 frase
