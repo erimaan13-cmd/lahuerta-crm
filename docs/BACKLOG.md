@@ -138,18 +138,41 @@ reparte por caducidad y deja movimientos con referencia al pedido, y Calidad pue
 movimientos a qué clientes salió un lote. La base está puesta. Lo que falta son las cuatro piezas de
 arriba, y ninguna es un rediseño.
 
+### e) La pieza más barata de todas, hallada en la auditoría del 26-sep-2026
+
+| ID | Tarea | Por qué | Esfuerzo |
+|---|---|---|---|
+| **RN-5e** | **Filtro por lote en `/inventario/movimientos`, y folio del pedido en la columna de referencia** | Los datos para rastrear **ya están completos**: cada movimiento de salida guarda `ref_type="pedido"` y `ref_id` con el identificador del pedido. Lo que falta es la vista: el formulario de filtros solo ofrece producto y bodega (`inventario_movimientos.html`), la función `inventory.movements()` solo acepta esos dos parámetros, y la columna imprime la palabra "pedido" sin folio ni cliente. Hoy, para saber a qué clientes llegó un lote, hay que **abrir los pedidos uno por uno**. Agregar un `lot_id` al filtro y resolver el folio en la columna **convierte el rastreo de manual en inmediato**, y es el arreglo más pequeño de los cinco | **S** |
+
+**Esto cambia el tamaño de RN-5.** Con (e) hecho, el rastreo hacia atrás —¿a quién le vendí este lote?—
+queda resuelto con la información que ya existe. Lo que seguiría faltando es poder **actuar**: frenar el
+lote, recibirlo de vuelta y no vender caducado.
+
 ### Orden sugerido
 
-1. **(d)** Exigir lote en toda salida, o repartir la salida sin lote por PEPS. Es la más pequeña y sin
+1. **(e)** El filtro por lote y el folio en la referencia. Es horas de trabajo y desbloquea la
+   pregunta que un retiro de producto hace primero.
+2. **(d)** Exigir lote en toda salida, o repartir la salida sin lote por PEPS. Es la más pequeña y sin
    ella las otras tres descansan sobre datos inciertos.
-2. **(a)** Estado del lote (disponible / retenido) consultado por `inventory.move()`.
-3. **(c)** Devolución de cliente y rechazo a proveedor como movimientos con su propia referencia.
-4. **(b)** Bloquear la salida de lote caducado, con excepción autorizada y registrada.
+3. **(a)** Estado del lote (disponible / retenido) consultado por `inventory.move()`.
+4. **(c)** Devolución de cliente y rechazo a proveedor como movimientos con su propia referencia.
+5. **(b)** Bloquear la salida de lote caducado, con excepción autorizada y registrada.
 
 **La pregunta al cliente** está en la lista de validaciones, punto 13, y es la que debe hacerse primero:
 *"si un cliente les reporta un problema con un lote, ¿qué hacen hoy, paso por paso, desde que les llama
 hasta que recuperan el producto?"*. La respuesta dirá si el sistema debe reproducir su procedimiento
 actual o ayudarles a construirlo.
+
+## Huecos de interfaz hallados en la auditoría del manual (26-sep-2026)
+
+Salen de `12_AUDITORIA_MANUAL.md`, la revisión independiente del manual. Los tres son casos de **lógica
+que existe en el servicio sin pantalla que la use**, igual que MAN-1 y MAN-2. Ninguno está implementado.
+
+| ID | Tarea | Por qué | Esfuerzo |
+|---|---|---|---|
+| UI-5 | **Conectar `sales.for_account` a la ficha de la cuenta** | La vista 360 de un cliente muestra en "Pedidos" las referencias del ERP simulado (`Account.orders` apunta a `OrderReference`), **no los pedidos capturados en el sistema**. La función que los busca, `sales.for_account()` en `app/services/sales.py:233`, **ya está escrita y ninguna ruta la llama**. Hoy hay que ir a Pedidos y filtrar por cliente. Es conectar dos piezas que ya existen | **S** |
+| UI-6 | **Pantalla para abrir un caso a mano** | `crm.create_case` solo se invoca desde la API JSON, desde el clasificador al aplicar la sugerencia de un correo, y desde el seed. **No hay formulario de alta.** Consecuencia práctica: **una reclamación que llega por teléfono no se puede registrar**, salvo que alguien se mande un correo a sí mismo y lo clasifique. Sí se puede cambiar el estado de un caso existente. Para una empacadora de alimentos, donde el caso es el vehículo de las reclamaciones de calidad, es un hueco de fondo | **S** |
+| UI-7 | **Decidir si Almacén debe tener `sales:write`** | Confirmar, entregar, cancelar y facturar un pedido exigen `sales:write`, que tienen `admin`, `ventas` y `administracion`. **Almacén no lo tiene**, así que quien surte físicamente no es quien registra la entrega: ve el pedido y su descuento de inventario, pero los botones no le aparecen. Puede ser correcto (quien vende cierra la venta) o un estorbo diario (quien surte sabe cuándo salió). **Es decisión de negocio, no técnica**; la pregunta está en el manual como punto 13b | S |
 
 ## SEGURIDAD — los adjuntos y el permiso de su módulo (25-sep-2026)
 
