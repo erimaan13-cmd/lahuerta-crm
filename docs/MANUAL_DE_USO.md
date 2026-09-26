@@ -473,6 +473,12 @@ llega**.
 
 **Quién escribe aquí:** Abastecimiento y Administración. **Quien autoriza es solo el administrador.**
 
+> **Lo primero que hay que saber de este módulo no es una pantalla, es un hueco.** El aviso de
+> "existencia bajo el mínimo" —el que dispara una compra— **está dirigido a Almacén, no a
+> Abastecimiento**. Quien tiene que comprar **no recibe la señal de que hay que comprar**. Hoy se
+> entera porque revisa el inventario por su cuenta o porque alguien de bodega se lo dice de viva voz.
+> El sistema no tiene mensajes entre áreas. PENDIENTE de resolver, y está en el backlog.
+
 Una orden pasa por: **borrador → por autorizar → autorizada → recibida**, o **cancelada**.
 
 ### Tarea 1: crear la orden
@@ -496,7 +502,10 @@ Pulsa **Enviar**. Aquí el sistema decide solo:
 - Si el total **no pasa de $20,000**, queda **autorizada** de una vez.
 - Si **pasa de $20,000**, queda **por autorizar** y hay que esperar al administrador.
 
-Ese monto es un valor provisional. PENDIENTE de confirmar.
+**Ese monto de $20,000 es provisional y se puede cambiar sin tocar el código**: es un ajuste del
+servidor (la variable `CRM_PO_AUTH_THRESHOLD_MXN`), así que lo mueve quien instala el sistema. Lo que
+**no** existe es una pantalla para cambiarlo: nadie lo ajusta desde el navegador. PENDIENTE de confirmar
+con La Huerta si 20,000 es la cifra correcta.
 
 **Autorizar es exclusivo del administrador, y es a propósito:** quien crea la orden no debe poder
 aprobarla. Si Abastecimiento tuviera esa llave, aprobaría sus propias compras.

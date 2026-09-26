@@ -101,8 +101,10 @@ calculando el intervalo promedio entre pedidos más 20 % de tolerancia.
 
 ## 3. `09_proceso_compra.mmd` — de la necesidad al lote en bodega
 
-**El recorrido.** El sistema avisa cuando una existencia baja del mínimo del producto, pero **no crea
-la orden solo**: alguien tiene que verlo y decidir. Se captura la orden en borrador con folio `OC-`,
+**El recorrido.** El sistema avisa cuando una existencia baja del mínimo del producto, pero **ese aviso
+va dirigido a Almacén, no a Abastecimiento** (`target_role="almacen"` en `notifications.py`), y el
+sistema **no crea la orden solo**. O sea que quien tiene que comprar no recibe la señal de que hay que
+comprar: alguien de bodega tiene que verla y decírselo. VERIFICADO. Se captura la orden en borrador con folio `OC-`,
 sus renglones en kilos y el costo unitario.
 
 Al enviarla ocurre la única bifurcación automática del proceso, VERIFICADA: **si el total pasa de
