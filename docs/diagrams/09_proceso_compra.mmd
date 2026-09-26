@@ -8,7 +8,7 @@ flowchart TB
     L3{{"INCOGNITA - no sabemos como se hace hoy en La Huerta"}}
   end
 
-  A1["SISTEMA - aviso de existencia bajo el minimo<br/>compara contra min_stock_kg del producto"]
+  A1["SISTEMA - aviso de existencia bajo el minimo<br/>OJO: se dirige a Almacen, no a Abastecimiento"]
   A2{{"INCOGNITA - quien revisa ese aviso y cada cuando;<br/>hoy el sistema NO crea la orden solo"}}
   A3{{"INCOGNITA - se compra por minimos, por temporada<br/>o cuando lo pide produccion"}}
   A1 --> A2 --> B1
@@ -19,7 +19,7 @@ flowchart TB
   B0B{{"INCOGNITA - se piden varias cotizaciones antes de comprar;<br/>hoy el sistema no guarda cotizaciones de proveedor"}}
   B0B --> B1
 
-  B1["SISTEMA - orden de compra en BORRADOR<br/>folio OC, renglones en kg y costo unitario"]
+  B1["SISTEMA - orden de compra en BORRADOR<br/>folio OC, renglones en kg y costo unitario<br/>NO se puede editar despues"]
   B1 --> B2["SISTEMA - Enviar la orden"]
   B2 --> C1{"SISTEMA - el total pasa de 20,000 MXN"}
 
@@ -44,7 +44,7 @@ flowchart TB
   F3 --> F4["SISTEMA - movimiento de ENTRADA a inventario<br/>unica via: inventory.move"]
 
   F1 --> G1{"SISTEMA - llegaron todos los kilos"}
-  G1 -->|si| G2["SISTEMA - la orden queda RECIBIDA"]
+  G1 -->|si| G2["SISTEMA - la orden queda RECIBIDA<br/>ya no se puede cancelar"]
   G1 -->|no| G3["SISTEMA - sigue AUTORIZADA<br/>se puede recibir otra vez"]
   G3 --> F1
 
@@ -57,7 +57,7 @@ flowchart TB
   H2 --> H3("FUERA - el pago al proveedor")
   H3 --> H4{{"INCOGNITA - el sistema deberia llevar cuentas por pagar;<br/>hoy no registra pagos, plazos ni anticipos"}}
 
-  C2 --> I1["SISTEMA - Cancelar<br/>exige motivo; NO revierte inventario"]
+  C2 --> I1["SISTEMA - Cancelar, solo antes de recibir<br/>exige motivo; si ya hubo recepcion parcial,<br/>esos kilos se QUEDAN en el inventario"]
 
   F4 --> J1["SISTEMA - el lote ya cuenta para la existencia<br/>y entra al control de caducidades"]
 

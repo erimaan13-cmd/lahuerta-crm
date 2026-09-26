@@ -12,6 +12,7 @@ flowchart TB
   F1["'Para mi el sistema es donde llevo los gastos con su comprobante<br/>y donde veo que se factura y que falta cobrar'<br/>(frase INFERIDA - confirmar con la persona)"]
 
   A1["1 · AVISOS<br/>puede pulsar 'Revisar ahora' - solo el y el administrador"]
+  A1 --> A0{{"HALLAZGO - de los seis avisos que genera al pulsar el boton,<br/>solo ve el de documentos de caja chica y sus propias tareas:<br/>los de almacen, rrhh y mantenimiento van dirigidos a esas areas"}}
   A1 --> A2["2 · TAREAS<br/>recibe sola la tarea que crea cada venta ganada"]
 
   A2 --> B1["3 · PEDIDOS ganados<br/>decide: cual se factura hoy"]
@@ -34,7 +35,7 @@ flowchart TB
   A1 --> E1["9 · CORREOS<br/>puede cargar correos y revisar sugerencias"]
   E1 --> E2{{"sigue habiendo un solo buzon administracion@<br/>y quien lo atiende"}}
 
-  A1 --> G1["10 · ORDENES DE COMPRA<br/>puede CREARLAS, pero NO autorizarlas"]
+  A1 --> G1["10 · ORDENES DE COMPRA<br/>puede CREARLAS, pero NO autorizarlas<br/>tambien puede pulsar 'Entregar' un pedido, aunque no surta"]
   G1 --> G2("ENTREGA A: EL ADMINISTRADOR, para autorizar arriba de 20,000")
   G2 --> G3{{"esto le estorba en el dia a dia,<br/>o esta bien que solo el dueno apruebe"}}
 
@@ -44,5 +45,5 @@ flowchart TB
   classDef frase fill:#ecfdf5,stroke:#047857,color:#111827
   class L1,A1,A2,B1,B3,C1,C2,C3,C4,C5,E1,G1 sistema
   class L2,B2,B5,C6,G2 fuera
-  class L3,B4,B6,C7,D1,E2,G3 incognita
+  class L3,A0,B4,B6,C7,D1,E2,G3 incognita
   class F1,L4 frase

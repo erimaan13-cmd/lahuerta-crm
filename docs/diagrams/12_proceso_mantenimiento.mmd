@@ -50,7 +50,7 @@ flowchart TB
   A1 --> K1["SISTEMA - estado del activo:<br/>activo, en reparacion o baja"]
   K1 --> K2["SISTEMA - un activo dado de baja deja de avisar"]
 
-  E2 --> L4{{"INCOGNITA - una orden en curso no se puede marcar 'en proceso'<br/>ni cancelar desde la pantalla: falta la ruta"}}
+  E2 --> L4{{"INCOGNITA - una orden no se puede marcar 'en proceso'<br/>ni cancelar, y un plan no se puede desactivar:<br/>falta la ruta en los tres casos"}}
 
   classDef sistema fill:#e8f0fe,stroke:#1a56db,color:#111827
   classDef fuera fill:#f3f4f6,stroke:#6b7280,color:#111827,stroke-dasharray: 4 3

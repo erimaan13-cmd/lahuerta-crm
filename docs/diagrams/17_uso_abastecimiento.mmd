@@ -11,17 +11,18 @@ flowchart TB
 
   F1["'Para mi el sistema es mi lista de que falta y que ya viene:<br/>me dice que se esta acabando y en que ordenes<br/>estoy esperando mercancia'<br/>(frase INFERIDA - confirmar con la persona)"]
 
-  A1["1 · AVISOS - existencias bajo el minimo"]
+  A1{{"1 · AVISOS - HALLAZGO: el aviso de existencia bajo el minimo<br/>esta dirigido a ALMACEN, no a el<br/>hoy se entera porque revisa inventario o porque alguien le avisa"}}
   A1 --> A2["2 · INVENTARIO - confirma cuanto hay de verdad<br/>decide: cuanto pedir"]
   A2 --> A3{{"compra por minimos, por temporada,<br/>o cuando produccion se lo pide"}}
 
-  A2 --> B1["3 · PROVEEDORES<br/>decide: a quien le compra<br/>ve el historial de precios que pago antes"]
+  A2 --> B1["3 · PROVEEDORES<br/>decide: a quien le compra<br/>la ficha NO trae historial de precios"]
   B1 --> B2{{"pide varias cotizaciones antes de comprar:<br/>el sistema NO las guarda"}}
 
-  B1 --> C1["4 · ORDEN DE COMPRA en borrador<br/>renglones en kg y costo unitario"]
+  B1 --> C1["4 · ORDEN DE COMPRA en borrador<br/>renglones en kg y costo unitario<br/>AQUI si ve lo que pago antes por cada producto<br/>una vez enviada YA NO SE PUEDE EDITAR"]
   C1 --> C2["5 · 'ENVIAR' la orden"]
   C2 --> C3{"el total pasa de 20,000 MXN"}
   C3 -->|no| C4["queda AUTORIZADA sola"]
+  C4 --> C7{{"el limite de 20,000 MXN es el correcto<br/>se puede cambiar sin tocar el codigo - es un ajuste<br/>del servidor, CRM_PO_AUTH_THRESHOLD_MXN - pero NO<br/>desde una pantalla: hoy lo cambia quien instala"}}
   C3 -->|si| C5["queda POR AUTORIZAR - EL NO PUEDE APROBARLA"]
   C5 --> C6("ENTREGA A: EL ADMINISTRADOR, que es el unico que autoriza")
   C6 --> C4
@@ -36,7 +37,7 @@ flowchart TB
 
   E2 --> F2{"llego todo"}
   F2 -->|no| F3["la orden sigue abierta: puede recibir el resto"]
-  F2 -->|si| F4["queda RECIBIDA"]
+  F2 -->|si| F4["queda RECIBIDA<br/>ya no se puede cancelar"]
   F4 --> F5["7 · captura el folio de la factura del proveedor"]
   F5 --> F6("ENTREGA A: ADMINISTRACION, para el pago")
 
@@ -48,7 +49,7 @@ flowchart TB
   classDef fuera fill:#f3f4f6,stroke:#6b7280,color:#111827,stroke-dasharray: 4 3
   classDef incognita fill:#fef3c7,stroke:#b45309,color:#111827,stroke-width:2px
   classDef frase fill:#ecfdf5,stroke:#047857,color:#111827
-  class L1,A1,A2,B1,C1,C2,C3,C4,C5,E2,E3,F2,F3,F4,F5 sistema
+  class L1,A2,B1,C1,C2,C3,C4,C5,E2,E3,F2,F3,F4,F5 sistema
   class L2,C6,D1,E1,E9,F6 fuera
-  class L3,A3,B2,D2,G1,G2,G3 incognita
+  class L3,A1,A3,B2,C7,D2,G1,G2,G3 incognita
   class F1,L4 frase

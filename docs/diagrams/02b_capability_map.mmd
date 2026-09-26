@@ -1,27 +1,66 @@
-%% A = CRM maestro · B = referencia en CRM · C = sistema externo / solo enrutamiento
+---
+title: Mapa de capacidades - que lleva el sistema y que no
+---
 flowchart TB
-  subgraph DEM[Generación de demanda]
-    d1["Marketing digital · A"]; d2["Captura de leads web · A"]; d3["Prospección saliente · A"]
+  LEY["A = el sistema es el dueno del dato<br/>B = solo guarda una referencia<br/>C = vive en otro lado, el sistema no lo lleva"]
+
+  subgraph DEM["Generacion de demanda"]
+    d1["Marketing digital · C"]
+    d2["Captura de prospectos desde la web · A"]
+    d3["Prospeccion saliente · A"]
   end
-  subgraph COMERCIAL[Gestión comercial]
-    c1["Calificación ≥500 kg · A"]; c2["Cuentas y contactos · A"]; c3["Oportunidades / pipeline · A"]
-    c4["Cotizaciones · A"]; c5["Cuentas clave / recompra · A"]; c6["Negociación / aprobaciones · A (P1)"]
+  subgraph COMERCIAL["Gestion comercial"]
+    c1["Calificacion 500 kg o mas · A"]
+    c2["Cuentas y contactos · A"]
+    c3["Oportunidades por etapa · A"]
+    c4["Cotizaciones con PDF · A"]
+    c5["Cuentas clave y recompra · A"]
+    c6["Autorizacion de descuentos · NO EXISTE"]
   end
-  subgraph DESARROLLO[Desarrollo de producto]
-    f1["Seguimiento fórmula y muestra · A"]; f2["Receta / especificación técnica · C"]
+  subgraph DESARROLLO["Desarrollo de producto"]
+    f1["Seguimiento de formula y muestra · A"]
+    f2["Receta y especificacion tecnica · C"]
   end
-  subgraph CUMPLIMIENTO[Cumplimiento]
-    o1["Pedido de venta · B"]; o2["Inventario / stock seguridad · C"]; o3["Molienda / empaque · C"]; o4["Entrega <72 h · B"]
+  subgraph CUMPLIMIENTO["Cumplimiento del pedido"]
+    o1["Pedido de venta · A"]
+    o2["Inventario por lote y bodega · A"]
+    o3["Molienda y empaque · C"]
+    o4["Entrega y reparto · C"]
+    o5["Devoluciones · NO EXISTE"]
   end
-  subgraph ABASTO[Abastecimiento]
-    s1["Compras / importación / proveedores · C (solo enrutar correo)"]
+  subgraph ABASTO["Abastecimiento"]
+    s1["Ordenes de compra y proveedores · A"]
+    s2["Cotizaciones de proveedor · NO EXISTE"]
   end
-  subgraph CALIDAD[Calidad e inocuidad]
-    q1["Reclamación con cliente · A"]; q2["Investigación / CAPA / lotes · C"]; q3["Documentación a clientes · A (solicitud)"]
+  subgraph CALIDAD["Calidad e inocuidad"]
+    q1["Reclamacion del cliente como caso · A"]
+    q2["Bloqueo de lote y CAPA · NO EXISTE"]
+    q3["Documentacion a clientes · A"]
   end
-  subgraph FIN[Finanzas y administración]
-    a1["Facturación / cobranza · B (bandera)"]; a2["Buzón compartido · A (clasificador)"]; a3["Privacidad / ARCO · A (P1)"]
+  subgraph FIN["Finanzas y administracion"]
+    a1["Facturacion · C en CONTPAQi; aqui solo el folio · B"]
+    a2["Cobranza y cuentas por cobrar · NO EXISTE"]
+    a3["Caja chica con comprobante · A"]
+    a4["Buzon compartido y clasificador · A"]
+    a5["Nomina · C"]
   end
-  subgraph POST[Postventa]
-    p1["Seguimiento / satisfacción · A"]; p2["Recompra · A"]
+  subgraph OPER["Operacion interna"]
+    n1["Personal, contratos y puestos · A"]
+    n2["Mantenimiento de activos · A"]
+    n3["Avisos y vencimientos · A"]
+    n4["Historial completo · A"]
   end
+
+  %% Enlaces invisibles: obligan a que los bloques se apilen en vertical
+  %% en lugar de ponerse uno al lado del otro y salirse de la hoja.
+  LEY ~~~ DEM
+  d3 ~~~ c1
+  c6 ~~~ f1
+  f2 ~~~ o1
+  o5 ~~~ s1
+  s2 ~~~ q1
+  q3 ~~~ a1
+  a5 ~~~ n1
+
+  classDef nota fill:#fef3c7,stroke:#b45309,color:#111827,stroke-width:2px
+  class LEY nota

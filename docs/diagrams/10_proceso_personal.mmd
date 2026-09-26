@@ -8,7 +8,7 @@ flowchart TB
     L3{{"INCOGNITA - no sabemos como se hace hoy en La Huerta"}}
   end
 
-  A1["SISTEMA - alta del PUESTO<br/>titulo unico, area, funciones y requisitos<br/>una por renglon, no es puntaje"]
+  A1["SISTEMA - alta del PUESTO<br/>titulo unico, area, funciones y requisitos<br/>una por renglon, no es puntaje<br/>despues NO se puede editar"]
   A2{{"INCOGNITA - existen descripciones de puesto escritas hoy,<br/>o hay que redactarlas"}}
   A2 --> A1
 
@@ -22,7 +22,7 @@ flowchart TB
   C1 --> C3{{"INCOGNITA - hacen falta RFC, CURP, NSS, domicilio y salario:<br/>hoy el expediente NO los guarda"}}
 
   C2 --> D1("FUERA - se firma el contrato en papel")
-  D1 --> D2["SISTEMA - alta del CONTRATO<br/>temporal o indeterminado, fechas<br/>UNO vigente por empleado"]
+  D1 --> D2["SISTEMA - alta del CONTRATO<br/>temporal o indeterminado; el temporal exige<br/>fecha de termino - UNO vigente por empleado"]
   D2 --> D3["SISTEMA - se sube el PDF escaneado<br/>se guarda tal cual, sin leerlo"]
 
   D2 --> E1{"SISTEMA - el contrato tiene fecha de fin"}
@@ -34,7 +34,7 @@ flowchart TB
   F1 -->|terminar| F3["SISTEMA - TERMINAR<br/>el contrato queda 'terminado'"]
   F2 --> E1
 
-  F3 --> G1["SISTEMA - BAJA del empleado<br/>estado 'baja', exige motivo<br/>cierra los contratos vigentes"]
+  F3 --> G1["SISTEMA - BAJA del empleado<br/>estado 'baja', exige motivo<br/>despues ya no se le registra contrato nuevo"]
   G1 --> G2["SISTEMA - nada se borra:<br/>el expediente queda en la bitacora"]
 
   G1 --> G3{{"INCOGNITA - se necesita reporte de rotacion:<br/>hoy la fecha y el motivo de baja van en notas libres"}}

@@ -8,16 +8,16 @@ flowchart TB
     L3{{"INCOGNITA - no sabemos como se hace hoy en La Huerta"}}
   end
 
-  Z1["SISTEMA - alguien pulsa 'Revisar ahora'<br/>solo Administrador y Administracion pueden"]
+  Z1["SISTEMA - alguien pulsa 'Revisar ahora'<br/>solo Administrador y Administracion pueden<br/>y Administracion no ve la mayoria de lo que genera"]
   Z2{{"INCOGNITA - no hay tarea programada:<br/>si nadie pulsa el boton, no hay avisos"}}
   Z1 --> R1
   Z2 --> Z1
 
   subgraph REGLAS["SISTEMA - las seis reglas que se revisan"]
     R1["1 · Contrato por vencer<br/>60 dias antes - a RRHH - SEMANAL"]
-    R2["2 · Documento por vencer<br/>30 dias antes - segun el dueno del archivo - SEMANAL"]
+    R2["2 · Documento por vencer<br/>30 dias antes - a Mantenimiento, RRHH o Administracion - SEMANAL"]
     R3["3 · Lote por caducar<br/>30 dias antes y solo si AUN HAY EXISTENCIA - a Almacen - SEMANAL"]
-    R4["4 · Existencia bajo el minimo<br/>a Almacen - DIARIO"]
+    R4["4 · Existencia bajo el minimo<br/>a Almacen, NO a Abastecimiento - DIARIO"]
     R5["5 · Mantenimiento programado<br/>15 dias, 500 km o 50 horas - a Mantenimiento - SEMANAL"]
     R6["6 · Tarea vencida<br/>al rol y a la persona asignada - DIARIO"]
   end
@@ -43,10 +43,10 @@ flowchart TB
   V1 --> V2{{"INCOGNITA - quien revisa los avisos cada manana<br/>y que pasa si nadie los ve"}}
 
   V1 --> W1["SISTEMA - marcar LEIDO"]
-  V1 --> W2["SISTEMA - SILENCIAR por N dias o para siempre<br/>tambien marca leidos los pendientes"]
+  V1 --> W2["SISTEMA - SILENCIAR por 30 dias o sin fecha<br/>tambien marca leidos los pendientes"]
   W2 --> W3["SISTEMA - al silenciar deja de generarse<br/>hasta que alguien lo reactive"]
 
-  W2 --> W4{{"INCOGNITA - cualquier rol puede silenciar, incluso 'solo lectura':<br/>debe quedar asi o restringirse al area"}}
+  W2 --> W4{{"INCOGNITA - cualquier rol puede silenciar, incluso 'solo lectura':<br/>debe quedar asi o restringirse al area - D-60"}}
 
   T1 --> X1{{"INCOGNITA - los avisos nunca se archivan ni caducan:<br/>hace falta limpieza con el tiempo"}}
 

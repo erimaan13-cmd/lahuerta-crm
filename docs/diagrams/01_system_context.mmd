@@ -1,23 +1,35 @@
+---
+title: Contexto del sistema - quien habla con quien
+---
 flowchart LR
-  subgraph Externos
-    P[Prospectos B2B<br/>industria, hoteles,<br/>restaurantes, comedores]
-    C[Clientes existentes]
-    S[Proveedores / importación]
-    W[Sitio web<br/>form. contacto + catálogo]
-    WA[Teléfono / WhatsApp]
+  subgraph Externos["FUERA DE LA EMPRESA"]
+    P["Prospectos B2B<br/>industria, hoteles,<br/>restaurantes, comedores"]
+    C["Clientes existentes"]
+    S["Proveedores / importacion"]
+    W["Sitio web<br/>formulario de contacto + catalogo"]
+    WA["Telefono / WhatsApp"]
   end
-  subgraph LaHuerta[Empacadora La Huerta]
-    U[Usuarios internos<br/>Ventas · Atención · Calidad<br/>Administración · Dirección]
-    CRM[[CRM provisional MVP]]
+
+  subgraph LaHuerta["EMPACADORA LA HUERTA"]
+    U["Usuarios internos<br/>10 roles: Ventas, Atencion, Calidad,<br/>Almacen, Abastecimiento, RRHH,<br/>Mantenimiento, Administracion,<br/>Direccion y Administrador"]
+    CRM["SISTEMA INTERNO<br/>CRM comercial + operacion"]
   end
-  MAIL[(Buzón compartido<br/>administracion@ — solo lectura)]
-  ERP[(ERP / facturación<br/>FUTURO — hoy mock)]
-  WMS[(WMS / inventario-lotes<br/>FUTURO)]
-  QMS[(QMS FSSC 22000<br/>FUTURO)]
+
+  MAIL["Buzon compartido<br/>administracion@<br/>SOLO LECTURA"]
+  CP["CONTPAQi<br/>emite las facturas<br/>aqui solo se captura el folio"]
+  QMS["QMS FSSC 22000<br/>si existe uno aparte"]
+
   P --> W --> CRM
   P --> WA --> U
-  P & C & S --> MAIL --> CRM
+  P --> MAIL
+  C --> MAIL
+  S --> MAIL
+  MAIL --> CRM
   U <--> CRM
-  CRM <-. referencias / eventos .-> ERP
-  CRM <-. lotes / disponibilidad .-> WMS
-  CRM -. reclamaciones escaladas .-> QMS
+  CRM -. "folio de la factura" .-> CP
+  CRM -. "reclamaciones escaladas" .-> QMS
+
+  NOTA["CAMBIO desde la primera version:<br/>el inventario y los pedidos ya NO son externos.<br/>Viven aqui desde la iteracion 4"]
+
+  classDef nota fill:#fef3c7,stroke:#b45309,color:#111827,stroke-width:2px
+  class NOTA nota

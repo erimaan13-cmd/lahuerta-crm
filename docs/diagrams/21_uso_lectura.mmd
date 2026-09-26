@@ -11,15 +11,15 @@ flowchart TB
 
   F1["'Para mi el sistema es una ventana al negocio:<br/>quiero ver como va sin tener que preguntarle a nadie,<br/>y sin riesgo de desconfigurar algo'<br/>(frase INFERIDA - confirmar con la persona)"]
 
-  A1["1 · TABLERO<br/>ve las mismas 22 tarjetas que todos<br/>decide: nada, solo se informa"]
-  A1 --> A2["2 · las 13 pestanas<br/>ve ventas, inventario, compras, mantenimiento,<br/>prospectos, cuentas, correos, casos, tareas"]
+  A1["1 · TABLERO<br/>ve 10 tarjetas de 12: le faltan Personal y Caja chica<br/>decide: nada, solo se informa"]
+  A1 --> A2["2 · las 13 entradas del menu que le tocan<br/>ve pedidos, inventario, abastecimiento, mantenimiento,<br/>prospectos, cuentas, oportunidades, correos, casos,<br/>tareas, documentos y avisos"]
 
   A2 --> B1["NO ve: Personal, Caja chica,<br/>Historial ni Usuarios"]
   B1 --> B2["si escribe la direccion a mano:<br/>'Tu rol no tiene el permiso pettycash:read'<br/>mensaje en clave - ver UI-1"]
 
   A2 --> C1["NO puede escribir nada:<br/>ni prospectos, ni pedidos, ni movimientos,<br/>ni subir un documento"]
 
-  A2 --> D1["PERO SI PUEDE: silenciar un aviso<br/>y marcarlo como leido"]
+  A2 --> D1["PERO SI PUEDE: silenciar un aviso<br/>y marcarlo como leido - basta con notification:read<br/>y en su bandeja casi no aparece ninguno,<br/>porque cada aviso va dirigido a un area"]
   D1 --> D2{{"debe poder apagar una alerta de lote por caducar:<br/>VERIFICADO que hoy si puede - ver UI-4"}}
 
   A2 --> E1["ANTES PODIA: descargar cualquier documento,<br/>incluso de caja chica o de un expediente.<br/>RESUELTO el 26-sep-2026 (SEC-1, D-59):<br/>ahora recibe 403"]

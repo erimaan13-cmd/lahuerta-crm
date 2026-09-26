@@ -15,7 +15,7 @@ flowchart TB
   A1 --> A2["2 · el caso trae el NUMERO DE LOTE<br/>es obligatorio para resolver una reclamacion"]
 
   A2 --> B1["3 · INVENTARIO - busca ese lote<br/>ve cuanto queda y cuando caduca<br/>puede VER, no mover"]
-  B1 --> B2["4 · PEDIDOS - ve a quien mas se le vendio<br/>ese lote, por los movimientos de salida"]
+  B1 --> B2{{"HALLAZGO A6 - NO hay pantalla que diga<br/>a que clientes se les fue un lote<br/>el dato existe en la base, pero hay que pedirlo aparte"}}
   B2 --> B3{{"con eso alcanza para rastrear,<br/>o necesita ver el lote del proveedor tambien"}}
 
   B3 --> C1("FUERA - la investigacion real:<br/>revisar la muestra, hablar con produccion, con el proveedor")
@@ -37,13 +37,13 @@ flowchart TB
   A1 --> H1["LO QUE NO PUEDE: cotizar, crear pedidos,<br/>mover inventario, ver personal o caja"]
 
   A1 --> I1{{"esto reemplaza un QMS o convive con uno:<br/>el sistema NO es un QMS, las no conformidades son casos"}}
-  A2 --> I2{{"que pide FSSC 22000 que hoy no este:<br/>el rastro por lote existe, pero un RETIRO DE PRODUCTO<br/>no se puede hacer - ver RN-5"}}
+  A2 --> I2{{"que pide FSSC 22000 que hoy no este:<br/>el dato del lote se guarda, pero no hay pantalla de rastreo<br/>ni RETIRO DE PRODUCTO - ver A6 y RN-5"}}
 
   classDef sistema fill:#e8f0fe,stroke:#1a56db,color:#111827
   classDef fuera fill:#f3f4f6,stroke:#6b7280,color:#111827,stroke-dasharray: 4 3
   classDef incognita fill:#fef3c7,stroke:#b45309,color:#111827,stroke-width:2px
   classDef frase fill:#ecfdf5,stroke:#047857,color:#111827
-  class L1,A1,A2,B1,B2,D1,D2,D3,F2,H1 sistema
+  class L1,A1,A2,B1,D1,D2,D3,F2,H1 sistema
   class L2,C1,E9,E8 fuera
-  class L3,B3,C2,G1,G2,G3,I1,I2 incognita
+  class L3,B2,B3,C2,G1,G2,G3,I1,I2 incognita
   class F1,L4 frase

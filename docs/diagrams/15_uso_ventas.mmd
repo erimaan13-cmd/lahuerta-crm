@@ -32,18 +32,19 @@ flowchart TB
   E2 --> E3["12 · CONFIRMAR<br/>revisa existencia pero NO la aparta"]
   E3 --> E4{{"cuando confirma, alguien aparta el producto en bodega,<br/>o se surte el dia de la salida"}}
 
-  E3 --> F9("ENTREGA A: ALMACEN, que es quien pulsa 'Entregar'")
+  E3 --> F9["13 · ENTREGAR lo pulsa EL MISMO VENTAS<br/>Almacen NO tiene este permiso: junta la mercancia<br/>pero no puede descargarla del sistema<br/>sale TODO O NADA: no hay entrega parcial"]
   E1 --> G9("ENTREGA A: ADMINISTRACION, para la factura y el cobro")
 
   E2 --> H1{{"quien captura el pedido: el vendedor o administracion"}}
   C2 --> H2{{"quien autoriza un descuento:<br/>hoy el sistema acepta cualquier precio, incluso cero"}}
   B1 --> H3{{"el minimo de 500 kg sigue vigente"}}
+  F9 --> H4{{"quien deberia pulsar 'Entregar': quien surte en bodega<br/>o quien vendio - hoy solo puede quien vendio"}}
 
   classDef sistema fill:#e8f0fe,stroke:#1a56db,color:#111827
   classDef fuera fill:#f3f4f6,stroke:#6b7280,color:#111827,stroke-dasharray: 4 3
   classDef incognita fill:#fef3c7,stroke:#b45309,color:#111827,stroke-width:2px
   classDef frase fill:#ecfdf5,stroke:#047857,color:#111827
-  class L1,A1,A2,B1,B3,B4,C1,C2,C4,D1,E1,E2,E3 sistema
-  class L2,B2,C3,F9,G9 fuera
-  class L3,D2,E4,H1,H2,H3 incognita
+  class L1,A1,A2,B1,B3,B4,C1,C2,C4,D1,E1,E2,E3,F9 sistema
+  class L2,B2,C3,G9 fuera
+  class L3,D2,E4,H1,H2,H3,H4 incognita
   class F1,L4 frase

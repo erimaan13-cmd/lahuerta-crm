@@ -1,24 +1,29 @@
 ---
 title: Recorrido del cliente (vista comercial) - el proceso interno esta en 08_proceso_venta.mmd
 ---
-flowchart LR
-  L[Prospecto<br/>web · WhatsApp · tel · correo] --> K[Contacto<br/>tarea SLA 4 h]
-  K --> Q{Calificación<br/>≥500 kg · B2B · MX}
-  Q -- no --> X[Descartado<br/>con motivo]
-  Q -- sí --> CV[Conversión<br/>Cuenta + Contacto]
-  CV --> R[Oportunidad:<br/>Requerimiento]
-  R -- estándar / recompra --> COT[Cotización]
-  R -- fórmula personalizada --> DF[Desarrollo de fórmula] --> MS[Muestra enviada]
+flowchart TB
+  L["Prospecto<br/>web · WhatsApp · telefono · correo"] --> K["Contacto<br/>tarea automatica, 4 h habiles"]
+  K --> Q{"Calificacion<br/>500 kg o mas · B2B · Mexico<br/>y con nombre de empresa"}
+  Q -- no --> X["Descartado<br/>con motivo"]
+  Q -- si --> CV["Conversion<br/>nacen Cuenta y Contacto"]
+  CV --> R["Oportunidad: Requerimiento"]
+  R -- "estandar / recompra" --> COT["Cotizacion"]
+  R -- "formula personalizada" --> DF["Desarrollo de formula"] --> MS["Muestra enviada"]
   MS -- ajustes --> DF
-  MS --> MA[Muestra aprobada] --> COT
-  COT --> NEG[Negociación] --> G{Decisión}
+  MS --> MA["Muestra aprobada"] --> COT
+  COT --> NEG["Negociacion"] --> G{"Decision"}
   COT --> G
-  G -- perdida + motivo --> LO[Perdida]
-  G -- ganada --> W[Ganada<br/>evento ERP + tarea Admin]
-  W --> PED[Pedido en el sistema<br/>folio PED · descuenta inventario al entregar]
-  PED --> ENT[Entrega<br/>salida por PEPS · factura en CONTPAQi, solo el folio]
-  ENT --> SEG[Seguimiento]
-  SEG --> INC{¿Incidencia?}
-  INC -- sí --> CASE[Caso / reclamación<br/>lote obligatorio → QMS]
-  INC -- no --> RC[Recompra<br/>nueva oportunidad tipo recompra]
+  G -- "perdida + motivo" --> LO["Perdida"]
+  G -- ganada --> W["Ganada<br/>tarea para Administracion"]
+  W --> PED["Pedido en el sistema<br/>folio PED · descuenta inventario al ENTREGAR"]
+  PED --> ENT["Entrega<br/>salida por caducidad mas proxima<br/>la factura la emite CONTPAQi: aqui solo el folio"]
+  ENT --> SEG["Seguimiento"]
+  SEG --> INC{"Hay una incidencia"}
+  INC -- si --> CASE["Caso / reclamacion<br/>el lote es obligatorio"]
+  INC -- no --> RC["Recompra<br/>nueva oportunidad tipo recompra"]
   CASE --> RC
+
+  NOTA["OJO: las etapas dependen del TIPO de oportunidad.<br/>Una estandar o de recompra NO pasa por formula ni muestra,<br/>y una de formula personalizada sigue el orden estricto"]
+
+  classDef nota fill:#fef3c7,stroke:#b45309,color:#111827,stroke-width:2px
+  class NOTA nota

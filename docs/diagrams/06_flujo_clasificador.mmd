@@ -1,22 +1,33 @@
+---
+title: Como se clasifica un correo
+---
 flowchart TB
-  A[EMAIL PROVIDER<br/>EML · Mock · Gmail readonly P1] --> B[INGESTA<br/>idempotente por Message-ID]
-  B --> C[NORMALIZACIÓN<br/>HTML→texto · quitar historial · acentos]
-  C --> D[IDENTIDAD DEL REMITENTE<br/>contacto · lead · dominio de cuenta · proveedor · desconocido]
-  D --> E[CLASIFICACIÓN POR REGLAS<br/>puntajes ponderados + contexto]
-  C --> F[EXTRACCIÓN<br/>empresa · tel · ciudad · sector · producto · kg · urgencia · folios]
-  E --> G{confianza ≥ 0.60<br/>y margen ≥ 0.15?}
-  G -- no, y LLM activo --> H[LLM puerto híbrido<br/>desactivado en MVP] --> G2{¿coincide?}
+  A["PROVEEDOR DE CORREO<br/>archivo .eml · buzon de demostracion<br/>Gmail de solo lectura en el futuro"] --> B["INGESTA<br/>no duplica: identifica por Message-ID"]
+  B --> C["NORMALIZACION<br/>HTML a texto · quita el historial citado · acentos"]
+  C --> D["IDENTIDAD DEL REMITENTE<br/>contacto · prospecto · dominio de una cuenta ·<br/>proveedor · desconocido"]
+  D --> E["CLASIFICACION POR REGLAS<br/>puntajes ponderados mas el contexto"]
+  C --> F["EXTRACCION<br/>empresa · telefono · ciudad · sector ·<br/>producto · kilos · urgencia · folios"]
+  E --> G{"confianza de 0.60 o mas<br/>y margen de 0.15 o mas"}
+  G -- "no, y el LLM estuviera activo" --> H["LLM: puerto previsto<br/>APAGADO hoy"] --> G2{"coincide con las reglas"}
   G2 -- no --> NR
-  G2 -- sí --> I
-  G -- no --> NR[NEEDS REVIEW]
-  G -- sí --> S{¿categoría sensible?<br/>CALIDAD_RECLAMACION / OTRO}
-  S -- sí --> NR
-  S -- no --> I[AUTO: sugerencia lista]
-  F --> V[VINCULACIÓN CRM<br/>contacto → cuenta; COT → oportunidad;<br/>CASO/lote → caso; pedido → OrderReference]
+  G2 -- si --> I
+  G -- no --> NR["POR REVISAR<br/>la bandeja de lo dudoso"]
+  G -- si --> S{"es una categoria sensible<br/>reclamacion de calidad, u otro"}
+  S -- si --> NR
+  S -- no --> I["AUTOMATICO: la sugerencia queda lista"]
+  F --> V["VINCULACION CON EL CRM<br/>contacto a cuenta · folio COT a oportunidad ·<br/>lote a caso · pedido a su referencia"]
   V --> I
   V --> NR
-  NR --> HR[Humano confirma o corrige<br/>etiqueta auditada]
+  NR --> HR["UNA PERSONA confirma o corrige la categoria<br/>la correccion queda en la bitacora"]
   HR --> I
-  I --> AP[Humano aplica acción<br/>crear lead · tarea · caso · actividad · enrutar fuera]
-  AP --> Z[(CRM + AuditEvent)]
-  X[[Nunca: responder · borrar · archivar · mover correos]]
+  I --> AP["UNA PERSONA aplica la accion<br/>crear prospecto · tarea · caso · actividad ·<br/>enrutar fuera del sistema"]
+  AP --> Z["queda en el CRM y en el historial"]
+
+  X["LO QUE NUNCA HACE:<br/>responder, borrar, archivar<br/>ni mover correos del buzon"]
+
+  NOTA["Desde POR REVISAR son DOS pasos:<br/>primero confirmar o corregir,<br/>despues aplicar"]
+
+  classDef nota fill:#fef3c7,stroke:#b45309,color:#111827,stroke-width:2px
+  classDef nunca fill:#fee2e2,stroke:#b91c1c,color:#111827,stroke-width:2px
+  class NOTA nota
+  class X nunca

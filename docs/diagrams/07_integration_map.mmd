@@ -1,13 +1,24 @@
+---
+title: Mapa de integraciones - que entra y que sale
+---
 flowchart LR
-  CRM[[CRM]]
-  WEB[Formularios web] -- "POST /api/leads (P1: webhook con token)" --> CRM
-  MAIL[Proveedor de correo] -- "EmailProvider.fetch() solo lectura" --> CRM
-  WA[WhatsApp Business P1] -. lectura .-> CRM
-  CRM -- "IntegrationEvent out: opportunity.won" --> ERP[ERP / facturación]
-  ERP -- "ErpAdapter.fetch_orders(): OrderReference" --> CRM
-  ERP -. "P1: estado de crédito / saldo vencido" .-> CRM
-  WMS[WMS] -. "P2: disponibilidad / lote" .-> CRM
-  CRM -- "IntegrationEvent out: case.escalated" --> QMS[QMS FSSC 22000]
-  QMS -. "P2: estado de investigación" .-> CRM
-  ADS[Google Ads · Meta · LinkedIn] -. "UTM / campaign en Lead" .-> CRM
-  LLM[API LLM P1] -. "solo correos en duda" .-> CRM
+  CRM["SISTEMA INTERNO LA HUERTA"]
+
+  WEB["Formularios del sitio web"] -- "POST /api/prospectos" --> CRM
+  MAIL["Proveedor de correo"] -- "lectura del buzon, SOLO LECTURA" --> CRM
+  WA["WhatsApp Business<br/>NO CONECTADO"] -. "futuro" .-> CRM
+
+  CRM -- "hoy: solo se captura el folio de la factura" --> ERP["CONTPAQi<br/>emite las facturas"]
+  ERP -- "pedidos historicos del ERP simulado" --> CRM
+  ERP -. "futuro: credito y saldo vencido" .-> CRM
+
+  CRM -- "reclamacion escalada" --> QMS["QMS FSSC 22000<br/>si existe uno aparte"]
+  QMS -. "futuro: estado de la investigacion" .-> CRM
+
+  ADS["Google Ads · Meta · LinkedIn"] -. "la campana se guarda en el prospecto" .-> CRM
+  LLM["API de un modelo de lenguaje<br/>APAGADO"] -. "solo para correos en duda" .-> CRM
+
+  NOTA["LO QUE EL SISTEMA NO HACE:<br/>no envia correos, no timbra facturas,<br/>no calcula nomina, no lleva contabilidad.<br/>El inventario y los pedidos SI viven aqui<br/>desde la iteracion 4"]
+
+  classDef nota fill:#fef3c7,stroke:#b45309,color:#111827,stroke-width:2px
+  class NOTA nota
