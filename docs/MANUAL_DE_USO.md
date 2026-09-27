@@ -20,9 +20,8 @@ Donde dice **[CAPTURA: ...]** va una imagen de pantalla que todavía no está pu
 > hoja de cálculo no pueden.
 
 > **Cómo está marcada la información.** Este manual describe lo que el sistema hace hoy, comprobado en
-> su código. Donde diga **PENDIENTE** es algo que falta decidir con La Huerta, y lo verás también en la
-> lista final de preguntas. Si algo de este manual no coincide con lo que ves en pantalla, gana la
-> pantalla: avísale a Erick.
+> su código. Donde diga **PENDIENTE** es algo que falta decidir con La Huerta. Si algo de este manual no
+> coincide con lo que ves en pantalla, gana la pantalla: avisa a quien administra el sistema.
 
 ---
 
@@ -63,8 +62,8 @@ Dicho en una frase: **el sistema no ejecuta, registra y recuerda.**
 ### En la computadora
 
 1. Abre el navegador (Chrome, Edge o el que uses).
-2. Escribe la dirección que te dé Erick. Si el sistema corre en la computadora de la empresa, será algo
-   como `http://127.0.0.1:8000`.
+2. Escribe la dirección que te dé quien administra el sistema. Guárdala en favoritos la primera vez y ya
+   no tendrás que volver a preguntarla.
 3. Escribe tu correo y tu contraseña, y pulsa **Entrar**.
 
 **[CAPTURA: la pantalla de acceso, con los campos de correo y contraseña]**
@@ -1052,8 +1051,8 @@ saca un respaldo a mano. Cuesta un minuto.
    borrando, y duplicar registros hace más difícil entender qué pasó.
 2. **Anota qué estabas haciendo, en qué pantalla y qué decía el mensaje.** Con eso y el historial se
    reconstruye lo que pasó; sin eso, no.
-3. **Avísale a Erick.** Si el sistema dejó de responder, el respaldo más reciente es lo primero que va a
-   preguntar.
+3. **Avisa a quien administra el sistema.** Si dejó de responder, lo primero que va a preguntar es cuál
+   es el respaldo más reciente.
 
 ### Las tres reglas de tu cuenta
 

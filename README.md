@@ -7,6 +7,22 @@ Sistema modular para una distribuidora B2B de especias, granos y condimentos. Do
 
 > **Datos 100 % sintéticos.** Ninguna empresa, persona, correo o pedido del repositorio corresponde a clientes reales de Empacadora La Huerta. No hay credenciales reales.
 
+## Por dónde empezar
+
+Hay 22 documentos en `docs/`. No todos son para lo mismo, así que conviene saber qué buscas:
+
+| Si quieres… | Ve a |
+|---|---|
+| **Levantarlo y verlo funcionando** | Este README, sección **Ejecutar**. Nada más |
+| **Entender qué hace y cómo se usa** | `docs/MANUAL_DE_USO.md` — el manual del usuario final, 23 capítulos — y `docs/diagrams/`, los 25 diagramas |
+| **Auditar las decisiones de diseño** | `docs/DECISION_LOG.md` — cada decisión con sus alternativas, su porqué y sus consecuencias |
+| **Preparar la junta con el cliente** | `docs/13_GUIA_DE_JUNTA.md` — las preguntas abiertas, ordenadas por persona |
+
+**Lo que puedes ignorar en una primera lectura:** los informes de iteración (`INFORME_*.md`), los
+documentos `docs/01_` a `docs/08_`, y `CLAUDE.md`. Son la bitácora de **cómo se construyó** el sistema,
+no documentación de **qué hace**. Sirven para reconstruir una decisión vieja, no para entender el
+sistema hoy — y algunos describen estados que ya cambiaron.
+
 ## Requisitos
 
 - Python 3.11+
