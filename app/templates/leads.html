@@ -23,8 +23,10 @@
 <form class="card" method="post" action="/leads"><input type="hidden" name="csrf_token" value="{{ request.state.csrf }}">
   <div class="row">
     <label>Nombre*<input name="full_name" required></label><label>Empresa<input name="company_name"></label>
-    <label>Correo<input name="email" type="email"></label><label>Teléfono<input name="phone"></label><label>Ciudad<input name="city"></label>
+    <label>Correo*<input name="email" type="email"></label><label>Teléfono*<input name="phone"></label><label>Ciudad<input name="city"></label>
     <label>Sector<select name="sector_code"><option value="">—</option>{% for s in sectors %}<option value="{{ s.code }}">{{ s.name }}</option>{% endfor %}</select></label>
+    <span class="hint">Obligatorios: el nombre y <b>al menos uno</b> de correo o teléfono — no los dos. El nombre de
+      la empresa no se pide aquí, pero hace falta más adelante para poder calificar al prospecto.</span>
   </div><div class="row" style="margin-top:8px">
     <label>Producto de interés<input name="product_interest_text"></label>
     <label>Cantidad<select name="volume_band"><option value="">(calcular por kg)</option><option value="500kg_1t">500 kg (mínimo) a una tonelada</option><option value="mas_1t">Más de una tonelada</option><option value="menor_500kg">Menos de 500 kg</option></select></label>

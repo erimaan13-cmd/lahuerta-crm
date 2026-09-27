@@ -139,8 +139,9 @@ Un **prospecto** es la *persona* que preguntó. No confundir con **Cliente poten
 
 1. Menú → **Prospectos**.
 2. Abajo, en **Nuevo prospecto**, llena el **nombre** y **al menos una forma de contactarlo: correo o
-   teléfono**. Los tres primeros campos son obligatorios en ese sentido: sin nombre no guarda, y sin
-   correo ni teléfono tampoco. El resto se puede completar después.
+   teléfono**. En el formulario esos tres campos llevan asterisco, y debajo una nota lo aclara: el
+   asterisco del correo y del teléfono significa **uno de los dos**, no los dos. Sin nombre no guarda, y
+   sin correo ni teléfono tampoco. El resto se puede completar después.
 3. Pulsa el botón de guardar.
 
 **Y para poder calificarlo después necesitas el nombre de la empresa.** No hace falta al darlo de alta,
