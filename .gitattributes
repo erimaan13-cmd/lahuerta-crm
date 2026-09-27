@@ -1,0 +1,20 @@
+# Fin de línea uniforme: LF en el repositorio y LF también en disco, en cualquier sistema.
+#
+# Sin este archivo, `core.autocrlf=true` (el valor por omisión en Windows) convierte a CRLF en cada
+# checkout, y entonces los archivos aparecen modificados sin que nadie haya cambiado una letra. Eso
+# ensucia el diff y esconde los cambios de verdad.
+#
+# `eol=lf` es deliberado en vez de dejar que cada máquina decida: el repositorio se audita, y un diff
+# que solo dice "cambió el fin de línea" hace perder tiempo a quien revisa.
+* text=auto eol=lf
+
+# Binarios: que git no intente normalizar nada dentro.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.heic binary
+*.pdf binary
+*.db binary
+*.sqlite3 binary
+*.zip binary
