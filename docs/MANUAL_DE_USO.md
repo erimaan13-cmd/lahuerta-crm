@@ -88,24 +88,67 @@ En el celular la pantalla se acomoda sola:
 **Consejo:** guarda la dirección en la pantalla de inicio del teléfono. Queda como si fuera una
 aplicación.
 
-### Lo primero que conviene entender: tu rol
+### La regla que sostiene todo lo demás: tu cuenta es tuya
 
-El sistema le asigna a cada persona un **rol**, que es su puesto dentro del sistema: Ventas, Almacén,
-Recursos Humanos, etc. Tu rol decide **qué puedes cambiar**.
-
-Algo que sorprende al principio: **casi todos ven casi todo**. El de almacén ve los clientes, y el
-vendedor ve el inventario. Es a propósito, para que un vendedor pueda checar si hay producto antes de
-prometer una entrega. Lo que cambia entre roles no es lo que ves, sino **lo que puedes escribir**.
-
-Solo cuatro secciones están reservadas: **Personal** y **Caja chica** (por los datos delicados),
-**Historial** y **Usuarios** (solo el administrador).
-
-Si intentas entrar a una que no te toca, verás un mensaje de error. Hoy ese mensaje está escrito en
-lenguaje técnico y es confuso; ya está anotado para arreglarse.
+> **No compartas tu contraseña, y no uses la cuenta de otra persona. Nunca.**
+>
+> Esto no es una recomendación de seguridad genérica: es lo que hace que el sistema sirva. Todo lo que
+> este manual promete —saber quién cambió una existencia, quién autorizó una compra, quién consultó un
+> expediente— **se apoya en que cada sesión sea de una sola persona**. Si dos personas usan la misma
+> cuenta, el historial sigue registrando todo con precisión… y atribuyéndoselo a la persona equivocada.
+> Eso queda **peor que no tener historial**, porque parece confiable y no lo es.
+>
+> Si alguien más necesita entrar, pídele al administrador que le dé su propia cuenta. Toma un minuto.
 
 ---
 
-## 4. El Tablero
+## 4. Tu rol: qué puedes ver y qué puedes cambiar
+
+El sistema le asigna a cada persona un **rol**, que es su puesto dentro del sistema. Hay diez.
+
+**Lo que sorprende al principio: casi todos ven casi todo.** El de almacén ve los clientes, y el
+vendedor ve el inventario. Es a propósito, para que un vendedor pueda checar si hay producto antes de
+prometer una entrega, y para que quien atiende un reclamo pueda ver de qué lote salió. **Lo que cambia
+entre roles no es lo que ves, sino lo que puedes escribir.**
+
+### Los diez roles
+
+| Rol | En qué módulos escribe | Qué tiene reservado |
+|---|---|---|
+| **Administrador** | Todo | Es el único que ve **Historial** y **Usuarios**, y el único que **autoriza compras** |
+| **Ventas** | Prospectos (y los convierte), cuentas, oportunidades, cotizaciones, **pedidos**, casos, tareas | — |
+| **Atención a clientes** | Prospectos, casos, tareas, **carga de correos** | — |
+| **Calidad e inocuidad** | Casos, tareas | — |
+| **Administración** | **Caja chica**, órdenes de compra, pedidos, casos, carga de correos y **generar los avisos** | **Caja chica** |
+| **Almacén** | **Movimientos de inventario**, productos, bodegas y lotes, tareas | — |
+| **Abastecimiento** | **Órdenes de compra**, inventario, tareas | — |
+| **Recursos Humanos** | **Expedientes, contratos y puestos**, tareas | **Personal** |
+| **Mantenimiento** | **Activos, planes y órdenes de trabajo**, tareas | — |
+| **Solo lectura** | Nada, salvo silenciar y marcar leídos los avisos | — |
+
+Todos los roles menos "solo lectura" pueden además **subir documentos** a los módulos en los que
+escriben, y **registrar actividades**.
+
+### Las cuatro secciones reservadas
+
+| Sección | Quién entra |
+|---|---|
+| **Personal** (expedientes) | Recursos Humanos y el administrador |
+| **Caja chica** | Administración y el administrador |
+| **Historial** | Solo el administrador |
+| **Usuarios** | Solo el administrador |
+
+**Ojo con una confusión fácil:** la PARTE III de este manual agrupa **cinco** capítulos, pero solo estas
+**cuatro** secciones están reservadas. El quinto, **Documentos**, lo ve todo el mundo — aunque cada quien
+**solo los documentos de los módulos que puede leer**, así que un expediente de personal no se le aparece
+a nadie fuera de RRHH.
+
+Si intentas entrar a una sección que no te toca, verás un mensaje de error. Hoy está escrito en lenguaje
+técnico y es confuso; ya está anotado para arreglarse.
+
+---
+
+## 5. El Tablero
 
 **Para qué sirve:** es la pantalla de inicio. Un resumen de cómo va todo.
 
@@ -120,13 +163,13 @@ de lo necesario para algunos puestos. Está anotado para mejorarse.
 
 **Error de novato:** creer que el tablero se actualiza solo con todo. Las tarjetas sí se calculan al
 momento, pero **los avisos no se generan solos**: alguien tiene que pulsar "Revisar ahora" en la
-pantalla de Avisos. Es la cosa más importante de este manual, y está explicada en el capítulo 15.
+pantalla de Avisos. Es la cosa más importante de este manual, y está explicada en el capítulo 17.
 
 ---
 
 # PARTE I · Lo comercial
 
-## 5. Prospectos
+## 6. Prospectos
 
 **Para qué sirve:** guardar a **toda persona que pregunta**, aunque todavía no sea cliente.
 
@@ -156,13 +199,47 @@ pregunta un viernes a las 16:30, la tarea vence el lunes, no el sábado.
 
 ### Tarea 2: registrar que ya le llamaste
 
-1. Abre el prospecto desde la lista.
+1. **Menú → Prospectos**, y abre el prospecto desde la lista.
 2. En la sección de actividades, registra la llamada con lo que quedó.
 3. El prospecto pasa a **contactado**.
 
-### Tarea 3: convertirlo en cliente
+### Tarea 3: calificarlo (el paso que decide si se le va a vender)
 
-Cuando el prospecto ya está **calificado** (interesa y el volumen alcanza), aparece el botón
+Calificar es decir "este sí nos interesa y le podemos vender". Es el paso intermedio que separa una
+pregunta cualquiera de una venta que se va a trabajar.
+
+1. **Menú → Prospectos**, y abre el prospecto.
+2. Pulsa el botón de cambiar estado y elige **calificado**.
+
+**El sistema te va a exigir el nombre de la empresa.** Sin ese dato no deja calificar, porque una cuenta
+sin nombre de empresa no sirve para nada después.
+
+**Cómo se decide** —y esto es de negocio, no del sistema—: hoy el criterio de referencia es que el
+volumen llegue a **500 kg**. PENDIENTE de confirmar si sigue vigente.
+
+### La línea de estados de un prospecto
+
+Como los pedidos y las órdenes de compra, un prospecto tiene su recorrido. Los cinco estados y lo que el
+sistema permite:
+
+| Estado | A dónde puede pasar |
+|---|---|
+| **nuevo** | contactado · calificado · descartado |
+| **contactado** | calificado · descartado |
+| **calificado** | descartado — o **convertido**, pero solo pulsando **Convertir**, no cambiando el estado |
+| **descartado** | **nuevo** (se puede reabrir) |
+| **convertido** | Ninguno: es el final del camino |
+
+Dos cosas que conviene notar en esa tabla:
+
+- **Se puede saltar "contactado"** e ir de nuevo directo a calificado. Si el cliente llegó recomendado y
+  ya sabes que le vas a vender, no tienes que inventar una llamada.
+- **Un descartado se puede reabrir.** Vuelve a *nuevo* y sigue teniendo su historial completo, incluido
+  el motivo por el que se descartó la primera vez.
+
+### Tarea 4: convertirlo en cliente
+
+**Menú → Prospectos**, y abre el prospecto. Cuando ya está **calificado**, aparece el botón
 **Convertir**. Con un solo clic el sistema crea tres cosas: la **Cuenta** (la empresa), el **Contacto**
 (la persona dentro de esa empresa) y una **Oportunidad** (la venta que se va a perseguir).
 
@@ -187,7 +264,7 @@ confundirlos:
 - Volver a capturar a alguien con su mismo correo esperando un registro nuevo (ver arriba).
 - Creer que "descartado" es "borrado". Sigue ahí, y se puede filtrar en la lista.
 
-## 6. Cuentas y contactos
+## 7. Cuentas y contactos
 
 **Para qué sirve:** la ficha de cada empresa cliente y de las personas que trabajan en ella.
 
@@ -215,7 +292,7 @@ platicado con ella. Es la pantalla que conviene tener abierta antes de llamarle 
 
 **[CAPTURA: la vista de una cuenta con sus oportunidades y pedidos]**
 
-## 7. Oportunidades
+## 8. Oportunidades
 
 **Para qué sirve:** seguirle la pista a cada venta desde que el cliente pregunta hasta que se gana o se
 pierde.
@@ -267,7 +344,7 @@ dando seguimiento a las muestras**.
 
 ### Tarea común: hacer una cotización
 
-1. Abre la oportunidad.
+1. **Menú → Oportunidades**, y abre la oportunidad.
 2. Crea la cotización con sus renglones y precios.
 3. Pulsa para generar el **PDF**, que trae su folio.
 4. **Descárgalo y mándalo tú** por correo o WhatsApp. El sistema no lo envía.
@@ -277,7 +354,7 @@ dando seguimiento a las muestras**.
 **Qué no puede hacer:** enviar la cotización. Y **no valida el precio**: puedes guardar un renglón en
 cero y nadie te va a avisar. PENDIENTE: quién autoriza un descuento.
 
-## 8. Pedidos
+## 9. Pedidos
 
 **Para qué sirve:** registrar lo que el cliente compró y **descontarlo del inventario** al entregarlo.
 
@@ -299,7 +376,7 @@ El sistema acepta fechas pasadas sin avisar, así que revísala.
 
 ### Tarea 2: confirmar
 
-Pulsa **Confirmar**. El sistema revisa que haya existencia.
+**Menú → Pedidos**, abre el pedido y pulsa **Confirmar**. El sistema revisa que haya existencia.
 
 > **OJO, esto es importante:** confirmar **revisa pero no aparta**. El producto sigue disponible para
 > otro pedido. Si dos vendedores confirman pedidos sobre los mismos kilos, los dos pasan, y el conflicto
@@ -307,7 +384,7 @@ Pulsa **Confirmar**. El sistema revisa que haya existencia.
 
 ### Tarea 3: entregar
 
-Pulsa **Entregar**. Aquí pasan tres cosas de golpe:
+**Menú → Pedidos**, abre el pedido confirmado y pulsa **Entregar**. Aquí pasan tres cosas de golpe:
 
 1. El sistema **descuenta el inventario**, y **sale primero el lote que caduca antes**. Esa decisión la
    toma el sistema; nadie tiene que elegir el lote a mano.
@@ -319,7 +396,8 @@ Pulsa **Entregar**. Aquí pasan tres cosas de golpe:
 
 ### Tarea 4: anotar el folio de la factura
 
-Cuando CONTPAQi ya emitió la factura, se captura aquí **solo el folio**. El sistema no factura ni
+**Menú → Pedidos**, abre el pedido. Cuando CONTPAQi ya emitió la factura, se captura ahí **solo el
+folio**. El sistema no factura ni
 verifica el folio: lo guarda como referencia.
 
 **Solo se puede capturar en un pedido confirmado o entregado.** En un borrador el sistema te pide
@@ -334,7 +412,7 @@ devolución, ni guardar dirección de entrega o guía del transportista.
 - Buscar cómo deshacer una entrega. **No se puede**: "entregado" es final. Un error se corrige con un
   ajuste de inventario, y eso lo hace Almacén.
 
-## 9. Correos
+## 10. Correos
 
 **Para qué sirve:** leer el buzón, **clasificar solo** cada mensaje y sugerir qué hacer con él.
 
@@ -344,6 +422,8 @@ devolución, ni guardar dirección de entrega o guía del transportista.
 
 El sistema lee y propone; **nunca actúa solo**. No responde, no borra, no archiva y no mueve nada en el
 buzón. Cada sugerencia se aplica con un clic humano.
+
+**Menú → Correos** para todo lo de este capítulo.
 
 ### Las dos formas de meter correos
 
@@ -368,18 +448,22 @@ mismo marcó como dudoso.
 - Pensar que "Cargar correos de ejemplo" va a traer el correo real de la empresa. No: son de práctica.
 - Esperar que el sistema conteste. No contesta. PENDIENTE: quién responde y con qué.
 
-## 10. Casos
+## 11. Casos
 
 **Para qué sirve:** llevar un problema del cliente hasta resolverlo. Sobre todo **reclamaciones de
 calidad**.
 
-**Quién escribe aquí:** Calidad, Atención a clientes, Ventas y Administración (los cuatro tienen
-`case:write`).
+**Quién lo crea:** **nadie, a mano.** Un caso nace **al aplicar la sugerencia de un correo
+clasificado**. No hay ningún formulario de alta en el sistema.
 
-> **Antes de nada: todavía no hay pantalla para abrir un caso a mano.** Un caso nace **al aplicar la
-> sugerencia de un correo clasificado**, o por la API. Eso significa que **una reclamación que llega por
-> teléfono no se puede registrar hoy**, salvo que alguien se mande a sí mismo un correo y lo clasifique.
-> Sí se puede cambiar el estado de un caso existente desde la pantalla. Está anotado en el backlog.
+**Quién trabaja un caso ya existente:** Calidad, Atención a clientes, Ventas y Administración. Esos
+cuatro pueden avanzar su estado, registrar actividades y subir evidencia.
+
+> **La consecuencia práctica, y es grande: una reclamación que llega por teléfono no se puede registrar
+> hoy.** El único camino es que alguien se mande a sí mismo un correo con el asunto del reclamo y lo
+> clasifique, lo cual es un truco, no un procedimiento. Está anotado en el backlog como UI-6, y es el
+> hueco más serio del módulo para una empacadora de alimentos, donde el caso es el vehículo de las
+> reclamaciones de calidad.
 
 Lo específico de este módulo: una reclamación de calidad **necesita el número de lote** para poder
 resolverse.
@@ -404,7 +488,77 @@ calidad, y con razón: sin lote no hay rastreo posible ni después.
 
 # PARTE II · La operación
 
-## 11. Inventario
+## 12. Productos, bodegas y lotes — el capítulo que va antes de todo lo demás
+
+**Para qué sirve:** definir **sobre qué** se lleva el inventario. Sin esto capturado, los movimientos no
+tienen dónde caer y **tres campos del producto que sostienen las alertas quedan vacíos**.
+
+**Quién escribe aquí:** Almacén, Abastecimiento y el administrador.
+
+Este capítulo va primero porque es la configuración que hace que lo demás sirva. Es trabajo de una sola
+vez, y es el que nadie quiere hacer.
+
+### Por qué importa tanto: tres campos del producto sostienen las alertas
+
+| Campo del producto | Qué se cae si está vacío |
+|---|---|
+| **Mínimo en kilos** | **La alerta de existencia baja nunca se dispara.** El sistema no tiene con qué comparar, así que el producto se puede acabar en silencio |
+| **Vida útil en días** | Si al recibir mercancía nadie captura la caducidad a mano, el sistema **la calcula sumando estos días**. Sin el dato y sin captura manual, el lote queda **sin caducidad** y **la alerta de lote por caducar nunca lo ve** |
+| **Kilos por unidad** | Es lo que convierte sacos y cajas a kilos. Si está mal, **todas las cantidades quedan mal**: la existencia, lo que se descuenta en una entrega y el disparo del mínimo |
+
+Dicho de otro modo: **el sistema no puede avisar de lo que no sabe medir.**
+
+### Tarea 1: dar de alta un producto
+
+1. **Menú → Inventario → Productos.**
+2. Captura la **clave** (única, se guarda en mayúsculas), el **nombre**, la categoría y las palabras
+   clave que ayuden a encontrarlo.
+3. Elige la **unidad** en la que lo manejas —kilogramos, saco, caja o tarima— y **cuántos kilos tiene una
+   unidad**. Si trabajas en kilos, es 1.
+4. Captura el **mínimo en kilos** y la **vida útil en días**. Para el sistema son opcionales; para que te
+   avise, son indispensables. Vuelve a leer la tabla de arriba antes de dejarlos en blanco.
+
+**[CAPTURA: el formulario de alta de producto, señalando mínimo, vida útil y kilos por unidad]**
+
+### Tarea 2: corregir un producto ya dado de alta
+
+1. **Menú → Inventario → Productos**, y abre el que quieras cambiar.
+2. Puedes cambiar cinco cosas: **unidad, kilos por unidad, empaque, mínimo en kilos y vida útil**.
+
+> **Lo que NO se puede cambiar:** la **clave**, el **nombre**, la **categoría** ni las palabras clave. Si
+> capturaste mal el nombre de un producto, **hoy no hay forma de corregirlo desde la pantalla**. No es que
+> te falte permiso: el sistema no lo permite para nadie. Está anotado en el backlog.
+
+### Tarea 3: dar de alta una bodega
+
+1. **Menú → Inventario → Bodegas.**
+2. Captura la **clave** (se guarda en mayúsculas), el **nombre** y la dirección.
+
+> **Las bodegas tampoco se pueden editar después.** Si algo quedó mal, se da de alta otra y la primera se
+> deja de usar. Anotado también.
+
+### Tarea 4: dar de alta un lote a mano
+
+1. **Menú → Inventario → Lotes.**
+2. Elige el producto, captura el **código de lote** y, si la sabes, la **caducidad**.
+
+**Normalmente no vas a usar esta pantalla**, porque los lotes se crean solos al recibir una orden de
+compra. Sirve para el arranque —meter al sistema lo que ya está en la bodega— y para casos sueltos.
+
+**Qué no puede hacer este módulo:** editar un producto más allá de esos cinco campos, editar bodegas,
+editar o borrar lotes, dar de baja un producto, y no guarda ningún costo ni precio de venta. Los precios
+de compra viven dentro de las órdenes; **no existe una lista de precios de venta**.
+
+**Errores de novato:**
+- Dar de alta los productos sin mínimo ni vida útil "para avanzar rápido", y después esperar que el
+  sistema avise. No va a avisar.
+- Poner mal los kilos por unidad. Un saco declarado de 25 kg que en realidad trae 50 hace que **todo el
+  inventario mienta**, y el sistema no tiene forma de notarlo.
+- Escribir mal el nombre de un producto. No se puede corregir.
+
+---
+
+## 13. Inventario
 
 **Para qué sirve:** saber **cuánto hay, de qué lote, en qué bodega y cuándo caduca**.
 
@@ -440,8 +594,8 @@ color cuando está cerca.
 
 ### Tarea 2: capturar un movimiento a mano
 
-Se usa cuando algo entró o salió sin pasar por un pedido ni por una compra. Elige el tipo, el producto,
-la bodega, la cantidad y **el lote**.
+**Menú → Inventario → Movimientos.** Se usa cuando algo entró o salió sin pasar por un pedido ni por una
+compra. Elige el tipo, el producto, la bodega, la cantidad y **el lote**.
 
 **No tienes que convertir a kilos tú.** El formulario tiene un campo de **unidad**: puedes capturar en
 kilogramos, **sacos, cajas o tarimas**, y el sistema hace la conversión con los kilos por unidad que
@@ -455,7 +609,8 @@ solo en kilos.**
 
 ### Tarea 3: hacer un ajuste
 
-Igual que un movimiento, con tipo **Ajuste**, y el sistema **te obliga a escribir el motivo**. Escribe
+**Menú → Inventario → Movimientos**, igual que un movimiento normal pero con tipo **Ajuste**, y el
+sistema **te obliga a escribir el motivo**. Escribe
 algo que se entienda en seis meses: "conteo físico del 15 de marzo, faltaban 3 kg", no "corrección".
 
 **Qué no puede hacer Inventario:** no valora el inventario en pesos, no registra conteos físicos como
@@ -467,7 +622,7 @@ borrar ni editar**. Para corregir, otro movimiento.
 - Capturar una salida sin lote (ver el aviso de arriba).
 - No poner motivo en un ajuste y no entender por qué no guarda.
 
-## 12. Abastecimiento
+## 14. Abastecimiento
 
 **Para qué sirve:** las órdenes de compra a proveedores, y **meter la mercancía al inventario cuando
 llega**.
@@ -498,7 +653,7 @@ saber si lo que te están cotizando hoy es caro — pero lo ves al revisar la or
 
 ### Tarea 2: enviarla
 
-Pulsa **Enviar**. Aquí el sistema decide solo:
+**Menú → Abastecimiento**, abre la orden en borrador y pulsa **Enviar**. Aquí el sistema decide solo:
 
 - Si el total **no pasa de $20,000**, queda **autorizada** de una vez.
 - Si **pasa de $20,000**, queda **por autorizar** y hay que esperar al administrador.
@@ -515,7 +670,8 @@ aprobarla. Si Abastecimiento tuviera esa llave, aprobaría sus propias compras.
 
 ### Tarea 3: recibir la mercancía
 
-Cuando llega el producto, pulsa **Recibir** y captura, renglón por renglón: los kilos que de verdad
+**Menú → Abastecimiento**, abre la orden autorizada. Cuando llega el producto, pulsa **Recibir** y
+captura, renglón por renglón: los kilos que de verdad
 llegaron, la bodega, y **el código de lote que viene en el costal o la etiqueta**.
 
 - **El código de lote es obligatorio.** Sin él no se puede recibir. Es lo que sostiene todo el rastreo.
@@ -539,7 +695,7 @@ del proveedor, ni registrar mercancía rechazada o devuelta. PENDIENTE lo del re
   medias**, que sigue estando "autorizada" y por tanto **sí se puede cancelar** — y cuando se cancela,
   **los kilos que ya entraron se quedan en el inventario**. Cancelar nunca deshace una entrada.
 
-## 13. Mantenimiento
+## 15. Mantenimiento
 
 **Para qué sirve:** que no se te pase el servicio de un camión ni la verificación de un equipo.
 
@@ -555,7 +711,7 @@ primero**. Un camión puede tener "cada 6 meses o cada 10,000 km, lo que llegue 
 
 ### Tarea 1: capturar el kilometraje
 
-Abre el activo y captura la lectura del odómetro.
+**Menú → Mantenimiento**, abre el activo y captura la lectura del odómetro.
 
 > **Esto es lo más importante del módulo.** La lectura **solo puede subir**: si capturas un número menor
 > el sistema lo rechaza, para protegerte de un error de dedo. Y tiene una consecuencia: **si nadie
@@ -564,12 +720,14 @@ Abre el activo y captura la lectura del odómetro.
 
 ### Tarea 2: abrir una orden de trabajo
 
-Cuando toca servicio, o cuando algo se rompió, abre la orden: si es **preventivo** (lo programado) o
-**correctivo** (se falló), y si lo hace el taller **interno** o un proveedor **externo**.
+**Menú → Mantenimiento → Órdenes.** Cuando toca servicio, o cuando algo se rompió, abre la orden: si es
+**preventivo** (lo programado) o **correctivo** (se falló), y si lo hace el taller **interno** o un
+proveedor **externo**. Si es externo, el nombre del proveedor es obligatorio.
 
 ### Tarea 3: cerrar la orden
 
-Al terminar, captura el costo, la fecha, el kilometraje y las notas. El sistema **reprograma el plan
+**Menú → Mantenimiento → Órdenes**, abre la orden. Al terminar el servicio, captura el costo, la fecha,
+el kilometraje y las notas. El sistema **reprograma el plan
 desde lo que realmente se hizo**, no desde lo que estaba programado. Así el plan no se desfasa con los
 meses.
 
@@ -580,7 +738,7 @@ descontar refacciones del inventario, desglosar mano de obra y piezas, y **hoy n
 orden desde la pantalla**, ni marcarla "en proceso", **ni desactivar un plan** que ya no aplique. Las
 tres funciones existen en el código sin puerta de entrada, y están anotadas.
 
-## 14. Tareas
+## 16. Tareas
 
 **Para qué sirve:** que no se te olvide lo que quedaste de hacer, y poder pedirle algo a otra área.
 
@@ -606,6 +764,24 @@ festivos. Una tarea creada el viernes a las 16:30 con 4 horas de plazo vence el 
 Cuando una tarea se pasa de su fecha, genera un **aviso** para quien la tenga asignada — siempre y cuando
 alguien haya pulsado "Revisar ahora" (ver el capítulo siguiente).
 
+### Tarea 1: ver qué te toca hoy
+
+1. **Menú → Tareas.**
+2. La lista abre en **pendientes**. Filtra por **urgencia** si quieres ver primero las altas.
+3. Verás las tuyas y las de tu área, porque una tarea puede estar dirigida a un rol completo.
+
+### Tarea 2: crear una tarea
+
+1. **Menú → Tareas**, y usa el formulario de abajo.
+2. Captura el título, elige el **área** responsable y la fecha de vencimiento.
+3. Recuerda el límite de arriba: **solo cuatro áreas** en la lista, y no se puede elegir a una persona.
+
+### Tarea 3: cerrar una tarea
+
+1. **Menú → Tareas**, y marca la tarea como atendida.
+2. **Antes de cerrarla, registra en la cuenta o el prospecto lo que hiciste.** La tarea desaparece de la
+   lista; la actividad es lo que le va a servir a quien atienda a ese cliente el mes que viene.
+
 **[CAPTURA: la lista de tareas filtrada por pendientes, con una vencida marcada]**
 
 **Qué no puede hacer:** no manda recordatorios por correo, y no hay subtareas ni dependencias entre
@@ -615,7 +791,7 @@ tareas.
 la actividad —la llamada, el correo, el acuerdo— es lo que le sirve al que atienda a ese cliente después.
 Regístrala en la cuenta o el prospecto.
 
-## 15. Avisos — el capítulo que hay que leer completo
+## 17. Avisos — el capítulo que hay que leer completo
 
 **Para qué sirve:** que el sistema te diga lo que se está por vencer antes de que te cueste dinero.
 
@@ -678,7 +854,7 @@ producto apaga ese recordatorio de forma permanente. Usa días.
 
 # PARTE III · Lo reservado
 
-## 16. Personal
+## 18. Personal
 
 **Para qué sirve:** el expediente de cada empleado y el control de sus contratos.
 
@@ -694,7 +870,7 @@ existe en el código pero no tiene puerta de entrada. Está anotado en el backlo
 
 ### Las tres tareas
 
-1. **Dar de alta el expediente** con el número de empleado (único) y el nombre.
+1. **Dar de alta el expediente:** **Menú → Personal**, con el número de empleado (único) y el nombre.
 2. **Registrar el contrato**: temporal o indeterminado, con sus fechas. **Solo puede haber un contrato
    vigente por persona.** Un contrato **temporal exige fecha de término, y posterior a la de inicio**. Y
    a alguien **dado de baja ya no se le puede registrar un contrato nuevo**. Sube el PDF escaneado.
@@ -713,7 +889,7 @@ incidencias, emitir contratos en PDF, ni conectarse con IMSS o SAT.
 > **Antes de cargar expedientes reales hace falta el aviso de privacidad firmado.** No es un detalle
 > técnico: es un requisito legal. Mientras no exista, el módulo debe usarse solo con datos de prueba.
 
-## 17. Caja chica
+## 19. Caja chica
 
 **Para qué sirve:** llevar el efectivo con su comprobante y entregarle al contador un archivo limpio.
 
@@ -724,7 +900,8 @@ guardado: se recalcula cada vez.
 
 ### Las tres tareas
 
-1. **Registrar un gasto:** monto, categoría, descripción y **el comprobante, que es obligatorio**. Sin
+1. **Registrar un gasto:** **Menú → Caja chica**, abre el fondo y captura monto, categoría, descripción
+   y **el comprobante, que es obligatorio**. Sin
    archivo adjunto el gasto no se guarda. Se acepta PDF, foto, XML o texto de hasta 15 MB. El sistema
    **guarda el archivo pero no lee lo que dice**: el monto lo capturas tú.
 2. **Registrar una reposición** cuando se acabe el efectivo. Aquí el comprobante es opcional.
@@ -741,7 +918,7 @@ Y **ningún movimiento se puede editar ni borrar**: para corregir, se captura el
 **Error de novato:** subir el comprobante y creer que el sistema leyó el monto del ticket. No lo lee. Si
 te equivocas al teclear el monto, el saldo queda mal y solo se corrige con otro movimiento.
 
-## 18. Documentos
+## 20. Documentos
 
 **Para qué sirve:** ver de un tirón **todo lo que está por vencerse**: pólizas, seguros,
 verificaciones, contratos escaneados.
@@ -766,7 +943,7 @@ documento tiene vencimiento, alguien lo captura y entonces el sistema avisa.
 **Qué no puede hacer:** borrar un documento (para no perder evidencia), editarlo después de subirlo, ni
 leer su contenido.
 
-## 19. Historial
+## 21. Historial
 
 **Para qué sirve:** saber **quién hizo qué, cuándo y desde dónde**. Es la razón de ser del sistema para
 una empresa que necesita auditar.
@@ -796,7 +973,7 @@ cambia de nombre o de área, su historial anterior no se reescribe.
 
 **[CAPTURA: el historial filtrado por usuario, señalando la columna Detalle]**
 
-## 20. Usuarios
+## 22. Usuarios
 
 **Para qué sirve:** dar de alta y de baja personas, cambiarles el área y la contraseña.
 
@@ -808,6 +985,84 @@ Dos reglas que el sistema impone:
   de alta como la que se cambie después.
 - **No se puede desactivar al último administrador activo**, ni quitarle el rol. Es una protección
   contra quedarse fuera del sistema sin nadie que pueda volver a entrar.
+
+### Tarea 1: dar de alta a una persona
+
+1. **Menú → Usuarios.**
+2. Captura su nombre, su correo (será su usuario) y elige su **rol**. Si dudas cuál, revisa la tabla de
+   los diez roles del capítulo 4.
+3. Ponle una **contraseña temporal de al menos 10 caracteres** y pídele que la cambie al entrar.
+
+### Tarea 2: cambiar a alguien de área
+
+1. **Menú → Usuarios**, y cámbiale el rol.
+2. **Su historial anterior no se reescribe.** Lo que hizo cuando era de Ventas sigue registrado como lo
+   que hizo entonces; el sistema guarda el correo congelado al momento de cada evento.
+
+### Tarea 3: dar de baja a alguien que ya no trabaja aquí
+
+1. **Menú → Usuarios**, y **desactívalo**. No lo borres: no hay botón de borrar, y es a propósito.
+2. Desactivar le quita el acceso y **conserva intacto todo su historial**.
+
+> **Hazlo el mismo día que la persona sale.** Una cuenta activa de alguien que ya no trabaja aquí es la
+> única forma de que el historial mienta sin que nadie se dé cuenta.
+
+---
+
+# PARTE IV · Cuidar el sistema
+
+## 23. Respaldos, contraseñas y qué hacer si algo se rompe
+
+Este capítulo no es de un módulo: es de cuidar el sistema. Es corto y conviene que lo lean todos.
+
+### El respaldo: quién, cómo y cada cuándo
+
+Toda la información del sistema vive en **un solo archivo**: `data/crm.db`. Eso tiene una ventaja y un
+riesgo. La ventaja es que respaldar es copiar un archivo. El riesgo es que si ese archivo se pierde, se
+pierde todo: clientes, existencias, expedientes, caja y el historial completo.
+
+**El sistema trae un comando para respaldar**, y hace la copia bien incluso con gente usando el sistema
+en ese momento:
+
+```
+python scripts/backup_db.py
+```
+
+Deja el archivo en la carpeta `backups/`, con la fecha y la hora en el nombre — por ejemplo
+`crm-20260926-1830.db`. Nada se sobrescribe: cada respaldo es uno nuevo.
+
+**Lo que el sistema NO hace, y hay que resolver fuera de él:**
+
+- **No respalda solo.** No hay nada programado: alguien tiene que correr el comando, o programarlo en el
+  servidor. PENDIENTE.
+- **No saca la copia de la computadora.** La carpeta `backups/` está en el mismo equipo que la base. Si
+  se moja, se roba o se quema esa máquina, se van las dos cosas juntas. **Un respaldo que vive en el
+  mismo lugar que el original no es un respaldo.** Hay que copiarlo a otro lado: disco externo, otro
+  equipo o la nube.
+- **No incluye los documentos escaneados.** Los archivos adjuntos —identificaciones, contratos,
+  comprobantes de caja, pólizas— viven en la carpeta `data/uploads/`, **no dentro de la base**. Hay que
+  respaldar esa carpeta también, o los registros van a apuntar a archivos que ya no existen.
+
+**Antes de cualquier cosa grande** —cargar datos reales, una actualización, mover el sistema de máquina—
+saca un respaldo a mano. Cuesta un minuto.
+
+### Qué hacer si algo se rompe
+
+1. **No borres nada, y no vuelvas a capturar "para arreglarlo".** En este sistema nada se corrige
+   borrando, y duplicar registros hace más difícil entender qué pasó.
+2. **Anota qué estabas haciendo, en qué pantalla y qué decía el mensaje.** Con eso y el historial se
+   reconstruye lo que pasó; sin eso, no.
+3. **Avísale a Erick.** Si el sistema dejó de responder, el respaldo más reciente es lo primero que va a
+   preguntar.
+
+### Las tres reglas de tu cuenta
+
+1. **No compartas tu contraseña ni uses la de otro.** Ya está en el capítulo 4, y se repite aquí porque
+   es la que sostiene todo lo demás: el historial es confiable únicamente si cada sesión es de una sola
+   persona.
+2. **Diez caracteres como mínimo**, y cámbiala la primera vez que entres si te la dieron temporal.
+3. **Cuando alguien deja de trabajar aquí, su cuenta se desactiva el mismo día.** Le toca al
+   administrador, y es la única forma de que el historial no empiece a mentir.
 
 ---
 
@@ -834,97 +1089,12 @@ Una línea por término. Están en el orden en que te los vas a topar.
 
 ---
 
-# Preguntas abiertas para La Huerta
+# Las preguntas abiertas viven en otro documento
 
-Esta lista importa tanto como el manual. Son las cosas que **no se pueden contestar leyendo el sistema**
-y que cambian decisiones. Agrupadas por módulo.
+Las cosas que **no se pueden contestar leyendo el sistema** —y que cambian decisiones— están en
+**`docs/13_GUIA_DE_JUNTA.md`**, agrupadas por persona y en el orden en que conviene preguntarlas: una
+sesión por área, con el diagrama de esa persona enfrente.
 
-### Prospectos y correos
-1. ¿Quién atiende cada canal hoy — web, WhatsApp, teléfono, correo — y en cuánto tiempo se responde?
-2. ¿Sigue habiendo un solo buzón (`administracion@`)? ¿Quién lo abre?
-3. ¿Cuántos correos llegan al día? Define si bastan las reglas actuales.
-4. ¿Sigue vigente el mínimo de 500 kg para calificar a un cliente?
-5. ¿Quién le contesta al cliente, y con qué? El sistema no responde correos.
-
-### Oportunidades y cotizaciones
-6. ¿Se usan de verdad las etapas "Desarrollo de fórmula" y "Muestra aprobada", o conviene juntarlas con
-   las vecinas?
-7. **¿Quién autoriza un descuento o un precio especial?** Hoy el sistema acepta cualquier precio,
-   incluso cero, sin avisar.
-8. ¿Se necesitan versiones de una misma cotización (v2, v3) durante la negociación?
-
-### Pedidos
-9. **Cuando confirman un pedido, ¿apartan el producto físicamente en la bodega, o se surte hasta el día
-   de la salida? ¿Ha pasado que dos pedidos prometan el mismo producto y no alcance?**
-10. **¿Les pasa que surten un pedido a medias? Si sí, ¿cómo lo registran y cómo sabe el cliente qué le
-    queda pendiente?**
-11. ¿Quién captura el pedido: el vendedor o Administración?
-12. ¿Quién captura el folio de la factura, y en qué momento: al facturar o al cobrar?
-13. ¿El reparto es propio o por paquetería? ¿Se firma evidencia de entrega?
-13b. **¿Debería Almacén poder registrar la entrega en el sistema?** Hoy no puede: quien surte no es quien
-    marca "Entregar". Si en la práctica el almacenista es el que sabe cuándo salió la mercancía, habría
-    que darle ese permiso.
-14. ¿El sistema debería avisar de facturas por cobrar? Hoy no lleva cobranza.
-
-### Inventario
-15. **Cuando un cliente les regresa mercancía, o cuando el proveedor manda producto que no pasa calidad,
-    ¿qué hacen con esos kilos: los vuelven a meter al almacén, los separan, los tiran? ¿Quién lo anota?**
-16. ¿Con qué frecuencia hacen conteo físico, y quién puede ajustar una diferencia?
-17. ¿Qué hacen hoy con un lote que ya caducó? El sistema no impide venderlo.
-18. ¿Debería poderse **bloquear** un lote sospechoso para que no salga? Hoy no existe.
-19. El inventario ya acepta captura en sacos, cajas y tarimas y convierte a kilos solo; **las órdenes de compra, en cambio, solo aceptan kilos**. ¿Compran en sacos? Si sí, hay que llevar la conversión también a compras.
-
-### Abastecimiento
-20. ¿Quién revisa el aviso de existencia baja, y cada cuándo?
-21. ¿Se compra por mínimos, por temporada, o cuando lo pide producción?
-22. **¿Cómo le avisa hoy Almacén a Abastecimiento que hay que comprar?** El sistema no tiene mensajes
-    entre áreas.
-23. ¿Se piden varias cotizaciones antes de comprar? El sistema no las guarda.
-24. **¿El umbral de $20,000 para pedir autorización es el real?**
-25. **¿Quién aprueba las compras: el dueño, o hace falta un jefe de compras que autorice sin poder crear
-    órdenes?**
-26. ¿Quién recibe en el andén y quién revisa calidad y caducidad?
-27. ¿Se rechaza un lote con poca vida útil? ¿Cuál es el mínimo aceptable?
-28. ¿Hay importaciones en otra moneda?
-
-### Mantenimiento
-29. **¿Quién captura el kilometraje de los camiones, y cada cuándo?** Sin eso, los planes por kilómetros
-    no avisan.
-30. ¿Qué equipos existen hoy y quién los lleva?
-31. ¿Hay programas de mantenimiento escritos, o los define el mecánico por costumbre?
-32. ¿Se piden cotizaciones para un servicio externo, y quién lo autoriza?
-33. ¿Las refacciones se llevan en inventario? Hoy el mantenimiento no descuenta piezas.
-
-### Personal
-34. **¿Existe ya el aviso de privacidad firmado?** Es obligatorio antes de cargar expedientes reales.
-35. ¿Hacen falta RFC, CURP, NSS, domicilio y salario en el expediente? Hoy no se guardan.
-36. ¿Se necesita reporte de rotación? Hoy la fecha y el motivo de baja van en notas libres.
-37. ¿Con qué sistema se calcula la nómina?
-38. ¿Se lleva asistencia, vacaciones o incidencias en algún lado?
-39. ¿Existen descripciones de puesto escritas?
-
-### Caja chica
-40. ¿Cuántas cajas hay, de cuánto, y quién responde por cada una?
-41. ¿Quién puede gastar y hasta qué monto sin pedir permiso?
-42. ¿Hoy alguien autoriza el gasto antes de capturarlo? El sistema no tiene aprobación.
-43. ¿Quién repone la caja y con qué autorización?
-44. ¿Qué formato necesita el contador, y cada cuándo se lo entregan?
-45. ¿Se hace arqueo o conteo físico de la caja?
-46. ¿Hay cierre de periodo mensual? Hoy la caja es un flujo continuo.
-
-### Avisos
-47. **¿Quién va a pulsar "Revisar ahora" todos los días?** O se programa para que corra solo.
-48. ¿A quién y por qué medio deberían llegar los avisos: correo, WhatsApp, o basta la pantalla?
-49. ¿Debe cualquier rol poder silenciar un aviso, incluso "solo lectura"?
-
-### Roles y uso
-50. ¿Existen de verdad las diez áreas, o una sola persona cubre varias?
-51. ¿Quién trabajará en computadora y quién en celular?
-52. ¿El director quiere ver el historial sin poder editar nada?
-53. ¿Qué número quiere ver primero el director al entrar?
-
-### Calidad
-54. ¿Qué procedimiento siguen hoy ante una reclamación, y quién decide si se repone o se bonifica?
-55. ¿Esto reemplaza un sistema de calidad o convive con uno? El sistema **no es un QMS**: las no
-    conformidades se llevan como casos.
-56. ¿Qué pide FSSC 22000 que hoy no esté cubierto?
+Se sacaron de este manual a propósito. El manual es para quien va a **usar** el sistema, y conserva cada
+**PENDIENTE** en el capítulo donde importa. La lista completa es para quien va a **decidir**, y esa
+conversación se tiene una vez, no se consulta a diario.

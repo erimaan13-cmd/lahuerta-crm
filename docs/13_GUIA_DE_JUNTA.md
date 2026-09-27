@@ -1,6 +1,8 @@
 # 13 · Guía de junta con Empacadora La Huerta
 
-Las 56 preguntas del manual están agrupadas por módulo. Esta guía las reordena **por persona**,
+**Este documento es la lista completa de preguntas abiertas.** El manual conserva cada PENDIENTE en el
+capítulo donde importa, pero ya no lleva la lista entera: es para quien va a *usar* el sistema, y esta
+guía es para quien va a *decidir*. Aquí las preguntas están reordenadas **por persona**,
 que es como vas a usarlas: sentándote con cada quien, enseñándole su diagrama y preguntándole
 "¿así es tu día?".
 
